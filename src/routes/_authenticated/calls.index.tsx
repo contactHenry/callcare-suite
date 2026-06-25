@@ -18,11 +18,18 @@ function CallsList() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("calls")
-        .select("*, contacts(name), profiles!calls_agent_id_fkey(full_name), qa_reviews(overall_score)")
+        .select("*, contacts(name), qa_reviews(overall_score)")
         .order("started_at", { ascending: false })
         .limit(100);
       if (error) throw error;
-      return data as any[];
+      const rows = (data ?? []) as any[];
+      const ids = Array.from(new Set(rows.map((r) => r.agent_id)));
+      let profiles: Record<string, string> = {};
+      if (ids.length) {
+        const { data: profs } = await supabase.from("profiles").select("id, full_name").in("id", ids);
+        profiles = Object.fromEntries((profs ?? []).map((p) => [p.id, p.full_name ?? ""]));
+      }
+      return rows.map((r) => ({ ...r, agent_name: profiles[r.agent_id] ?? "—" }));
     },
   });
 
@@ -64,11 +71,15 @@ function CallsList() {
                       </Link>
                     </TableCell>
                     <TableCell>{c.contacts?.name ?? "—"}</TableCell>
-                    <TableCell>{c.profiles?.full_name ?? "—"}</TableCell>
+                <TableCell>{c.agent_name}</TableCell>
                     <TableCell className="capitalize">{c.direction}</TableCell>
                     <TableCell className="capitalize">{c.outcome}</TableCell>
                     <TableCell className="text-right">
-                      {score != null ? <Badge variant="secondary">{Math.round(Number(score))}%</Badge> : <span className="text-xs text-muted-foreground">Pending</span>}
+                      {c.qa_reviews && score != null ? (
+                        <Badge variant="secondary">{Math.round(Number(score))}%</Badge>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">Pending</span>
+                      )}
                     </TableCell>
                   </TableRow>
                 );
