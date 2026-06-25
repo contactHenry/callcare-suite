@@ -17,6 +17,7 @@ import { Route as AuthenticatedContactsIndexRouteImport } from './routes/_authen
 import { Route as AuthenticatedCallsIndexRouteImport } from './routes/_authenticated/calls.index'
 import { Route as AuthenticatedContactsIdRouteImport } from './routes/_authenticated/contacts.$id'
 import { Route as AuthenticatedCallsNewRouteImport } from './routes/_authenticated/calls.new'
+import { Route as AuthenticatedCallsIdRouteImport } from './routes/_authenticated/calls.$id'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -58,11 +59,17 @@ const AuthenticatedCallsNewRoute = AuthenticatedCallsNewRouteImport.update({
   path: '/calls/new',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedCallsIdRoute = AuthenticatedCallsIdRouteImport.update({
+  id: '/calls/$id',
+  path: '/calls/$id',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/calls/$id': typeof AuthenticatedCallsIdRoute
   '/calls/new': typeof AuthenticatedCallsNewRoute
   '/contacts/$id': typeof AuthenticatedContactsIdRoute
   '/calls/': typeof AuthenticatedCallsIndexRoute
@@ -72,6 +79,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/calls/$id': typeof AuthenticatedCallsIdRoute
   '/calls/new': typeof AuthenticatedCallsNewRoute
   '/contacts/$id': typeof AuthenticatedContactsIdRoute
   '/calls': typeof AuthenticatedCallsIndexRoute
@@ -83,6 +91,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/calls/$id': typeof AuthenticatedCallsIdRoute
   '/_authenticated/calls/new': typeof AuthenticatedCallsNewRoute
   '/_authenticated/contacts/$id': typeof AuthenticatedContactsIdRoute
   '/_authenticated/calls/': typeof AuthenticatedCallsIndexRoute
@@ -94,6 +103,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/dashboard'
+    | '/calls/$id'
     | '/calls/new'
     | '/contacts/$id'
     | '/calls/'
@@ -103,6 +113,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/dashboard'
+    | '/calls/$id'
     | '/calls/new'
     | '/contacts/$id'
     | '/calls'
@@ -113,6 +124,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/auth'
     | '/_authenticated/dashboard'
+    | '/_authenticated/calls/$id'
     | '/_authenticated/calls/new'
     | '/_authenticated/contacts/$id'
     | '/_authenticated/calls/'
@@ -183,11 +195,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCallsNewRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/calls/$id': {
+      id: '/_authenticated/calls/$id'
+      path: '/calls/$id'
+      fullPath: '/calls/$id'
+      preLoaderRoute: typeof AuthenticatedCallsIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedCallsIdRoute: typeof AuthenticatedCallsIdRoute
   AuthenticatedCallsNewRoute: typeof AuthenticatedCallsNewRoute
   AuthenticatedContactsIdRoute: typeof AuthenticatedContactsIdRoute
   AuthenticatedCallsIndexRoute: typeof AuthenticatedCallsIndexRoute
@@ -196,6 +216,7 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedCallsIdRoute: AuthenticatedCallsIdRoute,
   AuthenticatedCallsNewRoute: AuthenticatedCallsNewRoute,
   AuthenticatedContactsIdRoute: AuthenticatedContactsIdRoute,
   AuthenticatedCallsIndexRoute: AuthenticatedCallsIndexRoute,
