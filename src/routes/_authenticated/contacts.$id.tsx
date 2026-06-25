@@ -69,7 +69,8 @@ function ContactDetail() {
           <CardContent className="space-y-2">
             {calls.length === 0 && <p className="text-sm text-muted-foreground">No calls logged yet.</p>}
             {calls.map((c) => {
-              const score = c.qa_reviews?.[0]?.overall_score;
+              const qa = Array.isArray(c.qa_reviews) ? c.qa_reviews[0] : c.qa_reviews;
+              const score = qa?.overall_score;
               return (
                 <Link
                   key={c.id}
