@@ -15,6 +15,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedContactsIndexRouteImport } from './routes/_authenticated/contacts.index'
 import { Route as AuthenticatedCallsIndexRouteImport } from './routes/_authenticated/calls.index'
+import { Route as AuthenticatedQaCriteriaRouteImport } from './routes/_authenticated/qa.criteria'
 import { Route as AuthenticatedContactsIdRouteImport } from './routes/_authenticated/contacts.$id'
 import { Route as AuthenticatedCallsNewRouteImport } from './routes/_authenticated/calls.new'
 import { Route as AuthenticatedCallsIdRouteImport } from './routes/_authenticated/calls.$id'
@@ -49,6 +50,11 @@ const AuthenticatedCallsIndexRoute = AuthenticatedCallsIndexRouteImport.update({
   path: '/calls/',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedQaCriteriaRoute = AuthenticatedQaCriteriaRouteImport.update({
+  id: '/qa/criteria',
+  path: '/qa/criteria',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedContactsIdRoute = AuthenticatedContactsIdRouteImport.update({
   id: '/contacts/$id',
   path: '/contacts/$id',
@@ -72,6 +78,7 @@ export interface FileRoutesByFullPath {
   '/calls/$id': typeof AuthenticatedCallsIdRoute
   '/calls/new': typeof AuthenticatedCallsNewRoute
   '/contacts/$id': typeof AuthenticatedContactsIdRoute
+  '/qa/criteria': typeof AuthenticatedQaCriteriaRoute
   '/calls/': typeof AuthenticatedCallsIndexRoute
   '/contacts/': typeof AuthenticatedContactsIndexRoute
 }
@@ -82,6 +89,7 @@ export interface FileRoutesByTo {
   '/calls/$id': typeof AuthenticatedCallsIdRoute
   '/calls/new': typeof AuthenticatedCallsNewRoute
   '/contacts/$id': typeof AuthenticatedContactsIdRoute
+  '/qa/criteria': typeof AuthenticatedQaCriteriaRoute
   '/calls': typeof AuthenticatedCallsIndexRoute
   '/contacts': typeof AuthenticatedContactsIndexRoute
 }
@@ -94,6 +102,7 @@ export interface FileRoutesById {
   '/_authenticated/calls/$id': typeof AuthenticatedCallsIdRoute
   '/_authenticated/calls/new': typeof AuthenticatedCallsNewRoute
   '/_authenticated/contacts/$id': typeof AuthenticatedContactsIdRoute
+  '/_authenticated/qa/criteria': typeof AuthenticatedQaCriteriaRoute
   '/_authenticated/calls/': typeof AuthenticatedCallsIndexRoute
   '/_authenticated/contacts/': typeof AuthenticatedContactsIndexRoute
 }
@@ -106,6 +115,7 @@ export interface FileRouteTypes {
     | '/calls/$id'
     | '/calls/new'
     | '/contacts/$id'
+    | '/qa/criteria'
     | '/calls/'
     | '/contacts/'
   fileRoutesByTo: FileRoutesByTo
@@ -116,6 +126,7 @@ export interface FileRouteTypes {
     | '/calls/$id'
     | '/calls/new'
     | '/contacts/$id'
+    | '/qa/criteria'
     | '/calls'
     | '/contacts'
   id:
@@ -127,6 +138,7 @@ export interface FileRouteTypes {
     | '/_authenticated/calls/$id'
     | '/_authenticated/calls/new'
     | '/_authenticated/contacts/$id'
+    | '/_authenticated/qa/criteria'
     | '/_authenticated/calls/'
     | '/_authenticated/contacts/'
   fileRoutesById: FileRoutesById
@@ -181,6 +193,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCallsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/qa/criteria': {
+      id: '/_authenticated/qa/criteria'
+      path: '/qa/criteria'
+      fullPath: '/qa/criteria'
+      preLoaderRoute: typeof AuthenticatedQaCriteriaRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/contacts/$id': {
       id: '/_authenticated/contacts/$id'
       path: '/contacts/$id'
@@ -210,6 +229,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedCallsIdRoute: typeof AuthenticatedCallsIdRoute
   AuthenticatedCallsNewRoute: typeof AuthenticatedCallsNewRoute
   AuthenticatedContactsIdRoute: typeof AuthenticatedContactsIdRoute
+  AuthenticatedQaCriteriaRoute: typeof AuthenticatedQaCriteriaRoute
   AuthenticatedCallsIndexRoute: typeof AuthenticatedCallsIndexRoute
   AuthenticatedContactsIndexRoute: typeof AuthenticatedContactsIndexRoute
 }
@@ -219,6 +239,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCallsIdRoute: AuthenticatedCallsIdRoute,
   AuthenticatedCallsNewRoute: AuthenticatedCallsNewRoute,
   AuthenticatedContactsIdRoute: AuthenticatedContactsIdRoute,
+  AuthenticatedQaCriteriaRoute: AuthenticatedQaCriteriaRoute,
   AuthenticatedCallsIndexRoute: AuthenticatedCallsIndexRoute,
   AuthenticatedContactsIndexRoute: AuthenticatedContactsIndexRoute,
 }
