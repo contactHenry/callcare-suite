@@ -62,7 +62,8 @@ function CallsList() {
                 <TableRow><TableCell colSpan={6} className="text-center text-sm text-muted-foreground py-10">No calls yet.</TableCell></TableRow>
               )}
               {calls.map((c) => {
-                const score = c.qa_reviews?.[0]?.overall_score;
+                const qa = Array.isArray(c.qa_reviews) ? c.qa_reviews[0] : c.qa_reviews;
+                const score = qa?.overall_score;
                 return (
                   <TableRow key={c.id} className="cursor-pointer hover:bg-accent/30">
                     <TableCell>
