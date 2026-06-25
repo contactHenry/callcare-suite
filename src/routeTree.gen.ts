@@ -14,6 +14,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedContactsIndexRouteImport } from './routes/_authenticated/contacts.index'
+import { Route as AuthenticatedCallsIndexRouteImport } from './routes/_authenticated/calls.index'
 import { Route as AuthenticatedContactsIdRouteImport } from './routes/_authenticated/contacts.$id'
 
 const AuthRoute = AuthRouteImport.update({
@@ -41,6 +42,11 @@ const AuthenticatedContactsIndexRoute =
     path: '/contacts/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedCallsIndexRoute = AuthenticatedCallsIndexRouteImport.update({
+  id: '/calls/',
+  path: '/calls/',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedContactsIdRoute = AuthenticatedContactsIdRouteImport.update({
   id: '/contacts/$id',
   path: '/contacts/$id',
@@ -52,6 +58,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/contacts/$id': typeof AuthenticatedContactsIdRoute
+  '/calls/': typeof AuthenticatedCallsIndexRoute
   '/contacts/': typeof AuthenticatedContactsIndexRoute
 }
 export interface FileRoutesByTo {
@@ -59,6 +66,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/contacts/$id': typeof AuthenticatedContactsIdRoute
+  '/calls': typeof AuthenticatedCallsIndexRoute
   '/contacts': typeof AuthenticatedContactsIndexRoute
 }
 export interface FileRoutesById {
@@ -68,13 +76,20 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/contacts/$id': typeof AuthenticatedContactsIdRoute
+  '/_authenticated/calls/': typeof AuthenticatedCallsIndexRoute
   '/_authenticated/contacts/': typeof AuthenticatedContactsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/dashboard' | '/contacts/$id' | '/contacts/'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/dashboard'
+    | '/contacts/$id'
+    | '/calls/'
+    | '/contacts/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/dashboard' | '/contacts/$id' | '/contacts'
+  to: '/' | '/auth' | '/dashboard' | '/contacts/$id' | '/calls' | '/contacts'
   id:
     | '__root__'
     | '/'
@@ -82,6 +97,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/_authenticated/dashboard'
     | '/_authenticated/contacts/$id'
+    | '/_authenticated/calls/'
     | '/_authenticated/contacts/'
   fileRoutesById: FileRoutesById
 }
@@ -128,6 +144,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedContactsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/calls/': {
+      id: '/_authenticated/calls/'
+      path: '/calls'
+      fullPath: '/calls/'
+      preLoaderRoute: typeof AuthenticatedCallsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/contacts/$id': {
       id: '/_authenticated/contacts/$id'
       path: '/contacts/$id'
@@ -141,12 +164,14 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedContactsIdRoute: typeof AuthenticatedContactsIdRoute
+  AuthenticatedCallsIndexRoute: typeof AuthenticatedCallsIndexRoute
   AuthenticatedContactsIndexRoute: typeof AuthenticatedContactsIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedContactsIdRoute: AuthenticatedContactsIdRoute,
+  AuthenticatedCallsIndexRoute: AuthenticatedCallsIndexRoute,
   AuthenticatedContactsIndexRoute: AuthenticatedContactsIndexRoute,
 }
 
