@@ -16,6 +16,7 @@ import { Route as AuthenticatedDashboardRouteImport } from './routes/_authentica
 import { Route as AuthenticatedContactsIndexRouteImport } from './routes/_authenticated/contacts.index'
 import { Route as AuthenticatedCallsIndexRouteImport } from './routes/_authenticated/calls.index'
 import { Route as AuthenticatedContactsIdRouteImport } from './routes/_authenticated/contacts.$id'
+import { Route as AuthenticatedCallsNewRouteImport } from './routes/_authenticated/calls.new'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -52,11 +53,17 @@ const AuthenticatedContactsIdRoute = AuthenticatedContactsIdRouteImport.update({
   path: '/contacts/$id',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedCallsNewRoute = AuthenticatedCallsNewRouteImport.update({
+  id: '/calls/new',
+  path: '/calls/new',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/calls/new': typeof AuthenticatedCallsNewRoute
   '/contacts/$id': typeof AuthenticatedContactsIdRoute
   '/calls/': typeof AuthenticatedCallsIndexRoute
   '/contacts/': typeof AuthenticatedContactsIndexRoute
@@ -65,6 +72,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/calls/new': typeof AuthenticatedCallsNewRoute
   '/contacts/$id': typeof AuthenticatedContactsIdRoute
   '/calls': typeof AuthenticatedCallsIndexRoute
   '/contacts': typeof AuthenticatedContactsIndexRoute
@@ -75,6 +83,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/calls/new': typeof AuthenticatedCallsNewRoute
   '/_authenticated/contacts/$id': typeof AuthenticatedContactsIdRoute
   '/_authenticated/calls/': typeof AuthenticatedCallsIndexRoute
   '/_authenticated/contacts/': typeof AuthenticatedContactsIndexRoute
@@ -85,17 +94,26 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/dashboard'
+    | '/calls/new'
     | '/contacts/$id'
     | '/calls/'
     | '/contacts/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/dashboard' | '/contacts/$id' | '/calls' | '/contacts'
+  to:
+    | '/'
+    | '/auth'
+    | '/dashboard'
+    | '/calls/new'
+    | '/contacts/$id'
+    | '/calls'
+    | '/contacts'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/auth'
     | '/_authenticated/dashboard'
+    | '/_authenticated/calls/new'
     | '/_authenticated/contacts/$id'
     | '/_authenticated/calls/'
     | '/_authenticated/contacts/'
@@ -158,11 +176,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedContactsIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/calls/new': {
+      id: '/_authenticated/calls/new'
+      path: '/calls/new'
+      fullPath: '/calls/new'
+      preLoaderRoute: typeof AuthenticatedCallsNewRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedCallsNewRoute: typeof AuthenticatedCallsNewRoute
   AuthenticatedContactsIdRoute: typeof AuthenticatedContactsIdRoute
   AuthenticatedCallsIndexRoute: typeof AuthenticatedCallsIndexRoute
   AuthenticatedContactsIndexRoute: typeof AuthenticatedContactsIndexRoute
@@ -170,6 +196,7 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedCallsNewRoute: AuthenticatedCallsNewRoute,
   AuthenticatedContactsIdRoute: AuthenticatedContactsIdRoute,
   AuthenticatedCallsIndexRoute: AuthenticatedCallsIndexRoute,
   AuthenticatedContactsIndexRoute: AuthenticatedContactsIndexRoute,
