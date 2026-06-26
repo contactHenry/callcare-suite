@@ -23,10 +23,10 @@ export const Route = createFileRoute("/_authenticated/contacts/")({
   component: ContactsList,
 });
 
-const STATUS_VARIANT: Record<string, "default" | "secondary" | "outline" | "destructive"> = {
-  lead: "secondary",
-  customer: "default",
-  churned: "outline",
+const STATUS_CLASS: Record<string, string> = {
+  customer: "bg-green-100 text-green-800 border-green-200 hover:bg-green-100",
+  lead: "bg-yellow-100 text-yellow-800 border-yellow-200 hover:bg-yellow-100",
+  churned: "bg-red-100 text-red-800 border-red-200 hover:bg-red-100",
 };
 
 function ContactsList() {
@@ -113,7 +113,7 @@ function ContactsList() {
                   <TableCell>{c.company ?? "—"}</TableCell>
                   <TableCell>{c.phone ?? "—"}</TableCell>
                   <TableCell>
-                    <Badge variant={STATUS_VARIANT[c.status] ?? "secondary"} className="capitalize">{c.status}</Badge>
+                    <Badge variant="outline" className={`capitalize ${STATUS_CLASS[c.status] ?? ""}`}>{c.status}</Badge>
                   </TableCell>
                 </TableRow>
               ))}
