@@ -99,7 +99,7 @@ function Dashboard() {
                     <Icon className="size-4 text-muted-foreground" />
                   </CardHeader>
                   <CardContent>
-                    <div className="text-2xl font-semibold">{t.value}</div>
+                    <div className="text-3xl font-semibold tracking-tight">{t.value}</div>
                   </CardContent>
                 </Card>
               </Link>
