@@ -71,7 +71,7 @@ function ContactsList() {
                   setOpen(false);
                   qc.invalidateQueries({ queryKey: ["contacts"] });
                 }}
-                ownerId={user!.id}
+                ownerId={user?.id ?? ""}
               />
             </DialogContent>
           </Dialog>
