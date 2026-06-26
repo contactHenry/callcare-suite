@@ -54,7 +54,7 @@ function CallsList() {
             Showing sample data for preview. Log a call to see live entries.
           </div>
         )}
-        <Card>
+        <Card className="rounded-none border-0 shadow-none bg-transparent p-0">
           <Table>
             <TableHeader>
               <TableRow>
