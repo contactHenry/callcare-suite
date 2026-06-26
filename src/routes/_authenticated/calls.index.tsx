@@ -9,6 +9,20 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Plus } from "lucide-react";
 import { DUMMY_CALLS } from "@/lib/dummy-data";
 
+const OUTCOME_CLASS: Record<string, string> = {
+  resolved: "bg-green-100 text-green-800 hover:bg-green-100",
+  follow_up: "bg-yellow-100 text-yellow-800 hover:bg-yellow-100",
+  escalated: "bg-red-100 text-red-800 hover:bg-red-100",
+  no_answer: "bg-red-100 text-red-800 hover:bg-red-100",
+  voicemail: "bg-yellow-100 text-yellow-800 hover:bg-yellow-100",
+};
+
+function qaClass(score: number) {
+  if (score >= 80) return "bg-green-100 text-green-800 hover:bg-green-100";
+  if (score >= 65) return "bg-yellow-100 text-yellow-800 hover:bg-yellow-100";
+  return "bg-red-100 text-red-800 hover:bg-red-100";
+}
+
 export const Route = createFileRoute("/_authenticated/calls/")({
   component: CallsList,
 });
@@ -84,10 +98,14 @@ function CallsList() {
                     <TableCell>{c.contacts?.name ?? "—"}</TableCell>
                 <TableCell>{c.agent_name}</TableCell>
                     <TableCell className="capitalize">{c.direction}</TableCell>
-                    <TableCell className="capitalize">{c.outcome}</TableCell>
+                    <TableCell>
+                      <Badge className={`capitalize border-0 ${OUTCOME_CLASS[c.outcome] ?? "bg-muted text-muted-foreground"}`}>
+                        {String(c.outcome).replace("_", " ")}
+                      </Badge>
+                    </TableCell>
                     <TableCell className="text-right">
                       {score != null ? (
-                        <Badge variant="secondary">{Math.round(Number(score))}%</Badge>
+                        <Badge className={`border-0 ${qaClass(Number(score))}`}>{Math.round(Number(score))}%</Badge>
                       ) : (
                         <span className="text-xs text-muted-foreground">Pending</span>
                       )}
