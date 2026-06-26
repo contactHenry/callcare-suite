@@ -75,13 +75,13 @@ function AuthPage() {
           <span className="font-semibold text-lg tracking-tight">Call Centre</span>
         </div>
 
-        <div className="relative z-10 flex-1 flex items-center justify-center py-8">
+        <div className="relative z-10 flex-1 flex items-start justify-center pt-4">
           <img
             src={authDashboard}
             alt="Analytics dashboard illustration"
             width={896}
             height={768}
-            className="w-full max-w-lg drop-shadow-2xl select-none pointer-events-none"
+            className="w-[78%] max-w-md -rotate-3 rounded-xl shadow-[0_30px_80px_-20px_rgba(0,0,0,0.55)] select-none pointer-events-none"
           />
         </div>
 
