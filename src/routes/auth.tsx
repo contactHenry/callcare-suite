@@ -8,8 +8,8 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { Headset, Phone, ClipboardCheck, Users } from "lucide-react";
-import authHero from "@/assets/auth-hero.jpg";
+import { Headset, ArrowLeft, ArrowRight } from "lucide-react";
+import authDashboard from "@/assets/auth-dashboard.png";
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
@@ -57,105 +57,123 @@ function AuthPage() {
   }
 
   return (
-    <div className="min-h-screen grid lg:grid-cols-2 bg-muted/30">
-      {/* Left: brand / product panel */}
-      <aside className="relative hidden lg:flex flex-col justify-between p-10 bg-primary text-primary-foreground overflow-hidden">
-        <div className="flex items-center gap-2">
-          <div className="size-9 rounded-md bg-primary-foreground/10 flex items-center justify-center">
+    <div className="min-h-screen grid lg:grid-cols-2 bg-background">
+      {/* Left: purple brand panel with floating illustration */}
+      <aside
+        className="relative hidden lg:flex flex-col justify-between p-12 overflow-hidden text-white"
+        style={{ background: "linear-gradient(160deg, #5b21b6 0%, #4c1d95 60%, #3b0d80 100%)" }}
+      >
+        {/* Decorative circles */}
+        <div className="absolute -top-24 -left-24 size-80 rounded-full bg-white/10 blur-2xl" />
+        <div className="absolute top-10 -left-16 size-56 rounded-full bg-fuchsia-400/20" />
+        <div className="absolute -bottom-28 -right-20 size-96 rounded-full bg-violet-300/20" />
+        <div className="absolute bottom-24 right-10 size-24 rounded-full bg-indigo-300/30" />
+
+        <div className="relative z-10 flex items-center gap-2">
+          <div className="size-9 rounded-md bg-white/15 flex items-center justify-center backdrop-blur">
             <Headset className="size-5" />
           </div>
-          <span className="font-semibold text-lg">Call Centre</span>
+          <span className="font-semibold text-lg tracking-tight">Call Centre</span>
         </div>
 
-        <div className="relative z-10 space-y-6 max-w-md">
-          <h1 className="text-3xl font-semibold leading-tight">
-            Run a sharper call centre, one conversation at a time.
-          </h1>
-          <p className="text-primary-foreground/80">
-            Log every call, score quality against your own scorecard, and keep
-            a single source of truth for every customer in your CRM.
+        <div className="relative z-10 flex-1 flex items-center justify-center py-8">
+          <img
+            src={authDashboard}
+            alt="Analytics dashboard illustration"
+            width={896}
+            height={768}
+            className="w-full max-w-lg drop-shadow-2xl select-none pointer-events-none"
+          />
+        </div>
+
+        <div className="relative z-10 space-y-6 max-w-md mx-auto text-center">
+          <p className="text-sm leading-relaxed text-white/80">
+            Track every call, score quality with weighted scorecards, and keep
+            a single source of truth for every customer — all in one operations
+            hub built for agents and managers.
           </p>
-          <ul className="space-y-3 text-sm">
-            <li className="flex items-start gap-3">
-              <Phone className="size-4 mt-0.5 shrink-0" />
-              <span>Track inbound & outbound calls with audio recordings.</span>
-            </li>
-            <li className="flex items-start gap-3">
-              <ClipboardCheck className="size-4 mt-0.5 shrink-0" />
-              <span>Quality-assure agents with weighted scorecards.</span>
-            </li>
-            <li className="flex items-start gap-3">
-              <Users className="size-4 mt-0.5 shrink-0" />
-              <span>A built-in CRM with full interaction history.</span>
-            </li>
-          </ul>
+          <div className="flex items-center justify-center gap-4">
+            <button className="size-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition" aria-label="Previous">
+              <ArrowLeft className="size-4" />
+            </button>
+            <div className="flex items-center gap-1.5">
+              <span className="size-1.5 rounded-full bg-white/40" />
+              <span className="size-1.5 rounded-full bg-white" />
+              <span className="size-1.5 rounded-full bg-white/40" />
+              <span className="size-1.5 rounded-full bg-white/40" />
+            </div>
+            <button className="size-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition" aria-label="Next">
+              <ArrowRight className="size-4" />
+            </button>
+          </div>
         </div>
-
-        <img
-          src={authHero}
-          alt="Call centre agents working at their desks"
-          className="absolute inset-x-0 bottom-0 w-full opacity-25 object-cover pointer-events-none select-none"
-          style={{ maskImage: "linear-gradient(to top, black 30%, transparent 90%)" }}
-        />
-
-        <p className="relative z-10 text-xs text-primary-foreground/60">
-          © {new Date().getFullYear()} Call Centre — Operations & QA
-        </p>
       </aside>
 
-      {/* Right: auth card */}
-      <main className="flex items-center justify-center px-4 py-10">
-        <Card className="w-full max-w-md">
-          <CardHeader>
-            <div className="flex items-center gap-2 mb-2 lg:hidden">
-              <div className="size-9 rounded-md bg-primary text-primary-foreground flex items-center justify-center">
-                <Headset className="size-5" />
-              </div>
-              <CardTitle>Call Centre</CardTitle>
+      {/* Right: auth panel */}
+      <main className="flex items-center justify-center px-6 py-10">
+        <div className="w-full max-w-md">
+          <div className="flex items-center gap-2 mb-10 lg:hidden">
+            <div className="size-9 rounded-md bg-primary text-primary-foreground flex items-center justify-center">
+              <Headset className="size-5" />
             </div>
-            <CardTitle className="hidden lg:block">Welcome back</CardTitle>
-            <CardDescription>Sign in to log calls and manage contacts.</CardDescription>
-          </CardHeader>
-          <CardContent>
+            <span className="font-semibold text-lg">Call Centre</span>
+          </div>
+
+          <div className="mb-8">
+            <h1 className="text-4xl font-bold tracking-tight">
+              {tab === "signin" ? "Welcome back!" : "Create your account"}
+            </h1>
+            <p className="text-muted-foreground mt-2">
+              {tab === "signin"
+                ? "Sign in to log calls and manage contacts."
+                : "Start logging calls and tracking quality today."}
+            </p>
+          </div>
+
           <Tabs value={tab} onValueChange={setTab}>
             <TabsList className="grid grid-cols-2 w-full">
               <TabsTrigger value="signin">Sign in</TabsTrigger>
               <TabsTrigger value="signup">Create account</TabsTrigger>
             </TabsList>
-            <TabsContent value="signin" className="mt-4">
-              <form onSubmit={signIn} className="space-y-3">
+            <TabsContent value="signin" className="mt-6">
+              <form onSubmit={signIn} className="space-y-4">
                 <div className="space-y-1.5">
-                  <Label htmlFor="email">Email</Label>
+                  <Label htmlFor="email">Email Address</Label>
                   <Input id="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
                 </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="password">Password</Label>
                   <Input id="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} />
                 </div>
-                <Button type="submit" className="w-full" disabled={busy}>{busy ? "Signing in…" : "Sign in"}</Button>
+                <Button type="submit" className="w-full h-11" disabled={busy}>{busy ? "Signing in…" : "Login"}</Button>
+                <p className="text-sm text-muted-foreground text-center">
+                  Don't have an account?{" "}
+                  <button type="button" onClick={() => setTab("signup")} className="text-primary font-medium hover:underline">
+                    Sign Up
+                  </button>
+                </p>
               </form>
             </TabsContent>
-            <TabsContent value="signup" className="mt-4">
-              <form onSubmit={signUp} className="space-y-3">
+            <TabsContent value="signup" className="mt-6">
+              <form onSubmit={signUp} className="space-y-4">
                 <div className="space-y-1.5">
                   <Label htmlFor="name">Full name</Label>
                   <Input id="name" required value={fullName} onChange={(e) => setFullName(e.target.value)} />
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="email2">Email</Label>
+                  <Label htmlFor="email2">Email Address</Label>
                   <Input id="email2" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
                 </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="password2">Password</Label>
                   <Input id="password2" type="password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} />
                 </div>
-                <Button type="submit" className="w-full" disabled={busy}>{busy ? "Creating…" : "Create account"}</Button>
+                <Button type="submit" className="w-full h-11" disabled={busy}>{busy ? "Creating…" : "Create account"}</Button>
                 <p className="text-xs text-muted-foreground text-center">New users start as <strong>agents</strong>. A manager can promote you later.</p>
               </form>
             </TabsContent>
           </Tabs>
-          </CardContent>
-        </Card>
+        </div>
       </main>
     </div>
   );
