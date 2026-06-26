@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { Headset, ArrowLeft, ArrowRight } from "lucide-react";
+import { Headset, ArrowLeft, ArrowRight, TrendingUp, Calendar } from "lucide-react";
 import authDashboard from "@/assets/auth-dashboard.png";
 
 export const Route = createFileRoute("/auth")({
@@ -76,13 +76,49 @@ function AuthPage() {
         </div>
 
         <div className="relative z-10 flex-1 flex items-start justify-center pt-4">
-          <img
-            src={authDashboard}
-            alt="Analytics dashboard illustration"
-            width={896}
-            height={768}
-            className="w-[78%] max-w-md -rotate-3 rounded-xl shadow-[0_30px_80px_-20px_rgba(0,0,0,0.55)] select-none pointer-events-none"
-          />
+          <div className="relative w-[82%] max-w-md">
+            <img
+              src={authDashboard}
+              alt="Analytics dashboard illustration"
+              width={896}
+              height={768}
+              className="w-full -rotate-3 rounded-xl shadow-[0_30px_80px_-20px_rgba(0,0,0,0.55)] select-none pointer-events-none"
+            />
+
+            {/* Floating Stats card (top-left) */}
+            <div className="absolute -top-8 -left-10 w-40 rounded-xl bg-white text-slate-900 shadow-xl p-3 -rotate-6">
+              <div className="flex items-center justify-between text-[10px] text-slate-500">
+                <span className="font-semibold text-slate-700">Stats</span>
+                <span>VISITORS</span>
+              </div>
+              <div className="mt-1 text-xl font-bold tracking-tight">20,345</div>
+              <svg viewBox="0 0 100 28" className="mt-1 w-full h-7 text-emerald-500">
+                <path d="M0 22 L15 14 L30 18 L45 8 L60 12 L75 4 L100 10" fill="none" stroke="currentColor" strokeWidth="2" />
+              </svg>
+              <div className="text-[10px] text-emerald-600 mt-0.5">▲ 50%</div>
+            </div>
+
+            {/* 79% pill (right edge) */}
+            <div className="absolute top-1/2 -right-6 rounded-lg bg-white text-slate-900 shadow-lg px-3 py-2 -rotate-3 flex items-center gap-2">
+              <div className="size-7 rounded-md bg-emerald-100 text-emerald-600 flex items-center justify-center">
+                <TrendingUp className="size-4" />
+              </div>
+              <span className="text-base font-bold">79%</span>
+            </div>
+
+            {/* Avatar bubble (bottom-left) */}
+            <div className="absolute -bottom-4 -left-6 size-12 rounded-full bg-white shadow-lg p-1 -rotate-6">
+              <div className="size-full rounded-full bg-gradient-to-br from-amber-300 to-rose-400" />
+            </div>
+
+            {/* Green icon tile (left) */}
+            <div className="absolute top-1/3 -left-8 size-10 rounded-lg bg-emerald-500 shadow-lg flex items-center justify-center -rotate-12">
+              <Calendar className="size-5 text-white" />
+            </div>
+
+            {/* Yellow icon tile (bottom-right) */}
+            <div className="absolute -bottom-6 right-6 size-10 rounded-lg bg-amber-300 shadow-lg rotate-12" />
+          </div>
         </div>
 
         <div className="relative z-10 space-y-6 max-w-md mx-auto text-center">
