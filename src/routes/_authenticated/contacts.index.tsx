@@ -17,6 +17,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Plus, Search } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
+import { DUMMY_CONTACTS } from "@/lib/dummy-data";
 
 export const Route = createFileRoute("/_authenticated/contacts/")({
   component: ContactsList,
@@ -34,7 +35,7 @@ function ContactsList() {
   const [q, setQ] = useState("");
   const [open, setOpen] = useState(false);
 
-  const { data: contacts = [] } = useQuery({
+  const { data: realContacts = [] } = useQuery({
     queryKey: ["contacts"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -45,6 +46,9 @@ function ContactsList() {
       return data;
     },
   });
+
+  const isSample = realContacts.length === 0;
+  const contacts: any[] = isSample ? DUMMY_CONTACTS : realContacts;
 
   const filtered = contacts.filter((c) => {
     const s = q.toLowerCase();
@@ -74,6 +78,11 @@ function ContactsList() {
         }
       />
       <div className="p-6 space-y-4">
+        {isSample && (
+          <div className="text-xs text-muted-foreground">
+            Showing sample data for preview. Add a contact to see live entries.
+          </div>
+        )}
         <div className="relative max-w-sm">
           <Search className="size-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
           <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search contacts…" className="pl-9" />
@@ -89,19 +98,16 @@ function ContactsList() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filtered.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={4} className="text-center text-sm text-muted-foreground py-10">
-                    No contacts yet.
-                  </TableCell>
-                </TableRow>
-              )}
               {filtered.map((c) => (
                 <TableRow key={c.id} className="cursor-pointer hover:bg-accent/30">
                   <TableCell>
-                    <Link to="/contacts/$id" params={{ id: c.id }} className="font-medium hover:underline">
-                      {c.name}
-                    </Link>
+                    {isSample ? (
+                      <span className="font-medium">{c.name}</span>
+                    ) : (
+                      <Link to="/contacts/$id" params={{ id: c.id }} className="font-medium hover:underline">
+                        {c.name}
+                      </Link>
+                    )}
                     {c.email && <div className="text-xs text-muted-foreground">{c.email}</div>}
                   </TableCell>
                   <TableCell>{c.company ?? "—"}</TableCell>

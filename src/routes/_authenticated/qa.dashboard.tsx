@@ -5,6 +5,7 @@ import { useAuth } from "@/lib/auth";
 import { PageHeader } from "@/components/AppShell";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
+import { DUMMY_QA_SUMMARY } from "@/lib/dummy-data";
 
 export const Route = createFileRoute("/_authenticated/qa/dashboard")({
   component: QaDashboard,
@@ -13,7 +14,7 @@ export const Route = createFileRoute("/_authenticated/qa/dashboard")({
 function QaDashboard() {
   const { user, isManager } = useAuth();
 
-  const { data } = useQuery({
+  const { data: realData } = useQuery({
     queryKey: ["qa-trend", user?.id, isManager],
     enabled: !!user,
     queryFn: async () => {
@@ -39,6 +40,9 @@ function QaDashboard() {
     },
   });
 
+  const isSample = !realData || realData.count === 0;
+  const data = isSample ? DUMMY_QA_SUMMARY : realData;
+
   return (
     <>
       <PageHeader
@@ -46,6 +50,11 @@ function QaDashboard() {
         description={isManager ? "Quality trend across all reviewed calls." : "Your quality scores over time."}
       />
       <div className="p-6 grid gap-4 lg:grid-cols-3">
+        {isSample && (
+          <div className="lg:col-span-3 text-xs text-muted-foreground -mb-2">
+            Showing sample data for preview. Score a call to see live trends.
+          </div>
+        )}
         <Card>
           <CardHeader><CardTitle className="text-sm font-medium text-muted-foreground">Average score</CardTitle></CardHeader>
           <CardContent><div className="text-3xl font-semibold">{data?.avg != null ? `${data.avg}%` : "—"}</div></CardContent>
