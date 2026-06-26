@@ -87,7 +87,7 @@ function ContactsList() {
           <Search className="size-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
           <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search contacts…" className="pl-9" />
         </div>
-        <Card>
+        <Card className="rounded-none border-0 shadow-none bg-transparent p-0">
           <Table>
             <TableHeader>
               <TableRow>
