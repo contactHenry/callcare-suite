@@ -106,11 +106,11 @@ function Dashboard() {
             );
           })}
         </div>
-        <Card>
-          <CardHeader>
+        <Card className="rounded-none border-0 shadow-none bg-transparent">
+          <CardHeader className="px-0">
             <CardTitle>{isEmpty ? "Recent calls (sample)" : "Get started"}</CardTitle>
           </CardHeader>
-          <CardContent className="text-sm space-y-2">
+          <CardContent className="text-sm space-y-2 px-0">
             {isEmpty ? (
               <ul className="divide-y">
                 {recentCalls.map((c) => (
