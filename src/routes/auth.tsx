@@ -86,7 +86,7 @@ function AuthPage() {
             />
 
             {/* Floating Stats card (top-left) */}
-            <div className="absolute top-[38px] -left-10 w-40 rounded-xl bg-white text-slate-900 shadow-xl p-3 -rotate-6">
+            <div className="absolute -top-3 -left-10 w-40 rounded-xl bg-white text-slate-900 shadow-xl p-3 -rotate-6">
               <div className="flex items-center justify-between text-[10px] text-slate-500">
                 <span className="font-semibold text-slate-700">Stats</span>
                 <span>VISITORS</span>
