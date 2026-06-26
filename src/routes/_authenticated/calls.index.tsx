@@ -7,13 +7,14 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Plus } from "lucide-react";
+import { DUMMY_CALLS } from "@/lib/dummy-data";
 
 export const Route = createFileRoute("/_authenticated/calls/")({
   component: CallsList,
 });
 
 function CallsList() {
-  const { data: calls = [] } = useQuery({
+  const { data: realCalls = [] } = useQuery({
     queryKey: ["calls"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -33,6 +34,9 @@ function CallsList() {
     },
   });
 
+  const isSample = realCalls.length === 0;
+  const calls: any[] = isSample ? DUMMY_CALLS : realCalls;
+
   return (
     <>
       <PageHeader
@@ -45,6 +49,11 @@ function CallsList() {
         }
       />
       <div className="p-6">
+        {isSample && (
+          <div className="mb-3 text-xs text-muted-foreground">
+            Showing sample data for preview. Log a call to see live entries.
+          </div>
+        )}
         <Card>
           <Table>
             <TableHeader>
@@ -58,25 +67,26 @@ function CallsList() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {calls.length === 0 && (
-                <TableRow><TableCell colSpan={6} className="text-center text-sm text-muted-foreground py-10">No calls yet.</TableCell></TableRow>
-              )}
               {calls.map((c) => {
                 const qa = Array.isArray(c.qa_reviews) ? c.qa_reviews[0] : c.qa_reviews;
                 const score = qa?.overall_score;
                 return (
                   <TableRow key={c.id} className="cursor-pointer hover:bg-accent/30">
                     <TableCell>
-                      <Link to="/calls/$id" params={{ id: c.id }} className="hover:underline">
-                        {new Date(c.started_at).toLocaleString()}
-                      </Link>
+                      {isSample ? (
+                        <span>{new Date(c.started_at).toLocaleString()}</span>
+                      ) : (
+                        <Link to="/calls/$id" params={{ id: c.id }} className="hover:underline">
+                          {new Date(c.started_at).toLocaleString()}
+                        </Link>
+                      )}
                     </TableCell>
                     <TableCell>{c.contacts?.name ?? "—"}</TableCell>
                 <TableCell>{c.agent_name}</TableCell>
                     <TableCell className="capitalize">{c.direction}</TableCell>
                     <TableCell className="capitalize">{c.outcome}</TableCell>
                     <TableCell className="text-right">
-                      {c.qa_reviews && score != null ? (
+                      {score != null ? (
                         <Badge variant="secondary">{Math.round(Number(score))}%</Badge>
                       ) : (
                         <span className="text-xs text-muted-foreground">Pending</span>
