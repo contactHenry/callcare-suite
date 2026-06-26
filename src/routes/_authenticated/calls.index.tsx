@@ -1,12 +1,28 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/lib/auth";
 import { PageHeader } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Plus, Upload } from "lucide-react";
+import { toast } from "sonner";
 import { DUMMY_CALLS } from "@/lib/dummy-data";
 
 const OUTCOME_CLASS: Record<string, string> = {
@@ -33,6 +49,7 @@ export const Route = createFileRoute("/_authenticated/calls/")({
 });
 
 function CallsList() {
+  const [open, setOpen] = useState(false);
   const { data: realCalls = [] } = useQuery({
     queryKey: ["calls"],
     queryFn: async () => {
@@ -62,11 +79,12 @@ function CallsList() {
         title="Calls"
         description="Recent calls logged across the team."
         actions={
-          <Button asChild>
-            <Link to="/calls/new"><Plus className="size-4 mr-2" /> New call</Link>
+          <Button onClick={() => setOpen(true)}>
+            <Plus className="size-4 mr-2" /> New call
           </Button>
         }
       />
+      <NewCallDialog open={open} onOpenChange={setOpen} />
       <div className="p-6">
         {isSample && (
           <div className="mb-3 text-xs text-muted-foreground">
