@@ -14,9 +14,10 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 
 function Dashboard() {
   const { user, isManager } = useAuth();
-  const userId = user!.id;
+  const userId = user?.id ?? "";
 
   const { data: stats } = useQuery({
+    enabled: !!userId,
     queryKey: ["dashboard", userId, isManager],
     queryFn: async () => {
       const startOfDay = new Date();
