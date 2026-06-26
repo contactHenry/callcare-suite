@@ -17,6 +17,11 @@ const OUTCOME_CLASS: Record<string, string> = {
   voicemail: "bg-yellow-100 text-yellow-800 hover:bg-yellow-100",
 };
 
+const DIRECTION_CLASS: Record<string, string> = {
+  inbound: "bg-green-100 text-green-800 hover:bg-green-100",
+  outbound: "bg-blue-100 text-blue-800 hover:bg-blue-100",
+};
+
 function qaClass(score: number) {
   if (score >= 80) return "bg-green-100 text-green-800 hover:bg-green-100";
   if (score >= 65) return "bg-yellow-100 text-yellow-800 hover:bg-yellow-100";
@@ -97,7 +102,11 @@ function CallsList() {
                     </TableCell>
                     <TableCell>{c.contacts?.name ?? "—"}</TableCell>
                 <TableCell>{c.agent_name}</TableCell>
-                    <TableCell className="capitalize">{c.direction}</TableCell>
+                    <TableCell>
+                      <Badge className={`capitalize border-0 ${DIRECTION_CLASS[c.direction] ?? "bg-muted text-muted-foreground"}`}>
+                        {c.direction}
+                      </Badge>
+                    </TableCell>
                     <TableCell>
                       <Badge className={`capitalize border-0 ${OUTCOME_CLASS[c.outcome] ?? "bg-muted text-muted-foreground"}`}>
                         {String(c.outcome).replace("_", " ")}
