@@ -8,7 +8,8 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { Headset } from "lucide-react";
+import { Headset, Phone, ClipboardCheck, Users } from "lucide-react";
+import authHero from "@/assets/auth-hero.jpg";
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
@@ -56,18 +57,66 @@ function AuthPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-muted/30 px-4">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <div className="flex items-center gap-2 mb-2">
-            <div className="size-9 rounded-md bg-primary text-primary-foreground flex items-center justify-center">
-              <Headset className="size-5" />
-            </div>
-            <CardTitle>Call Centre</CardTitle>
+    <div className="min-h-screen grid lg:grid-cols-2 bg-muted/30">
+      {/* Left: brand / product panel */}
+      <aside className="relative hidden lg:flex flex-col justify-between p-10 bg-primary text-primary-foreground overflow-hidden">
+        <div className="flex items-center gap-2">
+          <div className="size-9 rounded-md bg-primary-foreground/10 flex items-center justify-center">
+            <Headset className="size-5" />
           </div>
-          <CardDescription>Sign in to log calls and manage contacts.</CardDescription>
-        </CardHeader>
-        <CardContent>
+          <span className="font-semibold text-lg">Call Centre</span>
+        </div>
+
+        <div className="relative z-10 space-y-6 max-w-md">
+          <h1 className="text-3xl font-semibold leading-tight">
+            Run a sharper call centre, one conversation at a time.
+          </h1>
+          <p className="text-primary-foreground/80">
+            Log every call, score quality against your own scorecard, and keep
+            a single source of truth for every customer in your CRM.
+          </p>
+          <ul className="space-y-3 text-sm">
+            <li className="flex items-start gap-3">
+              <Phone className="size-4 mt-0.5 shrink-0" />
+              <span>Track inbound & outbound calls with audio recordings.</span>
+            </li>
+            <li className="flex items-start gap-3">
+              <ClipboardCheck className="size-4 mt-0.5 shrink-0" />
+              <span>Quality-assure agents with weighted scorecards.</span>
+            </li>
+            <li className="flex items-start gap-3">
+              <Users className="size-4 mt-0.5 shrink-0" />
+              <span>A built-in CRM with full interaction history.</span>
+            </li>
+          </ul>
+        </div>
+
+        <img
+          src={authHero}
+          alt="Call centre agents working at their desks"
+          className="absolute inset-x-0 bottom-0 w-full opacity-25 object-cover pointer-events-none select-none"
+          style={{ maskImage: "linear-gradient(to top, black 30%, transparent 90%)" }}
+        />
+
+        <p className="relative z-10 text-xs text-primary-foreground/60">
+          © {new Date().getFullYear()} Call Centre — Operations & QA
+        </p>
+      </aside>
+
+      {/* Right: auth card */}
+      <main className="flex items-center justify-center px-4 py-10">
+        <Card className="w-full max-w-md">
+          <CardHeader>
+            <div className="flex items-center gap-2 mb-2 lg:hidden">
+              <div className="size-9 rounded-md bg-primary text-primary-foreground flex items-center justify-center">
+                <Headset className="size-5" />
+              </div>
+              <CardTitle>Call Centre</CardTitle>
+            </div>
+            <CardTitle className="hidden lg:block">Welcome back</CardTitle>
+            <CardDescription>Sign in to log calls and manage contacts.</CardDescription>
+          </CardHeader>
+          <CardContent>
           <Tabs value={tab} onValueChange={setTab}>
             <TabsList className="grid grid-cols-2 w-full">
               <TabsTrigger value="signin">Sign in</TabsTrigger>
@@ -105,8 +154,9 @@ function AuthPage() {
               </form>
             </TabsContent>
           </Tabs>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </main>
     </div>
   );
 }
