@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { PageHeader } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Search } from "lucide-react";
+import { Plus, Search, Phone, PhoneOff, Mic, MicOff, Volume2, Pause, X } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
 import { DUMMY_CONTACTS } from "@/lib/dummy-data";
@@ -34,6 +34,7 @@ function ContactsList() {
   const qc = useQueryClient();
   const [q, setQ] = useState("");
   const [open, setOpen] = useState(false);
+  const [activeContact, setActiveContact] = useState<any | null>(null);
 
   const { data: realContacts = [] } = useQuery({
     queryKey: ["contacts"],
@@ -87,6 +88,7 @@ function ContactsList() {
           <Search className="size-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
           <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search contacts…" className="pl-9" />
         </div>
+        <div className={activeContact ? "grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-6" : ""}>
         <Card className="rounded-none border-0 shadow-none bg-transparent p-0">
           <Table>
             <TableHeader>
@@ -99,15 +101,14 @@ function ContactsList() {
             </TableHeader>
             <TableBody>
               {filtered.map((c) => (
-                <TableRow key={c.id} className="cursor-pointer hover:bg-accent/30">
+                <TableRow
+                  key={c.id}
+                  onClick={() => c.phone && setActiveContact(c)}
+                  data-active={activeContact?.id === c.id}
+                  className="cursor-pointer hover:bg-accent/30 data-[active=true]:bg-accent/40"
+                >
                   <TableCell>
-                    {isSample ? (
-                      <span className="font-medium">{c.name}</span>
-                    ) : (
-                      <Link to="/contacts/$id" params={{ id: c.id }} className="font-medium hover:underline">
-                        {c.name}
-                      </Link>
-                    )}
+                    <span className="font-medium">{c.name}</span>
                     {c.email && <div className="text-xs text-muted-foreground">{c.email}</div>}
                   </TableCell>
                   <TableCell>{c.company ?? "—"}</TableCell>
@@ -120,8 +121,132 @@ function ContactsList() {
             </TableBody>
           </Table>
         </Card>
+          {activeContact && (
+            <DialerPanel contact={activeContact} onClose={() => setActiveContact(null)} />
+          )}
+        </div>
       </div>
     </>
+  );
+}
+
+function DialerPanel({ contact, onClose }: { contact: any; onClose: () => void }) {
+  const [status, setStatus] = useState<"dialing" | "in-call" | "ended">("dialing");
+  const [muted, setMuted] = useState(false);
+  const [onHold, setOnHold] = useState(false);
+  const [seconds, setSeconds] = useState(0);
+  const idRef = useRef(contact.id);
+
+  useEffect(() => {
+    idRef.current = contact.id;
+    setStatus("dialing");
+    setMuted(false);
+    setOnHold(false);
+    setSeconds(0);
+    const t = setTimeout(() => setStatus("in-call"), 2200);
+    return () => clearTimeout(t);
+  }, [contact.id]);
+
+  useEffect(() => {
+    if (status !== "in-call") return;
+    const i = setInterval(() => setSeconds((s) => s + 1), 1000);
+    return () => clearInterval(i);
+  }, [status]);
+
+  const mm = String(Math.floor(seconds / 60)).padStart(2, "0");
+  const ss = String(seconds % 60).padStart(2, "0");
+  const initials = (contact.name ?? "?")
+    .split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase();
+
+  return (
+    <Card className="rounded-xl border bg-card p-6 flex flex-col items-center text-center h-fit sticky top-6">
+      <div className="w-full flex justify-end -mt-2 -mr-2">
+        <button onClick={onClose} className="p-1 rounded-md hover:bg-accent text-muted-foreground">
+          <X className="size-4" />
+        </button>
+      </div>
+      <div className="size-24 rounded-full bg-primary/10 text-primary flex items-center justify-center text-2xl font-semibold mb-4">
+        {initials}
+      </div>
+      <div className="text-lg font-semibold">{contact.name}</div>
+      {contact.company && <div className="text-sm text-muted-foreground">{contact.company}</div>}
+      <div className="text-base mt-2">{contact.phone}</div>
+      <div className="mt-3 text-sm text-muted-foreground">
+        {status === "dialing" && (
+          <span className="inline-flex items-center gap-2">
+            <span className="size-2 rounded-full bg-yellow-500 animate-pulse" /> Dialing…
+          </span>
+        )}
+        {status === "in-call" && (
+          <span className="inline-flex items-center gap-2">
+            <span className="size-2 rounded-full bg-green-500" /> In call · {mm}:{ss}
+          </span>
+        )}
+        {status === "ended" && (
+          <span className="inline-flex items-center gap-2">
+            <span className="size-2 rounded-full bg-red-500" /> Call ended
+          </span>
+        )}
+      </div>
+
+      <div className="grid grid-cols-3 gap-3 mt-6 w-full">
+        <DialerBtn
+          icon={muted ? <MicOff className="size-5" /> : <Mic className="size-5" />}
+          label={muted ? "Unmute" : "Mute"}
+          active={muted}
+          disabled={status === "ended"}
+          onClick={() => setMuted((m) => !m)}
+        />
+        <DialerBtn
+          icon={<Pause className="size-5" />}
+          label={onHold ? "Resume" : "Hold"}
+          active={onHold}
+          disabled={status === "ended"}
+          onClick={() => setOnHold((h) => !h)}
+        />
+        <DialerBtn
+          icon={<Volume2 className="size-5" />}
+          label="Speaker"
+          disabled={status === "ended"}
+          onClick={() => {}}
+        />
+      </div>
+
+      <div className="mt-6 w-full">
+        {status !== "ended" ? (
+          <Button
+            className="w-full bg-red-600 hover:bg-red-700 text-white"
+            onClick={() => setStatus("ended")}
+          >
+            <PhoneOff className="size-4 mr-2" /> End call
+          </Button>
+        ) : (
+          <Button
+            className="w-full bg-green-600 hover:bg-green-700 text-white"
+            onClick={() => { setStatus("dialing"); setSeconds(0); setTimeout(() => idRef.current === contact.id && setStatus("in-call"), 2000); }}
+          >
+            <Phone className="size-4 mr-2" /> Call again
+          </Button>
+        )}
+      </div>
+    </Card>
+  );
+}
+
+function DialerBtn({
+  icon, label, onClick, active, disabled,
+}: { icon: React.ReactNode; label: string; onClick: () => void; active?: boolean; disabled?: boolean }) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      className={`flex flex-col items-center gap-1 rounded-lg border py-3 text-xs transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+        active ? "bg-primary text-primary-foreground border-primary" : "bg-background hover:bg-accent"
+      }`}
+    >
+      {icon}
+      <span>{label}</span>
+    </button>
   );
 }
 
