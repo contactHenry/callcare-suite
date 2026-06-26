@@ -57,16 +57,16 @@ function QaDashboard() {
         )}
         <Card>
           <CardHeader><CardTitle className="text-sm font-medium text-muted-foreground">Average score</CardTitle></CardHeader>
-          <CardContent><div className="text-3xl font-semibold">{data?.avg != null ? `${data.avg}%` : "—"}</div></CardContent>
+          <CardContent><div className="text-3xl font-semibold tracking-tight">{data?.avg != null ? `${data.avg}%` : "—"}</div></CardContent>
         </Card>
         <Card>
           <CardHeader><CardTitle className="text-sm font-medium text-muted-foreground">Reviews</CardTitle></CardHeader>
-          <CardContent><div className="text-3xl font-semibold">{data?.count ?? 0}</div></CardContent>
+          <CardContent><div className="text-3xl font-semibold tracking-tight">{data?.count ?? 0}</div></CardContent>
         </Card>
         <Card>
           <CardHeader><CardTitle className="text-sm font-medium text-muted-foreground">Latest score</CardTitle></CardHeader>
           <CardContent>
-            <div className="text-3xl font-semibold">
+            <div className="text-3xl font-semibold tracking-tight">
               {data?.trend?.length ? `${data.trend[data.trend.length - 1].score}%` : "—"}
             </div>
           </CardContent>
