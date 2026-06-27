@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
+import { CCButton } from "@/components/cc";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -180,7 +181,7 @@ function AuthPage() {
                   <Label htmlFor="password">Password</Label>
                   <Input id="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} />
                 </div>
-                <Button type="submit" className="w-full h-11" disabled={busy}>{busy ? "Signing in…" : "Login"}</Button>
+                <CCButton type="submit" size="lg" className="w-full" disabled={busy}>{busy ? "Signing in…" : "Login"}</CCButton>
                 <p className="text-sm text-muted-foreground text-center">
                   Don't have an account?{" "}
                   <button type="button" onClick={() => setTab("signup")} className="text-primary font-medium hover:underline">
@@ -203,7 +204,7 @@ function AuthPage() {
                   <Label htmlFor="password2">Password</Label>
                   <Input id="password2" type="password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} />
                 </div>
-                <Button type="submit" className="w-full h-11" disabled={busy}>{busy ? "Creating…" : "Create account"}</Button>
+                <CCButton type="submit" size="lg" className="w-full" disabled={busy}>{busy ? "Creating…" : "Create account"}</CCButton>
                 <p className="text-xs text-muted-foreground text-center">New users start as <strong>agents</strong>. A manager can promote you later.</p>
               </form>
             </TabsContent>
