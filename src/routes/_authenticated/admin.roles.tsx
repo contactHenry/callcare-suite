@@ -16,6 +16,7 @@ import { PageHeader } from "@/components/AppShell";
 import { CCButton, CCCard, CCInput, CCField, CCStatusPill } from "@/components/cc";
 import { toast } from "sonner";
 import { Check, Plus, Trash2, ShieldCheck, Users, KeyRound } from "lucide-react";
+import { DUMMY_CUSTOM_ROLES, DUMMY_PERMISSION_CATALOG, DUMMY_ORG_MEMBERS } from "@/lib/dummy-data";
 
 export const Route = createFileRoute("/_authenticated/admin/roles")({
   beforeLoad: async () => {
@@ -44,23 +45,29 @@ function RolesPage() {
   const catalogQ = useQuery({ queryKey: ["permission-catalog"], queryFn: () => catalogFn() });
   const membersQ = useQuery({ queryKey: ["org-members"], queryFn: () => membersFn() });
 
-  const roles: any[] = rolesQ.data?.roles ?? [];
-  const allPerms: string[] = catalogQ.data?.permissions ?? [];
-  const members: any[] = membersQ.data?.members ?? [];
+  const apiRoles: any[] = rolesQ.data?.roles ?? [];
+  const apiPerms: string[] = catalogQ.data?.permissions ?? [];
+  const apiMembers: any[] = membersQ.data?.members ?? [];
+  const usingDummy = apiRoles.length === 0;
+  const roles: any[] = usingDummy ? DUMMY_CUSTOM_ROLES.roles : apiRoles;
+  const allPerms: string[] = apiPerms.length > 0 ? apiPerms : DUMMY_PERMISSION_CATALOG;
+  const members: any[] = apiMembers.length > 0 ? apiMembers : DUMMY_ORG_MEMBERS;
   const permsByRole = useMemo(() => {
     const m: Record<string, Set<string>> = {};
-    (rolesQ.data?.permissions ?? []).forEach((p: any) => {
+    const source = usingDummy ? DUMMY_CUSTOM_ROLES.permissions : (rolesQ.data?.permissions ?? []);
+    source.forEach((p: any) => {
       (m[p.role_id] ??= new Set()).add(p.permission);
     });
     return m;
-  }, [rolesQ.data]);
+  }, [rolesQ.data, usingDummy]);
   const usersByRole = useMemo(() => {
     const m: Record<string, Set<string>> = {};
-    (rolesQ.data?.assignments ?? []).forEach((a: any) => {
+    const source = usingDummy ? DUMMY_CUSTOM_ROLES.assignments : (rolesQ.data?.assignments ?? []);
+    source.forEach((a: any) => {
       (m[a.role_id] ??= new Set()).add(a.user_id);
     });
     return m;
-  }, [rolesQ.data]);
+  }, [rolesQ.data, usingDummy]);
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const selected = roles.find((r) => r.id === selectedId) ?? roles[0] ?? null;
