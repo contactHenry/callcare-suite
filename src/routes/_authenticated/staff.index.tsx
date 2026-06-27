@@ -20,6 +20,7 @@ import {
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { UserPlus, ShieldOff, ShieldCheck } from "lucide-react";
+import { DUMMY_STAFF } from "@/lib/dummy-data";
 
 /** Ops Admin (or higher) only — gated client-side AND by every server fn. */
 export const Route = createFileRoute("/_authenticated/staff/")({
@@ -39,7 +40,8 @@ function StaffPage() {
   const qc = useQueryClient();
   const listFn = useServerFn(listStaff);
   const { data } = useQuery({ queryKey: ["staff"], queryFn: () => listFn() });
-  const rows = data?.rows ?? [];
+  const apiRows = data?.rows ?? [];
+  const rows: any[] = apiRows.length > 0 ? apiRows : (DUMMY_STAFF as any);
 
   return (
     <>
@@ -62,7 +64,7 @@ function StaffPage() {
               </tr>
             </CCThead>
             <tbody>
-              {rows.map((s) => (
+              {rows.map((s: any) => (
                 <CCTr key={s.id}>
                   <CCTd>
                     <div className="font-medium">{s.full_name ?? "—"}</div>
@@ -71,9 +73,9 @@ function StaffPage() {
                   <CCTd>{s.staff_id ?? "—"}</CCTd>
                   <CCTd>
                     <div className="flex flex-wrap gap-1">
-                      {s.roles.length === 0
+                      {(s.roles ?? []).length === 0
                         ? <span className="text-xs text-[color:var(--cc-ink-500)]">none</span>
-                        : s.roles.map((r) => (
+                        : s.roles.map((r: string) => (
                           <CCStatusPill key={r} tone={r === "super_admin" ? "danger" : r === "ops_admin" ? "warning" : r === "agent" ? "neutral" : "info"}>
                             {r.replace("_", " ")}
                           </CCStatusPill>
@@ -95,9 +97,6 @@ function StaffPage() {
                   </CCTd>
                 </CCTr>
               ))}
-              {rows.length === 0 && (
-                <tr><td colSpan={6} className="px-4 py-12 text-center text-sm text-[color:var(--cc-ink-500)]">No staff yet — invite your first agent.</td></tr>
-              )}
             </tbody>
           </CCTable>
         </div>
