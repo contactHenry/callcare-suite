@@ -186,47 +186,309 @@ export type Database = {
           },
         ]
       }
+      client_change_approvals: {
+        Row: {
+          client_id: string
+          created_at: string
+          field: string
+          id: string
+          new_value: string | null
+          old_value: string | null
+          reason: string | null
+          requested_by: string
+          review_note: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          state: Database["public"]["Enums"]["client_change_state"]
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          field: string
+          id?: string
+          new_value?: string | null
+          old_value?: string | null
+          reason?: string | null
+          requested_by: string
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          state?: Database["public"]["Enums"]["client_change_state"]
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          field?: string
+          id?: string
+          new_value?: string | null
+          old_value?: string | null
+          reason?: string | null
+          requested_by?: string
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          state?: Database["public"]["Enums"]["client_change_state"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_change_approvals_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_documents: {
+        Row: {
+          client_id: string
+          created_at: string
+          filename: string
+          id: string
+          mime_type: string | null
+          size_bytes: number | null
+          storage_path: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          filename: string
+          id?: string
+          mime_type?: string | null
+          size_bytes?: number | null
+          storage_path: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          filename?: string
+          id?: string
+          mime_type?: string | null
+          size_bytes?: number | null
+          storage_path?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_documents_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_merges: {
+        Row: {
+          at: string
+          id: string
+          merged_by: string | null
+          merged_id: string
+          snapshot: Json
+          surviving_id: string
+        }
+        Insert: {
+          at?: string
+          id?: string
+          merged_by?: string | null
+          merged_id: string
+          snapshot: Json
+          surviving_id: string
+        }
+        Update: {
+          at?: string
+          id?: string
+          merged_by?: string | null
+          merged_id?: string
+          snapshot?: Json
+          surviving_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_merges_merged_id_fkey"
+            columns: ["merged_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_merges_surviving_id_fkey"
+            columns: ["surviving_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_status_transitions: {
+        Row: {
+          at: string
+          changed_by: string | null
+          client_id: string
+          from_status: Database["public"]["Enums"]["client_status"] | null
+          id: string
+          reason: string | null
+          to_status: Database["public"]["Enums"]["client_status"]
+        }
+        Insert: {
+          at?: string
+          changed_by?: string | null
+          client_id: string
+          from_status?: Database["public"]["Enums"]["client_status"] | null
+          id?: string
+          reason?: string | null
+          to_status: Database["public"]["Enums"]["client_status"]
+        }
+        Update: {
+          at?: string
+          changed_by?: string | null
+          client_id?: string
+          from_status?: Database["public"]["Enums"]["client_status"] | null
+          id?: string
+          reason?: string | null
+          to_status?: Database["public"]["Enums"]["client_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_status_transitions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contacts: {
         Row: {
+          address_city: string | null
+          address_country: string | null
+          address_line1: string | null
+          address_line2: string | null
+          address_postcode: string | null
+          address_region: string | null
+          alt_phone: string | null
+          assigned_agent_id: string | null
+          assigned_team_id: string | null
+          campaign_source: string | null
+          category: string | null
           company: string | null
+          consent_status: Database["public"]["Enums"]["consent_state"]
           created_at: string
+          deleted_at: string | null
+          do_not_call: boolean
+          dob: string | null
           email: string | null
           id: string
+          last_contacted_at: string | null
+          lifecycle_status: Database["public"]["Enums"]["client_status"]
+          merged_into_id: string | null
           name: string
+          next_follow_up_at: string | null
           notes: string | null
+          organization_id: string | null
           owner_id: string
           phone: string | null
+          preferred_method: Database["public"]["Enums"]["contact_method"]
+          preferred_time: string | null
           status: string
           tags: string[]
           updated_at: string
         }
         Insert: {
+          address_city?: string | null
+          address_country?: string | null
+          address_line1?: string | null
+          address_line2?: string | null
+          address_postcode?: string | null
+          address_region?: string | null
+          alt_phone?: string | null
+          assigned_agent_id?: string | null
+          assigned_team_id?: string | null
+          campaign_source?: string | null
+          category?: string | null
           company?: string | null
+          consent_status?: Database["public"]["Enums"]["consent_state"]
           created_at?: string
+          deleted_at?: string | null
+          do_not_call?: boolean
+          dob?: string | null
           email?: string | null
           id?: string
+          last_contacted_at?: string | null
+          lifecycle_status?: Database["public"]["Enums"]["client_status"]
+          merged_into_id?: string | null
           name: string
+          next_follow_up_at?: string | null
           notes?: string | null
+          organization_id?: string | null
           owner_id: string
           phone?: string | null
+          preferred_method?: Database["public"]["Enums"]["contact_method"]
+          preferred_time?: string | null
           status?: string
           tags?: string[]
           updated_at?: string
         }
         Update: {
+          address_city?: string | null
+          address_country?: string | null
+          address_line1?: string | null
+          address_line2?: string | null
+          address_postcode?: string | null
+          address_region?: string | null
+          alt_phone?: string | null
+          assigned_agent_id?: string | null
+          assigned_team_id?: string | null
+          campaign_source?: string | null
+          category?: string | null
           company?: string | null
+          consent_status?: Database["public"]["Enums"]["consent_state"]
           created_at?: string
+          deleted_at?: string | null
+          do_not_call?: boolean
+          dob?: string | null
           email?: string | null
           id?: string
+          last_contacted_at?: string | null
+          lifecycle_status?: Database["public"]["Enums"]["client_status"]
+          merged_into_id?: string | null
           name?: string
+          next_follow_up_at?: string | null
           notes?: string | null
+          organization_id?: string | null
           owner_id?: string
           phone?: string | null
+          preferred_method?: Database["public"]["Enums"]["contact_method"]
+          preferred_time?: string | null
           status?: string
           tags?: string[]
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "contacts_assigned_team_id_fkey"
+            columns: ["assigned_team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contacts_merged_into_id_fkey"
+            columns: ["merged_into_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contacts_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       failed_login_attempts: {
         Row: {
@@ -757,6 +1019,13 @@ export type Database = {
         Returns: boolean
       }
       is_account_suspended: { Args: { _user_id: string }; Returns: boolean }
+      is_valid_client_transition: {
+        Args: {
+          _from: Database["public"]["Enums"]["client_status"]
+          _to: Database["public"]["Enums"]["client_status"]
+        }
+        Returns: boolean
+      }
       max_role_level: { Args: { _user_id: string }; Returns: number }
       record_audit: {
         Args: {
@@ -771,6 +1040,8 @@ export type Database = {
         }
         Returns: undefined
       }
+      show_limit: { Args: never; Returns: number }
+      show_trgm: { Args: { "": string }; Returns: string[] }
     }
     Enums: {
       agent_presence:
@@ -787,6 +1058,23 @@ export type Database = {
         | "supervisor"
         | "ops_admin"
         | "super_admin"
+      client_change_state: "pending" | "approved" | "rejected" | "cancelled"
+      client_status:
+        | "new"
+        | "assigned"
+        | "contacted"
+        | "follow_up"
+        | "interested"
+        | "not_interested"
+        | "converted"
+        | "unreachable"
+        | "invalid"
+        | "complaint"
+        | "escalated"
+        | "do_not_call"
+        | "closed"
+      consent_state: "unknown" | "granted" | "revoked"
+      contact_method: "phone" | "email" | "sms" | "whatsapp" | "no_contact"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -930,6 +1218,24 @@ export const Constants = {
         "ops_admin",
         "super_admin",
       ],
+      client_change_state: ["pending", "approved", "rejected", "cancelled"],
+      client_status: [
+        "new",
+        "assigned",
+        "contacted",
+        "follow_up",
+        "interested",
+        "not_interested",
+        "converted",
+        "unreachable",
+        "invalid",
+        "complaint",
+        "escalated",
+        "do_not_call",
+        "closed",
+      ],
+      consent_state: ["unknown", "granted", "revoked"],
+      contact_method: ["phone", "email", "sms", "whatsapp", "no_contact"],
     },
   },
 } as const

@@ -18,11 +18,15 @@ import { Route as Auth2faRouteImport } from './routes/auth.2fa'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedStaffIndexRouteImport } from './routes/_authenticated/staff.index'
 import { Route as AuthenticatedContactsIndexRouteImport } from './routes/_authenticated/contacts.index'
+import { Route as AuthenticatedClientsIndexRouteImport } from './routes/_authenticated/clients.index'
 import { Route as AuthenticatedCallsIndexRouteImport } from './routes/_authenticated/calls.index'
 import { Route as AuthenticatedSecurityAuditRouteImport } from './routes/_authenticated/security.audit'
 import { Route as AuthenticatedQaDashboardRouteImport } from './routes/_authenticated/qa.dashboard'
 import { Route as AuthenticatedQaCriteriaRouteImport } from './routes/_authenticated/qa.criteria'
 import { Route as AuthenticatedContactsIdRouteImport } from './routes/_authenticated/contacts.$id'
+import { Route as AuthenticatedClientsImportRouteImport } from './routes/_authenticated/clients.import'
+import { Route as AuthenticatedClientsApprovalsRouteImport } from './routes/_authenticated/clients.approvals'
+import { Route as AuthenticatedClientsIdRouteImport } from './routes/_authenticated/clients.$id'
 import { Route as AuthenticatedCallsNewRouteImport } from './routes/_authenticated/calls.new'
 import { Route as AuthenticatedCallsIdRouteImport } from './routes/_authenticated/calls.$id'
 import { Route as AuthenticatedAdminPermissionsRouteImport } from './routes/_authenticated/admin.permissions'
@@ -72,6 +76,12 @@ const AuthenticatedContactsIndexRoute =
     path: '/contacts/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedClientsIndexRoute =
+  AuthenticatedClientsIndexRouteImport.update({
+    id: '/clients/',
+    path: '/clients/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedCallsIndexRoute = AuthenticatedCallsIndexRouteImport.update({
   id: '/calls/',
   path: '/calls/',
@@ -97,6 +107,23 @@ const AuthenticatedQaCriteriaRoute = AuthenticatedQaCriteriaRouteImport.update({
 const AuthenticatedContactsIdRoute = AuthenticatedContactsIdRouteImport.update({
   id: '/contacts/$id',
   path: '/contacts/$id',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedClientsImportRoute =
+  AuthenticatedClientsImportRouteImport.update({
+    id: '/clients/import',
+    path: '/clients/import',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedClientsApprovalsRoute =
+  AuthenticatedClientsApprovalsRouteImport.update({
+    id: '/clients/approvals',
+    path: '/clients/approvals',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedClientsIdRoute = AuthenticatedClientsIdRouteImport.update({
+  id: '/clients/$id',
+  path: '/clients/$id',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedCallsNewRoute = AuthenticatedCallsNewRouteImport.update({
@@ -126,11 +153,15 @@ export interface FileRoutesByFullPath {
   '/admin/permissions': typeof AuthenticatedAdminPermissionsRoute
   '/calls/$id': typeof AuthenticatedCallsIdRoute
   '/calls/new': typeof AuthenticatedCallsNewRoute
+  '/clients/$id': typeof AuthenticatedClientsIdRoute
+  '/clients/approvals': typeof AuthenticatedClientsApprovalsRoute
+  '/clients/import': typeof AuthenticatedClientsImportRoute
   '/contacts/$id': typeof AuthenticatedContactsIdRoute
   '/qa/criteria': typeof AuthenticatedQaCriteriaRoute
   '/qa/dashboard': typeof AuthenticatedQaDashboardRoute
   '/security/audit': typeof AuthenticatedSecurityAuditRoute
   '/calls/': typeof AuthenticatedCallsIndexRoute
+  '/clients/': typeof AuthenticatedClientsIndexRoute
   '/contacts/': typeof AuthenticatedContactsIndexRoute
   '/staff/': typeof AuthenticatedStaffIndexRoute
 }
@@ -144,11 +175,15 @@ export interface FileRoutesByTo {
   '/admin/permissions': typeof AuthenticatedAdminPermissionsRoute
   '/calls/$id': typeof AuthenticatedCallsIdRoute
   '/calls/new': typeof AuthenticatedCallsNewRoute
+  '/clients/$id': typeof AuthenticatedClientsIdRoute
+  '/clients/approvals': typeof AuthenticatedClientsApprovalsRoute
+  '/clients/import': typeof AuthenticatedClientsImportRoute
   '/contacts/$id': typeof AuthenticatedContactsIdRoute
   '/qa/criteria': typeof AuthenticatedQaCriteriaRoute
   '/qa/dashboard': typeof AuthenticatedQaDashboardRoute
   '/security/audit': typeof AuthenticatedSecurityAuditRoute
   '/calls': typeof AuthenticatedCallsIndexRoute
+  '/clients': typeof AuthenticatedClientsIndexRoute
   '/contacts': typeof AuthenticatedContactsIndexRoute
   '/staff': typeof AuthenticatedStaffIndexRoute
 }
@@ -164,11 +199,15 @@ export interface FileRoutesById {
   '/_authenticated/admin/permissions': typeof AuthenticatedAdminPermissionsRoute
   '/_authenticated/calls/$id': typeof AuthenticatedCallsIdRoute
   '/_authenticated/calls/new': typeof AuthenticatedCallsNewRoute
+  '/_authenticated/clients/$id': typeof AuthenticatedClientsIdRoute
+  '/_authenticated/clients/approvals': typeof AuthenticatedClientsApprovalsRoute
+  '/_authenticated/clients/import': typeof AuthenticatedClientsImportRoute
   '/_authenticated/contacts/$id': typeof AuthenticatedContactsIdRoute
   '/_authenticated/qa/criteria': typeof AuthenticatedQaCriteriaRoute
   '/_authenticated/qa/dashboard': typeof AuthenticatedQaDashboardRoute
   '/_authenticated/security/audit': typeof AuthenticatedSecurityAuditRoute
   '/_authenticated/calls/': typeof AuthenticatedCallsIndexRoute
+  '/_authenticated/clients/': typeof AuthenticatedClientsIndexRoute
   '/_authenticated/contacts/': typeof AuthenticatedContactsIndexRoute
   '/_authenticated/staff/': typeof AuthenticatedStaffIndexRoute
 }
@@ -184,11 +223,15 @@ export interface FileRouteTypes {
     | '/admin/permissions'
     | '/calls/$id'
     | '/calls/new'
+    | '/clients/$id'
+    | '/clients/approvals'
+    | '/clients/import'
     | '/contacts/$id'
     | '/qa/criteria'
     | '/qa/dashboard'
     | '/security/audit'
     | '/calls/'
+    | '/clients/'
     | '/contacts/'
     | '/staff/'
   fileRoutesByTo: FileRoutesByTo
@@ -202,11 +245,15 @@ export interface FileRouteTypes {
     | '/admin/permissions'
     | '/calls/$id'
     | '/calls/new'
+    | '/clients/$id'
+    | '/clients/approvals'
+    | '/clients/import'
     | '/contacts/$id'
     | '/qa/criteria'
     | '/qa/dashboard'
     | '/security/audit'
     | '/calls'
+    | '/clients'
     | '/contacts'
     | '/staff'
   id:
@@ -221,11 +268,15 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/permissions'
     | '/_authenticated/calls/$id'
     | '/_authenticated/calls/new'
+    | '/_authenticated/clients/$id'
+    | '/_authenticated/clients/approvals'
+    | '/_authenticated/clients/import'
     | '/_authenticated/contacts/$id'
     | '/_authenticated/qa/criteria'
     | '/_authenticated/qa/dashboard'
     | '/_authenticated/security/audit'
     | '/_authenticated/calls/'
+    | '/_authenticated/clients/'
     | '/_authenticated/contacts/'
     | '/_authenticated/staff/'
   fileRoutesById: FileRoutesById
@@ -302,6 +353,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedContactsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/clients/': {
+      id: '/_authenticated/clients/'
+      path: '/clients'
+      fullPath: '/clients/'
+      preLoaderRoute: typeof AuthenticatedClientsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/calls/': {
       id: '/_authenticated/calls/'
       path: '/calls'
@@ -337,6 +395,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedContactsIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/clients/import': {
+      id: '/_authenticated/clients/import'
+      path: '/clients/import'
+      fullPath: '/clients/import'
+      preLoaderRoute: typeof AuthenticatedClientsImportRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/clients/approvals': {
+      id: '/_authenticated/clients/approvals'
+      path: '/clients/approvals'
+      fullPath: '/clients/approvals'
+      preLoaderRoute: typeof AuthenticatedClientsApprovalsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/clients/$id': {
+      id: '/_authenticated/clients/$id'
+      path: '/clients/$id'
+      fullPath: '/clients/$id'
+      preLoaderRoute: typeof AuthenticatedClientsIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/calls/new': {
       id: '/_authenticated/calls/new'
       path: '/calls/new'
@@ -366,11 +445,15 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminPermissionsRoute: typeof AuthenticatedAdminPermissionsRoute
   AuthenticatedCallsIdRoute: typeof AuthenticatedCallsIdRoute
   AuthenticatedCallsNewRoute: typeof AuthenticatedCallsNewRoute
+  AuthenticatedClientsIdRoute: typeof AuthenticatedClientsIdRoute
+  AuthenticatedClientsApprovalsRoute: typeof AuthenticatedClientsApprovalsRoute
+  AuthenticatedClientsImportRoute: typeof AuthenticatedClientsImportRoute
   AuthenticatedContactsIdRoute: typeof AuthenticatedContactsIdRoute
   AuthenticatedQaCriteriaRoute: typeof AuthenticatedQaCriteriaRoute
   AuthenticatedQaDashboardRoute: typeof AuthenticatedQaDashboardRoute
   AuthenticatedSecurityAuditRoute: typeof AuthenticatedSecurityAuditRoute
   AuthenticatedCallsIndexRoute: typeof AuthenticatedCallsIndexRoute
+  AuthenticatedClientsIndexRoute: typeof AuthenticatedClientsIndexRoute
   AuthenticatedContactsIndexRoute: typeof AuthenticatedContactsIndexRoute
   AuthenticatedStaffIndexRoute: typeof AuthenticatedStaffIndexRoute
 }
@@ -380,11 +463,15 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminPermissionsRoute: AuthenticatedAdminPermissionsRoute,
   AuthenticatedCallsIdRoute: AuthenticatedCallsIdRoute,
   AuthenticatedCallsNewRoute: AuthenticatedCallsNewRoute,
+  AuthenticatedClientsIdRoute: AuthenticatedClientsIdRoute,
+  AuthenticatedClientsApprovalsRoute: AuthenticatedClientsApprovalsRoute,
+  AuthenticatedClientsImportRoute: AuthenticatedClientsImportRoute,
   AuthenticatedContactsIdRoute: AuthenticatedContactsIdRoute,
   AuthenticatedQaCriteriaRoute: AuthenticatedQaCriteriaRoute,
   AuthenticatedQaDashboardRoute: AuthenticatedQaDashboardRoute,
   AuthenticatedSecurityAuditRoute: AuthenticatedSecurityAuditRoute,
   AuthenticatedCallsIndexRoute: AuthenticatedCallsIndexRoute,
+  AuthenticatedClientsIndexRoute: AuthenticatedClientsIndexRoute,
   AuthenticatedContactsIndexRoute: AuthenticatedContactsIndexRoute,
   AuthenticatedStaffIndexRoute: AuthenticatedStaffIndexRoute,
 }
@@ -413,13 +500,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
