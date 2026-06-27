@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { PageHeader } from "@/components/AppShell";
 import { CCButton, CCWidget, CCField, CCInput, CCSelect, CCFormGrid } from "@/components/cc";
+import { DUMMY_REPORT_RUNS } from "@/lib/dummy-data";
 
 export const Route = createFileRoute("/_authenticated/reports/")({
   component: ReportsPage,
@@ -165,15 +166,12 @@ function ReportsPage() {
 
         <CCWidget title="Recent exports">
           <ul className="divide-y divide-[color:var(--cc-ink-100)] text-sm">
-            {((recent.data ?? []) as any[]).map((r) => (
+            {(((recent.data && recent.data.length > 0) ? recent.data : DUMMY_REPORT_RUNS) as any[]).map((r) => (
               <li key={r.id} className="py-2 flex items-center justify-between">
                 <span className="text-[color:var(--cc-ink-700)]">{r.report_key} · {r.row_count} rows</span>
                 <span className="text-xs text-[color:var(--cc-ink-500)] tabular-nums">{new Date(r.created_at).toLocaleString()}</span>
               </li>
             ))}
-            {recent.data && recent.data.length === 0 && (
-              <li className="py-6 text-center text-[color:var(--cc-ink-500)]">No exports yet.</li>
-            )}
           </ul>
         </CCWidget>
       </div>
