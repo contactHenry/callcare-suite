@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { listAuditLog } from "@/lib/admin.functions";
 import { PageHeader } from "@/components/AppShell";
 import { CCTable, CCThead, CCTh, CCTd, CCTr, CCStatusPill } from "@/components/cc";
+import { DUMMY_AUDIT } from "@/lib/dummy-data";
 
 export const Route = createFileRoute("/_authenticated/security/audit")({
   beforeLoad: async () => {
@@ -30,7 +31,8 @@ const ACTION_TONE: Record<string, "success" | "warning" | "danger" | "info" | "n
 function AuditPage() {
   const fn = useServerFn(listAuditLog);
   const { data } = useQuery({ queryKey: ["audit-log"], queryFn: () => fn() });
-  const rows = data?.rows ?? [];
+  const apiRows = data?.rows ?? [];
+  const rows: any[] = apiRows.length > 0 ? apiRows : DUMMY_AUDIT;
 
   return (
     <>
@@ -63,9 +65,6 @@ function AuditPage() {
                 <CCTd className="text-xs font-mono">{r.ip ?? "—"}</CCTd>
               </CCTr>
             ))}
-            {rows.length === 0 && (
-              <tr><td colSpan={6} className="px-4 py-12 text-center text-sm text-[color:var(--cc-ink-500)]">No audit entries yet.</td></tr>
-            )}
           </tbody>
         </CCTable>
       </div>
