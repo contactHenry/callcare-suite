@@ -23,6 +23,7 @@ import { Route as AuthenticatedRecordingsIndexRouteImport } from './routes/_auth
 import { Route as AuthenticatedNotificationsIndexRouteImport } from './routes/_authenticated/notifications.index'
 import { Route as AuthenticatedMonitoringIndexRouteImport } from './routes/_authenticated/monitoring.index'
 import { Route as AuthenticatedContactsIndexRouteImport } from './routes/_authenticated/contacts.index'
+import { Route as AuthenticatedComplaintsIndexRouteImport } from './routes/_authenticated/complaints.index'
 import { Route as AuthenticatedClientsIndexRouteImport } from './routes/_authenticated/clients.index'
 import { Route as AuthenticatedCallsIndexRouteImport } from './routes/_authenticated/calls.index'
 import { Route as AuthenticatedTelephonySettingsRouteImport } from './routes/_authenticated/telephony.settings'
@@ -111,6 +112,12 @@ const AuthenticatedContactsIndexRoute =
   AuthenticatedContactsIndexRouteImport.update({
     id: '/contacts/',
     path: '/contacts/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedComplaintsIndexRoute =
+  AuthenticatedComplaintsIndexRouteImport.update({
+    id: '/complaints/',
+    path: '/complaints/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedClientsIndexRoute =
@@ -219,6 +226,7 @@ export interface FileRoutesByFullPath {
   '/telephony/settings': typeof AuthenticatedTelephonySettingsRoute
   '/calls/': typeof AuthenticatedCallsIndexRoute
   '/clients/': typeof AuthenticatedClientsIndexRoute
+  '/complaints/': typeof AuthenticatedComplaintsIndexRoute
   '/contacts/': typeof AuthenticatedContactsIndexRoute
   '/monitoring/': typeof AuthenticatedMonitoringIndexRoute
   '/notifications/': typeof AuthenticatedNotificationsIndexRoute
@@ -249,6 +257,7 @@ export interface FileRoutesByTo {
   '/telephony/settings': typeof AuthenticatedTelephonySettingsRoute
   '/calls': typeof AuthenticatedCallsIndexRoute
   '/clients': typeof AuthenticatedClientsIndexRoute
+  '/complaints': typeof AuthenticatedComplaintsIndexRoute
   '/contacts': typeof AuthenticatedContactsIndexRoute
   '/monitoring': typeof AuthenticatedMonitoringIndexRoute
   '/notifications': typeof AuthenticatedNotificationsIndexRoute
@@ -281,6 +290,7 @@ export interface FileRoutesById {
   '/_authenticated/telephony/settings': typeof AuthenticatedTelephonySettingsRoute
   '/_authenticated/calls/': typeof AuthenticatedCallsIndexRoute
   '/_authenticated/clients/': typeof AuthenticatedClientsIndexRoute
+  '/_authenticated/complaints/': typeof AuthenticatedComplaintsIndexRoute
   '/_authenticated/contacts/': typeof AuthenticatedContactsIndexRoute
   '/_authenticated/monitoring/': typeof AuthenticatedMonitoringIndexRoute
   '/_authenticated/notifications/': typeof AuthenticatedNotificationsIndexRoute
@@ -313,6 +323,7 @@ export interface FileRouteTypes {
     | '/telephony/settings'
     | '/calls/'
     | '/clients/'
+    | '/complaints/'
     | '/contacts/'
     | '/monitoring/'
     | '/notifications/'
@@ -343,6 +354,7 @@ export interface FileRouteTypes {
     | '/telephony/settings'
     | '/calls'
     | '/clients'
+    | '/complaints'
     | '/contacts'
     | '/monitoring'
     | '/notifications'
@@ -374,6 +386,7 @@ export interface FileRouteTypes {
     | '/_authenticated/telephony/settings'
     | '/_authenticated/calls/'
     | '/_authenticated/clients/'
+    | '/_authenticated/complaints/'
     | '/_authenticated/contacts/'
     | '/_authenticated/monitoring/'
     | '/_authenticated/notifications/'
@@ -488,6 +501,13 @@ declare module '@tanstack/react-router' {
       path: '/contacts'
       fullPath: '/contacts/'
       preLoaderRoute: typeof AuthenticatedContactsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/complaints/': {
+      id: '/_authenticated/complaints/'
+      path: '/complaints'
+      fullPath: '/complaints/'
+      preLoaderRoute: typeof AuthenticatedComplaintsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/clients/': {
@@ -615,6 +635,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedTelephonySettingsRoute: typeof AuthenticatedTelephonySettingsRoute
   AuthenticatedCallsIndexRoute: typeof AuthenticatedCallsIndexRoute
   AuthenticatedClientsIndexRoute: typeof AuthenticatedClientsIndexRoute
+  AuthenticatedComplaintsIndexRoute: typeof AuthenticatedComplaintsIndexRoute
   AuthenticatedContactsIndexRoute: typeof AuthenticatedContactsIndexRoute
   AuthenticatedMonitoringIndexRoute: typeof AuthenticatedMonitoringIndexRoute
   AuthenticatedNotificationsIndexRoute: typeof AuthenticatedNotificationsIndexRoute
@@ -641,6 +662,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedTelephonySettingsRoute: AuthenticatedTelephonySettingsRoute,
   AuthenticatedCallsIndexRoute: AuthenticatedCallsIndexRoute,
   AuthenticatedClientsIndexRoute: AuthenticatedClientsIndexRoute,
+  AuthenticatedComplaintsIndexRoute: AuthenticatedComplaintsIndexRoute,
   AuthenticatedContactsIndexRoute: AuthenticatedContactsIndexRoute,
   AuthenticatedMonitoringIndexRoute: AuthenticatedMonitoringIndexRoute,
   AuthenticatedNotificationsIndexRoute: AuthenticatedNotificationsIndexRoute,
