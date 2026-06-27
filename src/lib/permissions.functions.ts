@@ -69,46 +69,40 @@ export const recordLoginEvent = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { userId } = context as { userId: string };
-    let ip: string | null = null;
-    let ua: string | null = null;
-    try { ip = getRequestIP({ xForwardedFor: true }); } catch {}
-    try { ua = getRequestHeader("user-agent") ?? null; } catch {}
+    let ip: string | undefined;
+    let ua: string | undefined;
+    try { ip = getRequestIP({ xForwardedFor: true }) ?? undefined; } catch {}
+    try { ua = getRequestHeader("user-agent") ?? undefined; } catch {}
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     await supabaseAdmin.from("login_history").insert({
       user_id: userId,
-      ip,
-      user_agent: ua,
-      device_name: data.device ?? null,
-      successful: true,
+      ip: ip ?? null,
+      user_agent: ua ?? null,
+      identifier: data.device ?? null,
+      success: true,
     });
     return { ok: true };
   });
 
-/** Record a failed sign-in attempt for an email (lockout monitoring). */
+/** Record a failed sign-in attempt for an identifier (email/username) — lockout monitoring. */
 export const recordFailedLogin = createServerFn({ method: "POST" })
-  .inputValidator((data: { email: string; reason?: string }) =>
-    z.object({
-      email: z.string().email().max(255).toLowerCase(),
-      reason: z.string().max(200).optional(),
-    }).parse(data),
+  .inputValidator((data: { email: string }) =>
+    z.object({ email: z.string().email().max(255).toLowerCase() }).parse(data),
   )
   .handler(async ({ data }) => {
-    let ip: string | null = null;
-    try { ip = getRequestIP({ xForwardedFor: true }); } catch {}
+    let ip: string | undefined;
+    try { ip = getRequestIP({ xForwardedFor: true }) ?? undefined; } catch {}
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     await supabaseAdmin.from("failed_login_attempts").insert({
-      email: data.email,
-      ip,
-      reason: data.reason ?? null,
+      identifier: data.email,
+      ip: ip ?? null,
     });
-    // 5 failures in 15 minutes = lockout signal returned to client (account
-    // freeze itself is enforced via `account_suspensions` by an Ops Admin).
     const since = new Date(Date.now() - 15 * 60_000).toISOString();
     const { count } = await supabaseAdmin
       .from("failed_login_attempts")
       .select("*", { count: "exact", head: true })
-      .eq("email", data.email)
-      .gte("attempted_at", since);
+      .eq("identifier", data.email)
+      .gte("at", since);
     return { failures: count ?? 0, lockedOut: (count ?? 0) >= 5 };
   });
 
@@ -123,7 +117,7 @@ export const checkLockout = createServerFn({ method: "POST" })
     const { count } = await supabaseAdmin
       .from("failed_login_attempts")
       .select("*", { count: "exact", head: true })
-      .eq("email", data.email)
-      .gte("attempted_at", since);
+      .eq("identifier", data.email)
+      .gte("at", since);
     return { lockedOut: (count ?? 0) >= 5, failures: count ?? 0 };
   });

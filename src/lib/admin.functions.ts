@@ -15,7 +15,7 @@ export const listPermissions = createServerFn({ method: "GET" })
     const { supabase } = context as { supabase: any };
     const { data, error } = await supabase
       .from("role_permissions")
-      .select("role, permission, description")
+      .select("role, permission")
       .order("permission", { ascending: true });
     if (error) throw new Response(error.message, { status: 400 });
     return { rows: data ?? [] };
@@ -61,8 +61,8 @@ export const listAuditLog = createServerFn({ method: "GET" })
     const { supabase } = context as { supabase: any };
     const { data, error } = await supabase
       .from("audit_log")
-      .select("id, actor_id, action, target_type, target_id, diff, ip, created_at")
-      .order("created_at", { ascending: false })
+      .select("id, actor_id, action, target_type, target_id, diff, ip, at")
+      .order("at", { ascending: false })
       .limit(200);
     if (error) throw new Response(error.message, { status: 400 });
     return { rows: data ?? [] };

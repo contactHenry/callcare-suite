@@ -163,7 +163,7 @@ export const suspendUser = createServerFn({ method: "POST" })
       user_id: data.userId,
       reason: data.reason,
       ends_at: data.endsAt ?? null,
-      created_by: userId,
+      suspended_by: userId,
     });
     if (error) throw new Response(error.message, { status: 400 });
     // Optionally ban via Auth Admin (24h or until ends_at).
@@ -189,7 +189,7 @@ export const liftSuspension = createServerFn({ method: "POST" })
     const { supabase, userId } = context as { supabase: any; userId: string };
     const { error } = await supabase
       .from("account_suspensions")
-      .update({ lifted_at: new Date().toISOString(), lifted_by: userId })
+      .update({ lifted_at: new Date().toISOString() })
       .eq("user_id", data.userId)
       .is("lifted_at", null);
     if (error) throw new Response(error.message, { status: 400 });
