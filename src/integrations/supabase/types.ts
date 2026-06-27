@@ -177,6 +177,129 @@ export type Database = {
           },
         ]
       }
+      call_notes: {
+        Row: {
+          action_required: string | null
+          agent_id: string
+          call_id: string
+          complaint: boolean
+          concerns: string | null
+          consent_update: string | null
+          created_at: string
+          follow_up_task_id: string | null
+          id: string
+          next_action: string | null
+          outcome_code: string | null
+          priority: string
+          summary: string | null
+          updated_at: string
+        }
+        Insert: {
+          action_required?: string | null
+          agent_id: string
+          call_id: string
+          complaint?: boolean
+          concerns?: string | null
+          consent_update?: string | null
+          created_at?: string
+          follow_up_task_id?: string | null
+          id?: string
+          next_action?: string | null
+          outcome_code?: string | null
+          priority?: string
+          summary?: string | null
+          updated_at?: string
+        }
+        Update: {
+          action_required?: string | null
+          agent_id?: string
+          call_id?: string
+          complaint?: boolean
+          concerns?: string | null
+          consent_update?: string | null
+          created_at?: string
+          follow_up_task_id?: string | null
+          id?: string
+          next_action?: string | null
+          outcome_code?: string | null
+          priority?: string
+          summary?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "call_notes_call_id_fkey"
+            columns: ["call_id"]
+            isOneToOne: false
+            referencedRelation: "calls"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "call_notes_follow_up_task_fk"
+            columns: ["follow_up_task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      call_outcome_definitions: {
+        Row: {
+          campaign_id: string | null
+          code: string
+          created_at: string
+          id: string
+          is_active: boolean
+          label: string
+          organization_id: string | null
+          polarity: string
+          requires_follow_up: boolean
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          campaign_id?: string | null
+          code: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          label: string
+          organization_id?: string | null
+          polarity?: string
+          requires_follow_up?: boolean
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          campaign_id?: string | null
+          code?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          label?: string
+          organization_id?: string | null
+          polarity?: string
+          requires_follow_up?: boolean
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "call_outcome_definitions_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "call_outcome_definitions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       call_queue: {
         Row: {
           assigned_agent_id: string | null
@@ -326,6 +449,111 @@ export type Database = {
             columns: ["call_id"]
             isOneToOne: false
             referencedRelation: "calls"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      call_script_versions: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          changelog: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          script_id: string
+          status: Database["public"]["Enums"]["script_status"]
+          tree: Json
+          version: number
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          changelog?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          script_id: string
+          status?: Database["public"]["Enums"]["script_status"]
+          tree?: Json
+          version: number
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          changelog?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          script_id?: string
+          status?: Database["public"]["Enums"]["script_status"]
+          tree?: Json
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "call_script_versions_script_id_fkey"
+            columns: ["script_id"]
+            isOneToOne: false
+            referencedRelation: "call_scripts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      call_scripts: {
+        Row: {
+          campaign_id: string | null
+          created_at: string
+          created_by: string | null
+          current_version_id: string | null
+          description: string | null
+          id: string
+          name: string
+          organization_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          campaign_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          current_version_id?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          organization_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          campaign_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          current_version_id?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          organization_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "call_scripts_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "call_scripts_current_version_fk"
+            columns: ["current_version_id"]
+            isOneToOne: false
+            referencedRelation: "call_script_versions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "call_scripts_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
@@ -1094,6 +1322,70 @@ export type Database = {
           },
         ]
       }
+      qa_acknowledgements: {
+        Row: {
+          acknowledged_at: string
+          id: string
+          review_id: string
+          user_id: string
+        }
+        Insert: {
+          acknowledged_at?: string
+          id?: string
+          review_id: string
+          user_id: string
+        }
+        Update: {
+          acknowledged_at?: string
+          id?: string
+          review_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "qa_acknowledgements_review_id_fkey"
+            columns: ["review_id"]
+            isOneToOne: false
+            referencedRelation: "qa_reviews"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      qa_coaching_notes: {
+        Row: {
+          author_id: string
+          body: string
+          created_at: string
+          id: string
+          recommendation: string | null
+          review_id: string
+        }
+        Insert: {
+          author_id: string
+          body: string
+          created_at?: string
+          id?: string
+          recommendation?: string | null
+          review_id: string
+        }
+        Update: {
+          author_id?: string
+          body?: string
+          created_at?: string
+          id?: string
+          recommendation?: string | null
+          review_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "qa_coaching_notes_review_id_fkey"
+            columns: ["review_id"]
+            isOneToOne: false
+            referencedRelation: "qa_reviews"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       qa_criteria: {
         Row: {
           active: boolean
@@ -1120,6 +1412,101 @@ export type Database = {
           weight?: number
         }
         Relationships: []
+      }
+      qa_disputes: {
+        Row: {
+          agent_id: string
+          created_at: string
+          id: string
+          moderator_id: string | null
+          moderator_note: string | null
+          reason: string
+          resolved_at: string | null
+          review_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          agent_id: string
+          created_at?: string
+          id?: string
+          moderator_id?: string | null
+          moderator_note?: string | null
+          reason: string
+          resolved_at?: string | null
+          review_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          agent_id?: string
+          created_at?: string
+          id?: string
+          moderator_id?: string | null
+          moderator_note?: string | null
+          reason?: string
+          resolved_at?: string | null
+          review_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "qa_disputes_review_id_fkey"
+            columns: ["review_id"]
+            isOneToOne: false
+            referencedRelation: "qa_reviews"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      qa_review_assignments: {
+        Row: {
+          call_id: string
+          created_at: string
+          due_at: string | null
+          id: string
+          reviewer_id: string
+          scorecard_id: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          call_id: string
+          created_at?: string
+          due_at?: string | null
+          id?: string
+          reviewer_id: string
+          scorecard_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          call_id?: string
+          created_at?: string
+          due_at?: string | null
+          id?: string
+          reviewer_id?: string
+          scorecard_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "qa_review_assignments_call_id_fkey"
+            columns: ["call_id"]
+            isOneToOne: false
+            referencedRelation: "calls"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "qa_review_assignments_scorecard_id_fkey"
+            columns: ["scorecard_id"]
+            isOneToOne: false
+            referencedRelation: "qa_scorecards"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       qa_review_scores: {
         Row: {
@@ -1195,6 +1582,130 @@ export type Database = {
           },
         ]
       }
+      qa_scorecard_items: {
+        Row: {
+          created_at: string
+          id: string
+          is_critical: boolean
+          max_score: number
+          prompt: string
+          section_id: string
+          sort_order: number
+          weight: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_critical?: boolean
+          max_score?: number
+          prompt: string
+          section_id: string
+          sort_order?: number
+          weight?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_critical?: boolean
+          max_score?: number
+          prompt?: string
+          section_id?: string
+          sort_order?: number
+          weight?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "qa_scorecard_items_section_id_fkey"
+            columns: ["section_id"]
+            isOneToOne: false
+            referencedRelation: "qa_scorecard_sections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      qa_scorecard_sections: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          scorecard_id: string
+          sort_order: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          scorecard_id: string
+          sort_order?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          scorecard_id?: string
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "qa_scorecard_sections_scorecard_id_fkey"
+            columns: ["scorecard_id"]
+            isOneToOne: false
+            referencedRelation: "qa_scorecards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      qa_scorecards: {
+        Row: {
+          campaign_id: string | null
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          name: string
+          organization_id: string | null
+          pass_threshold: number
+          updated_at: string
+        }
+        Insert: {
+          campaign_id?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          organization_id?: string | null
+          pass_threshold?: number
+          updated_at?: string
+        }
+        Update: {
+          campaign_id?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          organization_id?: string | null
+          pass_threshold?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "qa_scorecards_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "qa_scorecards_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       role_permissions: {
         Row: {
           created_at: string
@@ -1212,6 +1723,35 @@ export type Database = {
           role?: Database["public"]["Enums"]["app_role"]
         }
         Relationships: []
+      }
+      script_acknowledgements: {
+        Row: {
+          acknowledged_at: string
+          id: string
+          user_id: string
+          version_id: string
+        }
+        Insert: {
+          acknowledged_at?: string
+          id?: string
+          user_id: string
+          version_id: string
+        }
+        Update: {
+          acknowledged_at?: string
+          id?: string
+          user_id?: string
+          version_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "script_acknowledgements_version_id_fkey"
+            columns: ["version_id"]
+            isOneToOne: false
+            referencedRelation: "call_script_versions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       sso_providers: {
         Row: {
@@ -1247,6 +1787,187 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "sso_providers_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      task_attachments: {
+        Row: {
+          created_at: string
+          file_name: string
+          id: string
+          mime_type: string | null
+          size_bytes: number | null
+          storage_path: string
+          task_id: string
+          uploaded_by: string
+        }
+        Insert: {
+          created_at?: string
+          file_name: string
+          id?: string
+          mime_type?: string | null
+          size_bytes?: number | null
+          storage_path: string
+          task_id: string
+          uploaded_by: string
+        }
+        Update: {
+          created_at?: string
+          file_name?: string
+          id?: string
+          mime_type?: string | null
+          size_bytes?: number | null
+          storage_path?: string
+          task_id?: string
+          uploaded_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_attachments_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      task_comments: {
+        Row: {
+          author_id: string
+          body: string
+          created_at: string
+          id: string
+          task_id: string
+        }
+        Insert: {
+          author_id: string
+          body: string
+          created_at?: string
+          id?: string
+          task_id: string
+        }
+        Update: {
+          author_id?: string
+          body?: string
+          created_at?: string
+          id?: string
+          task_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_comments_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tasks: {
+        Row: {
+          assigned_team_id: string | null
+          assigned_to: string | null
+          call_id: string | null
+          campaign_id: string | null
+          client_id: string | null
+          completed_at: string | null
+          completion_note: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          due_at: string | null
+          escalated: boolean
+          id: string
+          kind: Database["public"]["Enums"]["task_kind"]
+          organization_id: string | null
+          priority: string
+          recurrence_rule: string | null
+          remind_at: string | null
+          status: Database["public"]["Enums"]["task_status"]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_team_id?: string | null
+          assigned_to?: string | null
+          call_id?: string | null
+          campaign_id?: string | null
+          client_id?: string | null
+          completed_at?: string | null
+          completion_note?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          due_at?: string | null
+          escalated?: boolean
+          id?: string
+          kind?: Database["public"]["Enums"]["task_kind"]
+          organization_id?: string | null
+          priority?: string
+          recurrence_rule?: string | null
+          remind_at?: string | null
+          status?: Database["public"]["Enums"]["task_status"]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_team_id?: string | null
+          assigned_to?: string | null
+          call_id?: string | null
+          campaign_id?: string | null
+          client_id?: string | null
+          completed_at?: string | null
+          completion_note?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          due_at?: string | null
+          escalated?: boolean
+          id?: string
+          kind?: Database["public"]["Enums"]["task_kind"]
+          organization_id?: string | null
+          priority?: string
+          recurrence_rule?: string | null
+          remind_at?: string | null
+          status?: Database["public"]["Enums"]["task_status"]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tasks_assigned_team_id_fkey"
+            columns: ["assigned_team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_call_id_fkey"
+            columns: ["call_id"]
+            isOneToOne: false
+            referencedRelation: "calls"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
@@ -1570,6 +2291,20 @@ export type Database = {
       consent_state: "unknown" | "granted" | "revoked"
       contact_method: "phone" | "email" | "sms" | "whatsapp" | "no_contact"
       monitor_kind: "listen" | "whisper" | "barge" | "takeover"
+      script_status: "draft" | "in_review" | "approved" | "archived"
+      task_kind:
+        | "follow_up"
+        | "callback"
+        | "admin"
+        | "coaching"
+        | "escalation"
+        | "other"
+      task_status:
+        | "open"
+        | "in_progress"
+        | "completed"
+        | "cancelled"
+        | "escalated"
       transfer_kind: "warm" | "cold" | "conference"
     }
     CompositeTypes: {
@@ -1747,6 +2482,22 @@ export const Constants = {
       consent_state: ["unknown", "granted", "revoked"],
       contact_method: ["phone", "email", "sms", "whatsapp", "no_contact"],
       monitor_kind: ["listen", "whisper", "barge", "takeover"],
+      script_status: ["draft", "in_review", "approved", "archived"],
+      task_kind: [
+        "follow_up",
+        "callback",
+        "admin",
+        "coaching",
+        "escalation",
+        "other",
+      ],
+      task_status: [
+        "open",
+        "in_progress",
+        "completed",
+        "cancelled",
+        "escalated",
+      ],
       transfer_kind: ["warm", "cold", "conference"],
     },
   },

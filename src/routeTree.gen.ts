@@ -16,7 +16,9 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthForgotRouteImport } from './routes/auth.forgot'
 import { Route as Auth2faRouteImport } from './routes/auth.2fa'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedTasksIndexRouteImport } from './routes/_authenticated/tasks.index'
 import { Route as AuthenticatedStaffIndexRouteImport } from './routes/_authenticated/staff.index'
+import { Route as AuthenticatedScriptsIndexRouteImport } from './routes/_authenticated/scripts.index'
 import { Route as AuthenticatedRecordingsIndexRouteImport } from './routes/_authenticated/recordings.index'
 import { Route as AuthenticatedMonitoringIndexRouteImport } from './routes/_authenticated/monitoring.index'
 import { Route as AuthenticatedContactsIndexRouteImport } from './routes/_authenticated/contacts.index'
@@ -68,11 +70,22 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedTasksIndexRoute = AuthenticatedTasksIndexRouteImport.update({
+  id: '/tasks/',
+  path: '/tasks/',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedStaffIndexRoute = AuthenticatedStaffIndexRouteImport.update({
   id: '/staff/',
   path: '/staff/',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedScriptsIndexRoute =
+  AuthenticatedScriptsIndexRouteImport.update({
+    id: '/scripts/',
+    path: '/scripts/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedRecordingsIndexRoute =
   AuthenticatedRecordingsIndexRouteImport.update({
     id: '/recordings/',
@@ -187,7 +200,9 @@ export interface FileRoutesByFullPath {
   '/contacts/': typeof AuthenticatedContactsIndexRoute
   '/monitoring/': typeof AuthenticatedMonitoringIndexRoute
   '/recordings/': typeof AuthenticatedRecordingsIndexRoute
+  '/scripts/': typeof AuthenticatedScriptsIndexRoute
   '/staff/': typeof AuthenticatedStaffIndexRoute
+  '/tasks/': typeof AuthenticatedTasksIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -212,7 +227,9 @@ export interface FileRoutesByTo {
   '/contacts': typeof AuthenticatedContactsIndexRoute
   '/monitoring': typeof AuthenticatedMonitoringIndexRoute
   '/recordings': typeof AuthenticatedRecordingsIndexRoute
+  '/scripts': typeof AuthenticatedScriptsIndexRoute
   '/staff': typeof AuthenticatedStaffIndexRoute
+  '/tasks': typeof AuthenticatedTasksIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -239,7 +256,9 @@ export interface FileRoutesById {
   '/_authenticated/contacts/': typeof AuthenticatedContactsIndexRoute
   '/_authenticated/monitoring/': typeof AuthenticatedMonitoringIndexRoute
   '/_authenticated/recordings/': typeof AuthenticatedRecordingsIndexRoute
+  '/_authenticated/scripts/': typeof AuthenticatedScriptsIndexRoute
   '/_authenticated/staff/': typeof AuthenticatedStaffIndexRoute
+  '/_authenticated/tasks/': typeof AuthenticatedTasksIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -266,7 +285,9 @@ export interface FileRouteTypes {
     | '/contacts/'
     | '/monitoring/'
     | '/recordings/'
+    | '/scripts/'
     | '/staff/'
+    | '/tasks/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -291,7 +312,9 @@ export interface FileRouteTypes {
     | '/contacts'
     | '/monitoring'
     | '/recordings'
+    | '/scripts'
     | '/staff'
+    | '/tasks'
   id:
     | '__root__'
     | '/'
@@ -317,7 +340,9 @@ export interface FileRouteTypes {
     | '/_authenticated/contacts/'
     | '/_authenticated/monitoring/'
     | '/_authenticated/recordings/'
+    | '/_authenticated/scripts/'
     | '/_authenticated/staff/'
+    | '/_authenticated/tasks/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -378,11 +403,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/tasks/': {
+      id: '/_authenticated/tasks/'
+      path: '/tasks'
+      fullPath: '/tasks/'
+      preLoaderRoute: typeof AuthenticatedTasksIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/staff/': {
       id: '/_authenticated/staff/'
       path: '/staff'
       fullPath: '/staff/'
       preLoaderRoute: typeof AuthenticatedStaffIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/scripts/': {
+      id: '/_authenticated/scripts/'
+      path: '/scripts'
+      fullPath: '/scripts/'
+      preLoaderRoute: typeof AuthenticatedScriptsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/recordings/': {
@@ -518,7 +557,9 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedContactsIndexRoute: typeof AuthenticatedContactsIndexRoute
   AuthenticatedMonitoringIndexRoute: typeof AuthenticatedMonitoringIndexRoute
   AuthenticatedRecordingsIndexRoute: typeof AuthenticatedRecordingsIndexRoute
+  AuthenticatedScriptsIndexRoute: typeof AuthenticatedScriptsIndexRoute
   AuthenticatedStaffIndexRoute: typeof AuthenticatedStaffIndexRoute
+  AuthenticatedTasksIndexRoute: typeof AuthenticatedTasksIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -539,7 +580,9 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedContactsIndexRoute: AuthenticatedContactsIndexRoute,
   AuthenticatedMonitoringIndexRoute: AuthenticatedMonitoringIndexRoute,
   AuthenticatedRecordingsIndexRoute: AuthenticatedRecordingsIndexRoute,
+  AuthenticatedScriptsIndexRoute: AuthenticatedScriptsIndexRoute,
   AuthenticatedStaffIndexRoute: AuthenticatedStaffIndexRoute,
+  AuthenticatedTasksIndexRoute: AuthenticatedTasksIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
