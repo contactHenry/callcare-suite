@@ -22,6 +22,7 @@ import { Route as AuthenticatedScriptsIndexRouteImport } from './routes/_authent
 import { Route as AuthenticatedRecordingsIndexRouteImport } from './routes/_authenticated/recordings.index'
 import { Route as AuthenticatedNotificationsIndexRouteImport } from './routes/_authenticated/notifications.index'
 import { Route as AuthenticatedMonitoringIndexRouteImport } from './routes/_authenticated/monitoring.index'
+import { Route as AuthenticatedIntegrationsIndexRouteImport } from './routes/_authenticated/integrations.index'
 import { Route as AuthenticatedContactsIndexRouteImport } from './routes/_authenticated/contacts.index'
 import { Route as AuthenticatedComplianceIndexRouteImport } from './routes/_authenticated/compliance.index'
 import { Route as AuthenticatedComplaintsIndexRouteImport } from './routes/_authenticated/complaints.index'
@@ -109,6 +110,12 @@ const AuthenticatedMonitoringIndexRoute =
   AuthenticatedMonitoringIndexRouteImport.update({
     id: '/monitoring/',
     path: '/monitoring/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedIntegrationsIndexRoute =
+  AuthenticatedIntegrationsIndexRouteImport.update({
+    id: '/integrations/',
+    path: '/integrations/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedContactsIndexRoute =
@@ -252,6 +259,7 @@ export interface FileRoutesByFullPath {
   '/complaints/': typeof AuthenticatedComplaintsIndexRoute
   '/compliance/': typeof AuthenticatedComplianceIndexRoute
   '/contacts/': typeof AuthenticatedContactsIndexRoute
+  '/integrations/': typeof AuthenticatedIntegrationsIndexRoute
   '/monitoring/': typeof AuthenticatedMonitoringIndexRoute
   '/notifications/': typeof AuthenticatedNotificationsIndexRoute
   '/recordings/': typeof AuthenticatedRecordingsIndexRoute
@@ -286,6 +294,7 @@ export interface FileRoutesByTo {
   '/complaints': typeof AuthenticatedComplaintsIndexRoute
   '/compliance': typeof AuthenticatedComplianceIndexRoute
   '/contacts': typeof AuthenticatedContactsIndexRoute
+  '/integrations': typeof AuthenticatedIntegrationsIndexRoute
   '/monitoring': typeof AuthenticatedMonitoringIndexRoute
   '/notifications': typeof AuthenticatedNotificationsIndexRoute
   '/recordings': typeof AuthenticatedRecordingsIndexRoute
@@ -322,6 +331,7 @@ export interface FileRoutesById {
   '/_authenticated/complaints/': typeof AuthenticatedComplaintsIndexRoute
   '/_authenticated/compliance/': typeof AuthenticatedComplianceIndexRoute
   '/_authenticated/contacts/': typeof AuthenticatedContactsIndexRoute
+  '/_authenticated/integrations/': typeof AuthenticatedIntegrationsIndexRoute
   '/_authenticated/monitoring/': typeof AuthenticatedMonitoringIndexRoute
   '/_authenticated/notifications/': typeof AuthenticatedNotificationsIndexRoute
   '/_authenticated/recordings/': typeof AuthenticatedRecordingsIndexRoute
@@ -358,6 +368,7 @@ export interface FileRouteTypes {
     | '/complaints/'
     | '/compliance/'
     | '/contacts/'
+    | '/integrations/'
     | '/monitoring/'
     | '/notifications/'
     | '/recordings/'
@@ -392,6 +403,7 @@ export interface FileRouteTypes {
     | '/complaints'
     | '/compliance'
     | '/contacts'
+    | '/integrations'
     | '/monitoring'
     | '/notifications'
     | '/recordings'
@@ -427,6 +439,7 @@ export interface FileRouteTypes {
     | '/_authenticated/complaints/'
     | '/_authenticated/compliance/'
     | '/_authenticated/contacts/'
+    | '/_authenticated/integrations/'
     | '/_authenticated/monitoring/'
     | '/_authenticated/notifications/'
     | '/_authenticated/recordings/'
@@ -533,6 +546,13 @@ declare module '@tanstack/react-router' {
       path: '/monitoring'
       fullPath: '/monitoring/'
       preLoaderRoute: typeof AuthenticatedMonitoringIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/integrations/': {
+      id: '/_authenticated/integrations/'
+      path: '/integrations'
+      fullPath: '/integrations/'
+      preLoaderRoute: typeof AuthenticatedIntegrationsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/contacts/': {
@@ -700,6 +720,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedComplaintsIndexRoute: typeof AuthenticatedComplaintsIndexRoute
   AuthenticatedComplianceIndexRoute: typeof AuthenticatedComplianceIndexRoute
   AuthenticatedContactsIndexRoute: typeof AuthenticatedContactsIndexRoute
+  AuthenticatedIntegrationsIndexRoute: typeof AuthenticatedIntegrationsIndexRoute
   AuthenticatedMonitoringIndexRoute: typeof AuthenticatedMonitoringIndexRoute
   AuthenticatedNotificationsIndexRoute: typeof AuthenticatedNotificationsIndexRoute
   AuthenticatedRecordingsIndexRoute: typeof AuthenticatedRecordingsIndexRoute
@@ -730,6 +751,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedComplaintsIndexRoute: AuthenticatedComplaintsIndexRoute,
   AuthenticatedComplianceIndexRoute: AuthenticatedComplianceIndexRoute,
   AuthenticatedContactsIndexRoute: AuthenticatedContactsIndexRoute,
+  AuthenticatedIntegrationsIndexRoute: AuthenticatedIntegrationsIndexRoute,
   AuthenticatedMonitoringIndexRoute: AuthenticatedMonitoringIndexRoute,
   AuthenticatedNotificationsIndexRoute: AuthenticatedNotificationsIndexRoute,
   AuthenticatedRecordingsIndexRoute: AuthenticatedRecordingsIndexRoute,
