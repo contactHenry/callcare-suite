@@ -1,0 +1,100 @@
+/*
+ * Call-centre design system — token layer.
+ *
+ * Imported once from src/styles.css. Adds bespoke tokens on top of the
+ * existing shadcn token set so the hand-rolled `cc/*` primitives can be
+ * adopted page-by-page without breaking the shadcn components still in use.
+ *
+ * Brand personality: calm · focused · trustworthy.
+ * Agents stare at this for 8 hours — low chroma, generous whitespace, strict
+ * semantic colour use, motion confined to status changes.
+ */
+
+:root {
+  /* ---- brand ---- */
+  --cc-brand-50:  oklch(0.97 0.02 265);
+  --cc-brand-100: oklch(0.93 0.05 265);
+  --cc-brand-300: oklch(0.78 0.12 265);
+  --cc-brand-500: oklch(0.56 0.17 265);
+  --cc-brand-600: oklch(0.48 0.18 265);
+  --cc-brand-700: oklch(0.40 0.18 265);
+  --cc-brand-900: oklch(0.22 0.10 265);
+
+  /* ---- neutrals (cool slate) ---- */
+  --cc-ink-0:   oklch(1 0 0);
+  --cc-ink-50:  oklch(0.985 0.003 247);
+  --cc-ink-100: oklch(0.965 0.006 247);
+  --cc-ink-200: oklch(0.925 0.010 247);
+  --cc-ink-300: oklch(0.870 0.014 247);
+  --cc-ink-500: oklch(0.620 0.020 247);
+  --cc-ink-700: oklch(0.380 0.025 247);
+  --cc-ink-900: oklch(0.180 0.030 247);
+
+  /* ---- semantic ---- */
+  --cc-success: oklch(0.62 0.16 152);
+  --cc-success-soft: oklch(0.95 0.05 152);
+  --cc-warning: oklch(0.78 0.17 78);
+  --cc-warning-soft: oklch(0.96 0.07 88);
+  --cc-danger:  oklch(0.60 0.22 27);
+  --cc-danger-soft: oklch(0.95 0.06 27);
+  --cc-info:    oklch(0.65 0.14 235);
+  --cc-info-soft: oklch(0.95 0.04 235);
+
+  /* ---- agent presence ---- */
+  --cc-presence-available: var(--cc-success);
+  --cc-presence-busy:      var(--cc-danger);
+  --cc-presence-acw:       var(--cc-warning);
+  --cc-presence-offline:   var(--cc-ink-300);
+
+  /* ---- elevation ---- */
+  --cc-shadow-xs: 0 1px 2px 0 oklch(0.18 0.03 247 / 0.04);
+  --cc-shadow-sm: 0 1px 3px 0 oklch(0.18 0.03 247 / 0.06), 0 1px 2px -1px oklch(0.18 0.03 247 / 0.04);
+  --cc-shadow-md: 0 4px 8px -2px oklch(0.18 0.03 247 / 0.08), 0 2px 4px -2px oklch(0.18 0.03 247 / 0.04);
+  --cc-shadow-lg: 0 12px 24px -6px oklch(0.18 0.03 247 / 0.12), 0 4px 8px -4px oklch(0.18 0.03 247 / 0.06);
+
+  /* ---- radius scale (deliberately tight; ops tool, not consumer) ---- */
+  --cc-radius-xs: 2px;
+  --cc-radius-sm: 4px;
+  --cc-radius-md: 6px;
+  --cc-radius-lg: 10px;
+
+  /* ---- spacing scale ---- */
+  --cc-space-1: 4px;
+  --cc-space-2: 8px;
+  --cc-space-3: 12px;
+  --cc-space-4: 16px;
+  --cc-space-5: 24px;
+  --cc-space-6: 32px;
+  --cc-space-8: 48px;
+
+  /* ---- motion ---- */
+  --cc-ease: cubic-bezier(0.2, 0.7, 0.1, 1);
+  --cc-dur-fast: 120ms;
+  --cc-dur-base: 200ms;
+  --cc-dur-slow: 320ms;
+}
+
+.dark {
+  --cc-ink-0:   oklch(0.16 0.025 247);
+  --cc-ink-50:  oklch(0.20 0.025 247);
+  --cc-ink-100: oklch(0.24 0.025 247);
+  --cc-ink-200: oklch(0.30 0.025 247);
+  --cc-ink-300: oklch(0.40 0.025 247);
+  --cc-ink-500: oklch(0.65 0.020 247);
+  --cc-ink-700: oklch(0.85 0.015 247);
+  --cc-ink-900: oklch(0.97 0.005 247);
+}
+
+/* utility surface helpers used by cc primitives */
+@utility cc-surface {
+  background: var(--cc-ink-0);
+  color: var(--cc-ink-900);
+  border: 1px solid var(--cc-ink-200);
+}
+
+@utility cc-focus-ring {
+  &:focus-visible {
+    outline: 2px solid var(--cc-brand-500);
+    outline-offset: 2px;
+  }
+}
