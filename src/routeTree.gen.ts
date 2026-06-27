@@ -16,7 +16,9 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthForgotRouteImport } from './routes/auth.forgot'
 import { Route as Auth2faRouteImport } from './routes/auth.2fa'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedTasksIndexRouteImport } from './routes/_authenticated/tasks.index'
 import { Route as AuthenticatedStaffIndexRouteImport } from './routes/_authenticated/staff.index'
+import { Route as AuthenticatedScriptsIndexRouteImport } from './routes/_authenticated/scripts.index'
 import { Route as AuthenticatedRecordingsIndexRouteImport } from './routes/_authenticated/recordings.index'
 import { Route as AuthenticatedMonitoringIndexRouteImport } from './routes/_authenticated/monitoring.index'
 import { Route as AuthenticatedContactsIndexRouteImport } from './routes/_authenticated/contacts.index'
@@ -24,6 +26,8 @@ import { Route as AuthenticatedClientsIndexRouteImport } from './routes/_authent
 import { Route as AuthenticatedCallsIndexRouteImport } from './routes/_authenticated/calls.index'
 import { Route as AuthenticatedTelephonySettingsRouteImport } from './routes/_authenticated/telephony.settings'
 import { Route as AuthenticatedSecurityAuditRouteImport } from './routes/_authenticated/security.audit'
+import { Route as AuthenticatedQaScorecardsRouteImport } from './routes/_authenticated/qa.scorecards'
+import { Route as AuthenticatedQaReviewsRouteImport } from './routes/_authenticated/qa.reviews'
 import { Route as AuthenticatedQaDashboardRouteImport } from './routes/_authenticated/qa.dashboard'
 import { Route as AuthenticatedQaCriteriaRouteImport } from './routes/_authenticated/qa.criteria'
 import { Route as AuthenticatedContactsIdRouteImport } from './routes/_authenticated/contacts.$id'
@@ -68,11 +72,22 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedTasksIndexRoute = AuthenticatedTasksIndexRouteImport.update({
+  id: '/tasks/',
+  path: '/tasks/',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedStaffIndexRoute = AuthenticatedStaffIndexRouteImport.update({
   id: '/staff/',
   path: '/staff/',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedScriptsIndexRoute =
+  AuthenticatedScriptsIndexRouteImport.update({
+    id: '/scripts/',
+    path: '/scripts/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedRecordingsIndexRoute =
   AuthenticatedRecordingsIndexRouteImport.update({
     id: '/recordings/',
@@ -114,6 +129,17 @@ const AuthenticatedSecurityAuditRoute =
     path: '/security/audit',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedQaScorecardsRoute =
+  AuthenticatedQaScorecardsRouteImport.update({
+    id: '/qa/scorecards',
+    path: '/qa/scorecards',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedQaReviewsRoute = AuthenticatedQaReviewsRouteImport.update({
+  id: '/qa/reviews',
+  path: '/qa/reviews',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedQaDashboardRoute =
   AuthenticatedQaDashboardRouteImport.update({
     id: '/qa/dashboard',
@@ -180,6 +206,8 @@ export interface FileRoutesByFullPath {
   '/contacts/$id': typeof AuthenticatedContactsIdRoute
   '/qa/criteria': typeof AuthenticatedQaCriteriaRoute
   '/qa/dashboard': typeof AuthenticatedQaDashboardRoute
+  '/qa/reviews': typeof AuthenticatedQaReviewsRoute
+  '/qa/scorecards': typeof AuthenticatedQaScorecardsRoute
   '/security/audit': typeof AuthenticatedSecurityAuditRoute
   '/telephony/settings': typeof AuthenticatedTelephonySettingsRoute
   '/calls/': typeof AuthenticatedCallsIndexRoute
@@ -187,7 +215,9 @@ export interface FileRoutesByFullPath {
   '/contacts/': typeof AuthenticatedContactsIndexRoute
   '/monitoring/': typeof AuthenticatedMonitoringIndexRoute
   '/recordings/': typeof AuthenticatedRecordingsIndexRoute
+  '/scripts/': typeof AuthenticatedScriptsIndexRoute
   '/staff/': typeof AuthenticatedStaffIndexRoute
+  '/tasks/': typeof AuthenticatedTasksIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -205,6 +235,8 @@ export interface FileRoutesByTo {
   '/contacts/$id': typeof AuthenticatedContactsIdRoute
   '/qa/criteria': typeof AuthenticatedQaCriteriaRoute
   '/qa/dashboard': typeof AuthenticatedQaDashboardRoute
+  '/qa/reviews': typeof AuthenticatedQaReviewsRoute
+  '/qa/scorecards': typeof AuthenticatedQaScorecardsRoute
   '/security/audit': typeof AuthenticatedSecurityAuditRoute
   '/telephony/settings': typeof AuthenticatedTelephonySettingsRoute
   '/calls': typeof AuthenticatedCallsIndexRoute
@@ -212,7 +244,9 @@ export interface FileRoutesByTo {
   '/contacts': typeof AuthenticatedContactsIndexRoute
   '/monitoring': typeof AuthenticatedMonitoringIndexRoute
   '/recordings': typeof AuthenticatedRecordingsIndexRoute
+  '/scripts': typeof AuthenticatedScriptsIndexRoute
   '/staff': typeof AuthenticatedStaffIndexRoute
+  '/tasks': typeof AuthenticatedTasksIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -232,6 +266,8 @@ export interface FileRoutesById {
   '/_authenticated/contacts/$id': typeof AuthenticatedContactsIdRoute
   '/_authenticated/qa/criteria': typeof AuthenticatedQaCriteriaRoute
   '/_authenticated/qa/dashboard': typeof AuthenticatedQaDashboardRoute
+  '/_authenticated/qa/reviews': typeof AuthenticatedQaReviewsRoute
+  '/_authenticated/qa/scorecards': typeof AuthenticatedQaScorecardsRoute
   '/_authenticated/security/audit': typeof AuthenticatedSecurityAuditRoute
   '/_authenticated/telephony/settings': typeof AuthenticatedTelephonySettingsRoute
   '/_authenticated/calls/': typeof AuthenticatedCallsIndexRoute
@@ -239,7 +275,9 @@ export interface FileRoutesById {
   '/_authenticated/contacts/': typeof AuthenticatedContactsIndexRoute
   '/_authenticated/monitoring/': typeof AuthenticatedMonitoringIndexRoute
   '/_authenticated/recordings/': typeof AuthenticatedRecordingsIndexRoute
+  '/_authenticated/scripts/': typeof AuthenticatedScriptsIndexRoute
   '/_authenticated/staff/': typeof AuthenticatedStaffIndexRoute
+  '/_authenticated/tasks/': typeof AuthenticatedTasksIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -259,6 +297,8 @@ export interface FileRouteTypes {
     | '/contacts/$id'
     | '/qa/criteria'
     | '/qa/dashboard'
+    | '/qa/reviews'
+    | '/qa/scorecards'
     | '/security/audit'
     | '/telephony/settings'
     | '/calls/'
@@ -266,7 +306,9 @@ export interface FileRouteTypes {
     | '/contacts/'
     | '/monitoring/'
     | '/recordings/'
+    | '/scripts/'
     | '/staff/'
+    | '/tasks/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -284,6 +326,8 @@ export interface FileRouteTypes {
     | '/contacts/$id'
     | '/qa/criteria'
     | '/qa/dashboard'
+    | '/qa/reviews'
+    | '/qa/scorecards'
     | '/security/audit'
     | '/telephony/settings'
     | '/calls'
@@ -291,7 +335,9 @@ export interface FileRouteTypes {
     | '/contacts'
     | '/monitoring'
     | '/recordings'
+    | '/scripts'
     | '/staff'
+    | '/tasks'
   id:
     | '__root__'
     | '/'
@@ -310,6 +356,8 @@ export interface FileRouteTypes {
     | '/_authenticated/contacts/$id'
     | '/_authenticated/qa/criteria'
     | '/_authenticated/qa/dashboard'
+    | '/_authenticated/qa/reviews'
+    | '/_authenticated/qa/scorecards'
     | '/_authenticated/security/audit'
     | '/_authenticated/telephony/settings'
     | '/_authenticated/calls/'
@@ -317,7 +365,9 @@ export interface FileRouteTypes {
     | '/_authenticated/contacts/'
     | '/_authenticated/monitoring/'
     | '/_authenticated/recordings/'
+    | '/_authenticated/scripts/'
     | '/_authenticated/staff/'
+    | '/_authenticated/tasks/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -378,11 +428,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/tasks/': {
+      id: '/_authenticated/tasks/'
+      path: '/tasks'
+      fullPath: '/tasks/'
+      preLoaderRoute: typeof AuthenticatedTasksIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/staff/': {
       id: '/_authenticated/staff/'
       path: '/staff'
       fullPath: '/staff/'
       preLoaderRoute: typeof AuthenticatedStaffIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/scripts/': {
+      id: '/_authenticated/scripts/'
+      path: '/scripts'
+      fullPath: '/scripts/'
+      preLoaderRoute: typeof AuthenticatedScriptsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/recordings/': {
@@ -432,6 +496,20 @@ declare module '@tanstack/react-router' {
       path: '/security/audit'
       fullPath: '/security/audit'
       preLoaderRoute: typeof AuthenticatedSecurityAuditRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/qa/scorecards': {
+      id: '/_authenticated/qa/scorecards'
+      path: '/qa/scorecards'
+      fullPath: '/qa/scorecards'
+      preLoaderRoute: typeof AuthenticatedQaScorecardsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/qa/reviews': {
+      id: '/_authenticated/qa/reviews'
+      path: '/qa/reviews'
+      fullPath: '/qa/reviews'
+      preLoaderRoute: typeof AuthenticatedQaReviewsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/qa/dashboard': {
@@ -511,6 +589,8 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedContactsIdRoute: typeof AuthenticatedContactsIdRoute
   AuthenticatedQaCriteriaRoute: typeof AuthenticatedQaCriteriaRoute
   AuthenticatedQaDashboardRoute: typeof AuthenticatedQaDashboardRoute
+  AuthenticatedQaReviewsRoute: typeof AuthenticatedQaReviewsRoute
+  AuthenticatedQaScorecardsRoute: typeof AuthenticatedQaScorecardsRoute
   AuthenticatedSecurityAuditRoute: typeof AuthenticatedSecurityAuditRoute
   AuthenticatedTelephonySettingsRoute: typeof AuthenticatedTelephonySettingsRoute
   AuthenticatedCallsIndexRoute: typeof AuthenticatedCallsIndexRoute
@@ -518,7 +598,9 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedContactsIndexRoute: typeof AuthenticatedContactsIndexRoute
   AuthenticatedMonitoringIndexRoute: typeof AuthenticatedMonitoringIndexRoute
   AuthenticatedRecordingsIndexRoute: typeof AuthenticatedRecordingsIndexRoute
+  AuthenticatedScriptsIndexRoute: typeof AuthenticatedScriptsIndexRoute
   AuthenticatedStaffIndexRoute: typeof AuthenticatedStaffIndexRoute
+  AuthenticatedTasksIndexRoute: typeof AuthenticatedTasksIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -532,6 +614,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedContactsIdRoute: AuthenticatedContactsIdRoute,
   AuthenticatedQaCriteriaRoute: AuthenticatedQaCriteriaRoute,
   AuthenticatedQaDashboardRoute: AuthenticatedQaDashboardRoute,
+  AuthenticatedQaReviewsRoute: AuthenticatedQaReviewsRoute,
+  AuthenticatedQaScorecardsRoute: AuthenticatedQaScorecardsRoute,
   AuthenticatedSecurityAuditRoute: AuthenticatedSecurityAuditRoute,
   AuthenticatedTelephonySettingsRoute: AuthenticatedTelephonySettingsRoute,
   AuthenticatedCallsIndexRoute: AuthenticatedCallsIndexRoute,
@@ -539,7 +623,9 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedContactsIndexRoute: AuthenticatedContactsIndexRoute,
   AuthenticatedMonitoringIndexRoute: AuthenticatedMonitoringIndexRoute,
   AuthenticatedRecordingsIndexRoute: AuthenticatedRecordingsIndexRoute,
+  AuthenticatedScriptsIndexRoute: AuthenticatedScriptsIndexRoute,
   AuthenticatedStaffIndexRoute: AuthenticatedStaffIndexRoute,
+  AuthenticatedTasksIndexRoute: AuthenticatedTasksIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =

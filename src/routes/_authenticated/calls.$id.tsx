@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Slider } from "@/components/ui/slider";
 import { ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
+import { AfterCallForm } from "@/components/AfterCallForm";
 
 export const Route = createFileRoute("/_authenticated/calls/$id")({
   component: CallDetail,
@@ -154,7 +155,11 @@ function CallDetail() {
           </CardContent>
         </Card>
 
-        <Card className="lg:col-span-2">
+        <div className="lg:col-span-2 space-y-6">
+          {call && (
+            <AfterCallForm callId={call.id} campaignId={call.campaign_id ?? null} />
+          )}
+          <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle>QA Scorecard</CardTitle>
@@ -205,6 +210,7 @@ function CallDetail() {
             )}
           </CardContent>
         </Card>
+        </div>
       </div>
     </>
   );
