@@ -1,22 +1,40 @@
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
-import { Headset, Users, Phone, ClipboardCheck, BarChart3, LogOut, Sliders } from "lucide-react";
+import {
+  Headset, Users, Phone, ClipboardCheck, BarChart3, LogOut, Sliders,
+  UserCog, Shield, ScrollText,
+} from "lucide-react";
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
+const ROLE_LABEL: Record<string, string> = {
+  agent: "Agent",
+  team_leader: "Team Leader",
+  supervisor: "Supervisor",
+  ops_admin: "Operations Admin",
+  super_admin: "Super Admin",
+};
+
 export function AppShell({ children }: { children: ReactNode }) {
-  const { user, isManager, signOut } = useAuth();
+  const { user, roles, isManager, atLeast, signOut } = useAuth();
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
+  // Highest-ranked role label (e.g. shows "Super Admin", not "Agent")
+  const ROLE_RANK = ["super_admin", "ops_admin", "supervisor", "team_leader", "agent"];
+  const topRole = ROLE_RANK.find((r) => roles.includes(r as any)) ?? "agent";
+
   const nav = [
-    { to: "/dashboard", label: "Dashboard", icon: BarChart3 },
-    { to: "/calls", label: "Calls", icon: Phone },
-    { to: "/contacts", label: "Contacts", icon: Users },
-    { to: "/qa/dashboard", label: "QA Scores", icon: ClipboardCheck },
-    ...(isManager ? [{ to: "/qa/criteria", label: "Scorecard", icon: Sliders }] : []),
-  ];
+    { to: "/dashboard", label: "Dashboard", icon: BarChart3, show: true },
+    { to: "/calls", label: "Calls", icon: Phone, show: true },
+    { to: "/contacts", label: "Contacts", icon: Users, show: true },
+    { to: "/qa/dashboard", label: "QA Scores", icon: ClipboardCheck, show: true },
+    { to: "/qa/criteria", label: "Scorecard", icon: Sliders, show: isManager },
+    { to: "/staff", label: "Staff", icon: UserCog, show: atLeast("ops_admin") },
+    { to: "/security/audit", label: "Audit log", icon: ScrollText, show: atLeast("ops_admin") },
+    { to: "/admin/permissions", label: "Permissions", icon: Shield, show: atLeast("super_admin") },
+  ].filter((n) => n.show);
 
   return (
     <div className="min-h-screen flex bg-muted/20">
@@ -50,7 +68,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <div className="text-xs text-muted-foreground truncate">{user?.email}</div>
           <div className="text-xs">
             <span className="inline-flex items-center rounded-full bg-secondary px-2 py-0.5">
-              {isManager ? "Manager" : "Agent"}
+              {ROLE_LABEL[topRole] ?? "Agent"}
             </span>
           </div>
           <Button
