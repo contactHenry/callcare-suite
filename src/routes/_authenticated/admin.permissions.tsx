@@ -7,6 +7,7 @@ import { PageHeader } from "@/components/AppShell";
 import { CCCard, CCStatusPill } from "@/components/cc";
 import { toast } from "sonner";
 import { Check } from "lucide-react";
+import { DUMMY_PERMISSIONS_ROWS } from "@/lib/dummy-data";
 
 /** Super-admin permission matrix editor. */
 export const Route = createFileRoute("/_authenticated/admin/permissions")({
@@ -29,7 +30,8 @@ function PermissionsPage() {
   const toggleFn = useServerFn(togglePermission);
   const { data } = useQuery({ queryKey: ["permissions"], queryFn: () => listFn() });
 
-  const rows: any[] = (data?.rows ?? []) as any[];
+  const apiRows: any[] = (data?.rows ?? []) as any[];
+  const rows: any[] = apiRows.length > 0 ? apiRows : DUMMY_PERMISSIONS_ROWS;
   const permissions: string[] = Array.from(new Set(rows.map((r) => String(r.permission)))).sort();
   const grants = new Set<string>(rows.map((r) => `${r.role}:${r.permission}`));
 
