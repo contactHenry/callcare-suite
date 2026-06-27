@@ -5,7 +5,7 @@ import {
   Sparkles, UsersRound, PhoneCall, ClipboardCheck, LayoutDashboard, LogOut,
   SlidersHorizontal, UserRoundCog, ShieldCheck, ScrollText, ContactRound,
   AudioLines, Radio, Settings2, ListChecks, BookOpenText, Gauge, LineChart,
-  Bell, AlertOctagon, CalendarClock, Megaphone, FileBarChart2, Plug, FileCheck2,
+  Bell, AlertOctagon, CalendarClock, Megaphone, FileBarChart2, Plug, FileCheck2, KeyRound,
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
@@ -76,6 +76,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         { to: "/staff", label: "Staff", icon: UserRoundCog, show: atLeast("ops_admin") },
         { to: "/telephony/settings", label: "Telephony", icon: Settings2, show: atLeast("ops_admin") },
         { to: "/security/audit", label: "Audit log", icon: ScrollText, show: atLeast("ops_admin") },
+        { to: "/admin/roles", label: "Roles & access", icon: KeyRound, show: atLeast("ops_admin") },
         { to: "/admin/permissions", label: "Permissions", icon: ShieldCheck, show: atLeast("super_admin") },
       ],
     },
