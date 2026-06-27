@@ -29,7 +29,16 @@ export function requirePermission(permission: string) {
     });
 }
 
-/** Record a structured audit entry from a server fn. */
+/**
+ * Record a structured audit entry from a server fn.
+ *
+ * The real implementation lives in `./audit.server` because it imports
+ * `@tanstack/react-start/server`, which the import-protection plugin
+ * blocks from any client-reachable module. This wrapper dynamic-imports
+ * the server-only module — safe because callers only invoke `audit`
+ * inside `createServerFn().handler(...)` bodies, which never ship to
+ * the client.
+ */
 export async function audit(
   supabase: any,
   actor: string,
@@ -38,23 +47,8 @@ export async function audit(
   targetId: string,
   diff: Record<string, unknown> = {},
 ) {
-  const { getRequestHeader, getRequestIP } = await import("@tanstack/react-start/server");
-  const ip = (() => {
-    try { return getRequestIP({ xForwardedFor: true }); } catch { return null; }
-  })();
-  const ua = (() => {
-    try { return getRequestHeader("user-agent") ?? null; } catch { return null; }
-  })();
-  await supabase.rpc("record_audit", {
-    _actor: actor,
-    _org: null,
-    _action: action,
-    _target_type: targetType,
-    _target_id: targetId,
-    _diff: diff,
-    _ip: ip,
-    _ua: ua,
-  });
+  const { audit: _audit } = await import("./audit.server");
+  return _audit(supabase, actor, action, targetType, targetId, diff);
 }
 
 /* ------------------------------------------------------------------ */
