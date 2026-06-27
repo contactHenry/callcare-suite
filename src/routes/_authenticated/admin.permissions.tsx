@@ -30,8 +30,8 @@ function PermissionsPage() {
   const { data } = useQuery({ queryKey: ["permissions"], queryFn: () => listFn() });
 
   const rows = data?.rows ?? [];
-  const permissions = Array.from(new Set(rows.map((r: any) => r.permission))).sort();
-  const grants = new Set(rows.map((r: any) => `${r.role}:${r.permission}`));
+  const permissions: string[] = Array.from(new Set(rows.map((r: any) => String(r.permission)))).sort();
+  const grants = new Set<string>(rows.map((r: any) => `${r.role}:${r.permission}`));
 
   const mut = useMutation({
     mutationFn: ({ role, permission, granted }: any) =>
