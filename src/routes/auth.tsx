@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -9,6 +9,8 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Headset, ArrowLeft, ArrowRight, TrendingUp, Calendar } from "lucide-react";
 import authDashboard from "@/assets/auth-dashboard.png";
+import { recordFailedLogin, recordLoginEvent } from "@/lib/permissions.functions";
+import { useServerFn } from "@tanstack/react-start";
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
@@ -24,6 +26,8 @@ function AuthPage() {
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [busy, setBusy] = useState(false);
+  const recordLogin = useServerFn(recordLoginEvent);
+  const recordFail = useServerFn(recordFailedLogin);
 
   useEffect(() => {
     if (!loading && user) navigate({ to: "/dashboard" });
@@ -34,7 +38,12 @@ function AuthPage() {
     setBusy(true);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setBusy(false);
-    if (error) return toast.error(error.message);
+    if (error) {
+      // Best-effort lockout monitoring — don't block the UI on it.
+      recordFail({ data: { email } }).catch(() => {});
+      return toast.error(error.message);
+    }
+    recordLogin({ data: { device: navigator.userAgent.slice(0, 200) } }).catch(() => {});
     navigate({ to: "/dashboard" });
   }
 
@@ -181,12 +190,12 @@ function AuthPage() {
                   <Input id="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} />
                 </div>
                 <CCButton type="submit" size="lg" className="w-full" disabled={busy}>{busy ? "Signing in…" : "Login"}</CCButton>
-                <p className="text-sm text-muted-foreground text-center">
-                  Don't have an account?{" "}
+                <div className="flex items-center justify-between text-sm">
+                  <Link to="/auth/forgot" className="text-primary font-medium hover:underline">Forgot password?</Link>
                   <button type="button" onClick={() => setTab("signup")} className="text-primary font-medium hover:underline">
-                    Sign Up
+                    Create account
                   </button>
-                </p>
+                </div>
               </form>
             </TabsContent>
             <TabsContent value="signup" className="mt-6">
