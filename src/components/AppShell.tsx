@@ -3,7 +3,7 @@ import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import {
   Headset, Users, Phone, ClipboardCheck, BarChart3, LogOut, Sliders,
-  UserCog, Shield, ScrollText, IdCard,
+  UserCog, Shield, ScrollText, IdCard, Disc, Activity, Settings2,
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
@@ -28,11 +28,14 @@ export function AppShell({ children }: { children: ReactNode }) {
   const nav = [
     { to: "/dashboard", label: "Dashboard", icon: BarChart3, show: true },
     { to: "/calls", label: "Calls", icon: Phone, show: true },
+    { to: "/recordings", label: "Recordings", icon: Disc, show: true },
+    { to: "/monitoring", label: "Live monitoring", icon: Activity, show: atLeast("team_leader") },
     { to: "/clients", label: "Clients", icon: IdCard, show: true },
     { to: "/contacts", label: "Contacts", icon: Users, show: true },
     { to: "/qa/dashboard", label: "QA Scores", icon: ClipboardCheck, show: true },
     { to: "/qa/criteria", label: "Scorecard", icon: Sliders, show: isManager },
     { to: "/staff", label: "Staff", icon: UserCog, show: atLeast("ops_admin") },
+    { to: "/telephony/settings", label: "Telephony", icon: Settings2, show: atLeast("ops_admin") },
     { to: "/security/audit", label: "Audit log", icon: ScrollText, show: atLeast("ops_admin") },
     { to: "/admin/permissions", label: "Permissions", icon: Shield, show: atLeast("super_admin") },
   ].filter((n) => n.show);

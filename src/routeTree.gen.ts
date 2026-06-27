@@ -22,6 +22,7 @@ import { Route as AuthenticatedMonitoringIndexRouteImport } from './routes/_auth
 import { Route as AuthenticatedContactsIndexRouteImport } from './routes/_authenticated/contacts.index'
 import { Route as AuthenticatedClientsIndexRouteImport } from './routes/_authenticated/clients.index'
 import { Route as AuthenticatedCallsIndexRouteImport } from './routes/_authenticated/calls.index'
+import { Route as AuthenticatedTelephonySettingsRouteImport } from './routes/_authenticated/telephony.settings'
 import { Route as AuthenticatedSecurityAuditRouteImport } from './routes/_authenticated/security.audit'
 import { Route as AuthenticatedQaDashboardRouteImport } from './routes/_authenticated/qa.dashboard'
 import { Route as AuthenticatedQaCriteriaRouteImport } from './routes/_authenticated/qa.criteria'
@@ -101,6 +102,12 @@ const AuthenticatedCallsIndexRoute = AuthenticatedCallsIndexRouteImport.update({
   path: '/calls/',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedTelephonySettingsRoute =
+  AuthenticatedTelephonySettingsRouteImport.update({
+    id: '/telephony/settings',
+    path: '/telephony/settings',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedSecurityAuditRoute =
   AuthenticatedSecurityAuditRouteImport.update({
     id: '/security/audit',
@@ -174,6 +181,7 @@ export interface FileRoutesByFullPath {
   '/qa/criteria': typeof AuthenticatedQaCriteriaRoute
   '/qa/dashboard': typeof AuthenticatedQaDashboardRoute
   '/security/audit': typeof AuthenticatedSecurityAuditRoute
+  '/telephony/settings': typeof AuthenticatedTelephonySettingsRoute
   '/calls/': typeof AuthenticatedCallsIndexRoute
   '/clients/': typeof AuthenticatedClientsIndexRoute
   '/contacts/': typeof AuthenticatedContactsIndexRoute
@@ -198,6 +206,7 @@ export interface FileRoutesByTo {
   '/qa/criteria': typeof AuthenticatedQaCriteriaRoute
   '/qa/dashboard': typeof AuthenticatedQaDashboardRoute
   '/security/audit': typeof AuthenticatedSecurityAuditRoute
+  '/telephony/settings': typeof AuthenticatedTelephonySettingsRoute
   '/calls': typeof AuthenticatedCallsIndexRoute
   '/clients': typeof AuthenticatedClientsIndexRoute
   '/contacts': typeof AuthenticatedContactsIndexRoute
@@ -224,6 +233,7 @@ export interface FileRoutesById {
   '/_authenticated/qa/criteria': typeof AuthenticatedQaCriteriaRoute
   '/_authenticated/qa/dashboard': typeof AuthenticatedQaDashboardRoute
   '/_authenticated/security/audit': typeof AuthenticatedSecurityAuditRoute
+  '/_authenticated/telephony/settings': typeof AuthenticatedTelephonySettingsRoute
   '/_authenticated/calls/': typeof AuthenticatedCallsIndexRoute
   '/_authenticated/clients/': typeof AuthenticatedClientsIndexRoute
   '/_authenticated/contacts/': typeof AuthenticatedContactsIndexRoute
@@ -250,6 +260,7 @@ export interface FileRouteTypes {
     | '/qa/criteria'
     | '/qa/dashboard'
     | '/security/audit'
+    | '/telephony/settings'
     | '/calls/'
     | '/clients/'
     | '/contacts/'
@@ -274,6 +285,7 @@ export interface FileRouteTypes {
     | '/qa/criteria'
     | '/qa/dashboard'
     | '/security/audit'
+    | '/telephony/settings'
     | '/calls'
     | '/clients'
     | '/contacts'
@@ -299,6 +311,7 @@ export interface FileRouteTypes {
     | '/_authenticated/qa/criteria'
     | '/_authenticated/qa/dashboard'
     | '/_authenticated/security/audit'
+    | '/_authenticated/telephony/settings'
     | '/_authenticated/calls/'
     | '/_authenticated/clients/'
     | '/_authenticated/contacts/'
@@ -407,6 +420,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCallsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/telephony/settings': {
+      id: '/_authenticated/telephony/settings'
+      path: '/telephony/settings'
+      fullPath: '/telephony/settings'
+      preLoaderRoute: typeof AuthenticatedTelephonySettingsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/security/audit': {
       id: '/_authenticated/security/audit'
       path: '/security/audit'
@@ -492,6 +512,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedQaCriteriaRoute: typeof AuthenticatedQaCriteriaRoute
   AuthenticatedQaDashboardRoute: typeof AuthenticatedQaDashboardRoute
   AuthenticatedSecurityAuditRoute: typeof AuthenticatedSecurityAuditRoute
+  AuthenticatedTelephonySettingsRoute: typeof AuthenticatedTelephonySettingsRoute
   AuthenticatedCallsIndexRoute: typeof AuthenticatedCallsIndexRoute
   AuthenticatedClientsIndexRoute: typeof AuthenticatedClientsIndexRoute
   AuthenticatedContactsIndexRoute: typeof AuthenticatedContactsIndexRoute
@@ -512,6 +533,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedQaCriteriaRoute: AuthenticatedQaCriteriaRoute,
   AuthenticatedQaDashboardRoute: AuthenticatedQaDashboardRoute,
   AuthenticatedSecurityAuditRoute: AuthenticatedSecurityAuditRoute,
+  AuthenticatedTelephonySettingsRoute: AuthenticatedTelephonySettingsRoute,
   AuthenticatedCallsIndexRoute: AuthenticatedCallsIndexRoute,
   AuthenticatedClientsIndexRoute: AuthenticatedClientsIndexRoute,
   AuthenticatedContactsIndexRoute: AuthenticatedContactsIndexRoute,
