@@ -5,7 +5,7 @@ import {
   Sparkles, UsersRound, PhoneCall, ClipboardCheck, LayoutDashboard, LogOut,
   SlidersHorizontal, UserRoundCog, ShieldCheck, ScrollText, ContactRound,
   AudioLines, Radio, Settings2, ListChecks, BookOpenText, Gauge, LineChart,
-  Bell, AlertOctagon, CalendarClock, Megaphone, FileBarChart2, Plug, FileCheck2,
+  Bell, AlertOctagon, CalendarClock, Megaphone, FileBarChart2, Plug, FileCheck2, KeyRound,
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
