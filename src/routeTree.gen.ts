@@ -19,6 +19,7 @@ import { Route as AuthenticatedDashboardRouteImport } from './routes/_authentica
 import { Route as AuthenticatedTasksIndexRouteImport } from './routes/_authenticated/tasks.index'
 import { Route as AuthenticatedStaffIndexRouteImport } from './routes/_authenticated/staff.index'
 import { Route as AuthenticatedScriptsIndexRouteImport } from './routes/_authenticated/scripts.index'
+import { Route as AuthenticatedReportsIndexRouteImport } from './routes/_authenticated/reports.index'
 import { Route as AuthenticatedRecordingsIndexRouteImport } from './routes/_authenticated/recordings.index'
 import { Route as AuthenticatedNotificationsIndexRouteImport } from './routes/_authenticated/notifications.index'
 import { Route as AuthenticatedMonitoringIndexRouteImport } from './routes/_authenticated/monitoring.index'
@@ -92,6 +93,12 @@ const AuthenticatedScriptsIndexRoute =
   AuthenticatedScriptsIndexRouteImport.update({
     id: '/scripts/',
     path: '/scripts/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedReportsIndexRoute =
+  AuthenticatedReportsIndexRouteImport.update({
+    id: '/reports/',
+    path: '/reports/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedRecordingsIndexRoute =
@@ -263,6 +270,7 @@ export interface FileRoutesByFullPath {
   '/monitoring/': typeof AuthenticatedMonitoringIndexRoute
   '/notifications/': typeof AuthenticatedNotificationsIndexRoute
   '/recordings/': typeof AuthenticatedRecordingsIndexRoute
+  '/reports/': typeof AuthenticatedReportsIndexRoute
   '/scripts/': typeof AuthenticatedScriptsIndexRoute
   '/staff/': typeof AuthenticatedStaffIndexRoute
   '/tasks/': typeof AuthenticatedTasksIndexRoute
@@ -298,6 +306,7 @@ export interface FileRoutesByTo {
   '/monitoring': typeof AuthenticatedMonitoringIndexRoute
   '/notifications': typeof AuthenticatedNotificationsIndexRoute
   '/recordings': typeof AuthenticatedRecordingsIndexRoute
+  '/reports': typeof AuthenticatedReportsIndexRoute
   '/scripts': typeof AuthenticatedScriptsIndexRoute
   '/staff': typeof AuthenticatedStaffIndexRoute
   '/tasks': typeof AuthenticatedTasksIndexRoute
@@ -335,6 +344,7 @@ export interface FileRoutesById {
   '/_authenticated/monitoring/': typeof AuthenticatedMonitoringIndexRoute
   '/_authenticated/notifications/': typeof AuthenticatedNotificationsIndexRoute
   '/_authenticated/recordings/': typeof AuthenticatedRecordingsIndexRoute
+  '/_authenticated/reports/': typeof AuthenticatedReportsIndexRoute
   '/_authenticated/scripts/': typeof AuthenticatedScriptsIndexRoute
   '/_authenticated/staff/': typeof AuthenticatedStaffIndexRoute
   '/_authenticated/tasks/': typeof AuthenticatedTasksIndexRoute
@@ -372,6 +382,7 @@ export interface FileRouteTypes {
     | '/monitoring/'
     | '/notifications/'
     | '/recordings/'
+    | '/reports/'
     | '/scripts/'
     | '/staff/'
     | '/tasks/'
@@ -407,6 +418,7 @@ export interface FileRouteTypes {
     | '/monitoring'
     | '/notifications'
     | '/recordings'
+    | '/reports'
     | '/scripts'
     | '/staff'
     | '/tasks'
@@ -443,6 +455,7 @@ export interface FileRouteTypes {
     | '/_authenticated/monitoring/'
     | '/_authenticated/notifications/'
     | '/_authenticated/recordings/'
+    | '/_authenticated/reports/'
     | '/_authenticated/scripts/'
     | '/_authenticated/staff/'
     | '/_authenticated/tasks/'
@@ -525,6 +538,13 @@ declare module '@tanstack/react-router' {
       path: '/scripts'
       fullPath: '/scripts/'
       preLoaderRoute: typeof AuthenticatedScriptsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/reports/': {
+      id: '/_authenticated/reports/'
+      path: '/reports'
+      fullPath: '/reports/'
+      preLoaderRoute: typeof AuthenticatedReportsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/recordings/': {
@@ -724,6 +744,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedMonitoringIndexRoute: typeof AuthenticatedMonitoringIndexRoute
   AuthenticatedNotificationsIndexRoute: typeof AuthenticatedNotificationsIndexRoute
   AuthenticatedRecordingsIndexRoute: typeof AuthenticatedRecordingsIndexRoute
+  AuthenticatedReportsIndexRoute: typeof AuthenticatedReportsIndexRoute
   AuthenticatedScriptsIndexRoute: typeof AuthenticatedScriptsIndexRoute
   AuthenticatedStaffIndexRoute: typeof AuthenticatedStaffIndexRoute
   AuthenticatedTasksIndexRoute: typeof AuthenticatedTasksIndexRoute
@@ -755,6 +776,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedMonitoringIndexRoute: AuthenticatedMonitoringIndexRoute,
   AuthenticatedNotificationsIndexRoute: AuthenticatedNotificationsIndexRoute,
   AuthenticatedRecordingsIndexRoute: AuthenticatedRecordingsIndexRoute,
+  AuthenticatedReportsIndexRoute: AuthenticatedReportsIndexRoute,
   AuthenticatedScriptsIndexRoute: AuthenticatedScriptsIndexRoute,
   AuthenticatedStaffIndexRoute: AuthenticatedStaffIndexRoute,
   AuthenticatedTasksIndexRoute: AuthenticatedTasksIndexRoute,
