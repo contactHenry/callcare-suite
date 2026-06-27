@@ -2,13 +2,27 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from "
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 
-type Role = "agent" | "manager";
+export type Role = "agent" | "team_leader" | "supervisor" | "ops_admin" | "super_admin";
+
+const ROLE_LEVEL: Record<Role, number> = {
+  agent: 1,
+  team_leader: 2,
+  supervisor: 3,
+  ops_admin: 4,
+  super_admin: 5,
+};
 
 type AuthState = {
   user: User | null;
   session: Session | null;
   roles: Role[];
+  /** Highest role level held by this user (0 if none). */
+  roleLevel: number;
+  /** Convenience flag: user can review QA (team_leader+). Preserves legacy callsites. */
   isManager: boolean;
+  hasRole: (role: Role) => boolean;
+  /** Role-hierarchy check: true if user's max role >= the given threshold. */
+  atLeast: (role: Role) => boolean;
   loading: boolean;
   signOut: () => Promise<void>;
 };
@@ -43,11 +57,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .then(({ data }) => setRoles((data ?? []).map((r) => r.role as Role)));
   }, [session?.user?.id]);
 
+  const roleLevel = roles.reduce((max, r) => Math.max(max, ROLE_LEVEL[r] ?? 0), 0);
+
   const value: AuthState = {
     user: session?.user ?? null,
     session,
     roles,
-    isManager: roles.includes("manager"),
+    roleLevel,
+    isManager: roleLevel >= ROLE_LEVEL.team_leader,
+    hasRole: (role) => roles.includes(role),
+    atLeast: (role) => roleLevel >= (ROLE_LEVEL[role] ?? 99),
     loading,
     signOut: async () => {
       await supabase.auth.signOut();
