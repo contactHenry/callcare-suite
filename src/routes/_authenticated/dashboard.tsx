@@ -9,6 +9,11 @@ import {
 } from "@/components/cc";
 import { upcomingFollowUps, listTasks } from "@/lib/workflow.functions";
 import { qaTrend } from "@/lib/qa.functions";
+import {
+  DUMMY_AGENT_STATS, DUMMY_QA_POINTS, DUMMY_UPCOMING_FOLLOWUPS,
+  DUMMY_TEAM_VOLUME, DUMMY_LIVE_CALLS, DUMMY_TASKS,
+  DUMMY_MGMT_TREND, DUMMY_MGMT_OVERVIEW,
+} from "@/lib/dummy-data";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   component: Dashboard,
@@ -55,7 +60,12 @@ function AgentDashboard() {
   });
 
   const points = (trend.data ?? []).map((p: any) => p.score);
-  const avg = points.length ? points.reduce((a: number, b: number) => a + b, 0) / points.length : 0;
+  const trendPoints = points.length ? points : DUMMY_QA_POINTS;
+  const avg = trendPoints.reduce((a: number, b: number) => a + b, 0) / trendPoints.length;
+  const statsData = stats.data && (stats.data.callsToday || stats.data.openTasks || stats.data.aht)
+    ? stats.data : DUMMY_AGENT_STATS;
+  const upcomingData = (upcoming.data && upcoming.data.length > 0)
+    ? upcoming.data : DUMMY_UPCOMING_FOLLOWUPS;
 
   return (
     <>
@@ -66,18 +76,15 @@ function AgentDashboard() {
           <span className="text-xs text-[color:var(--cc-ink-500)]">You're on shift.</span>
         </div>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <CCMetricWidget title="Calls today" value={stats.data?.callsToday ?? 0} />
-          <CCMetricWidget title="Avg handle time" value={`${stats.data?.aht ?? 0}s`} />
-          <CCMetricWidget title="Open tasks" value={stats.data?.openTasks ?? 0} tone={(stats.data?.openTasks ?? 0) > 5 ? "warning" : "neutral"} />
-          <CCMetricWidget title="QA 30-day avg" value={`${avg.toFixed(1)}%`} trend={{ points }} tone={avg >= 80 ? "positive" : avg >= 65 ? "warning" : "negative"} />
+          <CCMetricWidget title="Calls today" value={statsData.callsToday} />
+          <CCMetricWidget title="Avg handle time" value={`${statsData.aht}s`} />
+          <CCMetricWidget title="Open tasks" value={statsData.openTasks} tone={statsData.openTasks > 5 ? "warning" : "neutral"} />
+          <CCMetricWidget title="QA 30-day avg" value={`${avg.toFixed(1)}%`} trend={{ points: trendPoints }} tone={avg >= 80 ? "positive" : avg >= 65 ? "warning" : "negative"} />
         </div>
 
         <CCWidget title="Upcoming follow-ups (next 4h)" footer={<Link to="/tasks" className="underline">View all tasks</Link>}>
-          {upcoming.data && upcoming.data.length === 0 ? (
-            <p className="text-sm text-[color:var(--cc-ink-500)]">Nothing scheduled.</p>
-          ) : (
-            <ul className="divide-y divide-[color:var(--cc-ink-100)]">
-              {(upcoming.data ?? []).map((t: any) => (
+          <ul className="divide-y divide-[color:var(--cc-ink-100)]">
+              {upcomingData.map((t: any) => (
                 <li key={t.id} className="py-3 flex items-center justify-between gap-3">
                   <div className="min-w-0">
                     <div className="text-sm font-medium text-[color:var(--cc-ink-900)] truncate">{t.title}</div>
@@ -90,7 +97,6 @@ function AgentDashboard() {
                 </li>
               ))}
             </ul>
-          )}
         </CCWidget>
       </div>
     </>
@@ -129,36 +135,35 @@ function TeamLeaderDashboard() {
     },
   });
 
-  const overdue = (teamTasks.data ?? []).filter((t: any) => t.due_at && new Date(t.due_at) < new Date() && t.status !== "completed");
+  const tasksData = (teamTasks.data && teamTasks.data.length > 0) ? teamTasks.data : DUMMY_TASKS;
+  const liveData = (liveCalls.data && liveCalls.data.length > 0) ? liveCalls.data : DUMMY_LIVE_CALLS;
+  const volumeData = (todayVolume.data && (todayVolume.data ?? []).some((b) => b.value > 0)) ? todayVolume.data : DUMMY_TEAM_VOLUME;
+  const overdue = tasksData.filter((t: any) => t.due_at && new Date(t.due_at) < new Date() && t.status !== "completed");
 
   return (
     <>
       <PageHeader title="Team operations" description="Live floor view + today's performance for your team." />
       <div className="p-6 space-y-6">
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <CCMetricWidget title="Live calls" value={liveCalls.data?.length ?? 0} tone="positive" sub="Updated every 5s" />
-          <CCMetricWidget title="Open tasks" value={teamTasks.data?.length ?? 0} />
+          <CCMetricWidget title="Live calls" value={liveData.length} tone="positive" sub="Updated every 5s" />
+          <CCMetricWidget title="Open tasks" value={tasksData.length} />
           <CCMetricWidget title="Overdue" value={overdue.length} tone={overdue.length ? "negative" : "neutral"} />
-          <CCMetricWidget title="Calls today" value={(todayVolume.data ?? []).reduce((s, b) => s + b.value, 0)} />
+          <CCMetricWidget title="Calls today" value={volumeData.reduce((s, b) => s + b.value, 0)} />
         </div>
 
         <CCWidget title="Call volume by hour" hint="2-hour buckets">
-          <CCBarChart data={todayVolume.data ?? []} formatX={(l) => `${l}:00`} />
+          <CCBarChart data={volumeData} formatX={(l) => `${l}:00`} />
         </CCWidget>
 
         <CCWidget title="Live floor" footer={<Link to="/monitoring" className="underline">Open monitoring console →</Link>}>
-          {liveCalls.data && liveCalls.data.length === 0 ? (
-            <p className="text-sm text-[color:var(--cc-ink-500)]">No live calls.</p>
-          ) : (
-            <ul className="divide-y divide-[color:var(--cc-ink-100)]">
-              {(liveCalls.data ?? []).map((c: any) => (
+          <ul className="divide-y divide-[color:var(--cc-ink-100)]">
+              {liveData.map((c: any) => (
                 <li key={c.id} className="py-2 flex items-center justify-between text-sm">
-                  <span className="text-[color:var(--cc-ink-700)]">Call #{c.id.slice(0, 8)}</span>
+                  <span className="text-[color:var(--cc-ink-700)]">Call #{String(c.id).slice(0, 8)} · {c.contacts?.name ?? ""}</span>
                   <CCStatusPill tone={c.status === "on_hold" ? "warning" : "info"} dot>{c.status}</CCStatusPill>
                 </li>
               ))}
             </ul>
-          )}
         </CCWidget>
       </div>
     </>
@@ -204,7 +209,9 @@ function ManagementDashboard() {
     },
   });
 
-  const trendPoints = (last30.data ?? []).map((p) => p.value);
+  const trendArr = (last30.data && last30.data.length > 0) ? last30.data : DUMMY_MGMT_TREND;
+  const trendPoints = trendArr.map((p) => p.value);
+  const ov = (overview.data && (overview.data.callsToday || overview.data.avgQa)) ? overview.data : DUMMY_MGMT_OVERVIEW;
 
   return (
     <>
@@ -215,19 +222,19 @@ function ManagementDashboard() {
       />
       <div className="p-6 space-y-6">
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <CCMetricWidget title="Calls today" value={overview.data?.callsToday ?? 0} trend={{ points: trendPoints }} />
-          <CCMetricWidget title="QA avg (7d)" value={`${(overview.data?.avgQa ?? 0).toFixed(1)}%`} tone={(overview.data?.avgQa ?? 0) >= 80 ? "positive" : "warning"} />
-          <CCMetricWidget title="Complaints (7d)" value={overview.data?.complaints ?? 0} tone={(overview.data?.complaints ?? 0) > 0 ? "negative" : "positive"} />
-          <CCMetricWidget title="Conversions" value={overview.data?.conversions ?? 0} tone="positive" />
+          <CCMetricWidget title="Calls today" value={ov.callsToday} trend={{ points: trendPoints }} />
+          <CCMetricWidget title="QA avg (7d)" value={`${ov.avgQa.toFixed(1)}%`} tone={ov.avgQa >= 80 ? "positive" : "warning"} />
+          <CCMetricWidget title="Complaints (7d)" value={ov.complaints} tone={ov.complaints > 0 ? "negative" : "positive"} />
+          <CCMetricWidget title="Conversions" value={ov.conversions} tone="positive" />
         </div>
 
         <div className="grid gap-4 lg:grid-cols-2">
           <CCWidget title="30-day call volume">
-            <CCBarChart data={(last30.data ?? []).map((d) => ({ label: d.day.slice(5), value: d.value }))} formatX={(l) => l} />
+            <CCBarChart data={trendArr.map((d) => ({ label: d.day.slice(5), value: d.value }))} formatX={(l) => l} />
           </CCWidget>
           <CCWidget title="Compliance gauge" hint="Target: 95% QA pass rate">
             <div className="py-2 space-y-3">
-              <CCProgressBar value={Math.round(overview.data?.avgQa ?? 0)} max={100} tone={(overview.data?.avgQa ?? 0) >= 95 ? "success" : (overview.data?.avgQa ?? 0) >= 80 ? "brand" : "warning"} />
+              <CCProgressBar value={Math.round(ov.avgQa)} max={100} tone={ov.avgQa >= 95 ? "success" : ov.avgQa >= 80 ? "brand" : "warning"} />
               <p className="text-xs text-[color:var(--cc-ink-500)]">QA aggregate across all teams over the last 7 days.</p>
             </div>
           </CCWidget>
