@@ -20,7 +20,8 @@ export const Route = createFileRoute("/_authenticated/qa/criteria")({
     const { data } = await supabase.auth.getUser();
     if (!data.user) throw redirect({ to: "/auth" });
     const { data: roles } = await supabase.from("user_roles").select("role").eq("user_id", data.user.id);
-    if (!roles?.some((r) => r.role === "manager")) throw redirect({ to: "/dashboard" });
+    const privileged = new Set(["supervisor", "ops_admin", "super_admin"]);
+    if (!roles?.some((r) => privileged.has(r.role))) throw redirect({ to: "/dashboard" });
   },
   component: Criteria,
 });

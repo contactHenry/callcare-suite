@@ -14,6 +14,131 @@ export type Database = {
   }
   public: {
     Tables: {
+      account_suspensions: {
+        Row: {
+          created_at: string
+          ends_at: string | null
+          id: string
+          lifted_at: string | null
+          reason: string
+          starts_at: string
+          suspended_by: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          ends_at?: string | null
+          id?: string
+          lifted_at?: string | null
+          reason: string
+          starts_at?: string
+          suspended_by?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          ends_at?: string | null
+          id?: string
+          lifted_at?: string | null
+          reason?: string
+          starts_at?: string
+          suspended_by?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      agent_availability: {
+        Row: {
+          changed_at: string
+          note: string | null
+          status: Database["public"]["Enums"]["agent_presence"]
+          user_id: string
+        }
+        Insert: {
+          changed_at?: string
+          note?: string | null
+          status?: Database["public"]["Enums"]["agent_presence"]
+          user_id: string
+        }
+        Update: {
+          changed_at?: string
+          note?: string | null
+          status?: Database["public"]["Enums"]["agent_presence"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      agent_availability_log: {
+        Row: {
+          at: string
+          id: string
+          note: string | null
+          status: Database["public"]["Enums"]["agent_presence"]
+          user_id: string
+        }
+        Insert: {
+          at?: string
+          id?: string
+          note?: string | null
+          status: Database["public"]["Enums"]["agent_presence"]
+          user_id: string
+        }
+        Update: {
+          at?: string
+          id?: string
+          note?: string | null
+          status?: Database["public"]["Enums"]["agent_presence"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      audit_log: {
+        Row: {
+          action: string
+          actor_id: string | null
+          at: string
+          diff: Json | null
+          id: number
+          ip: unknown
+          organization_id: string | null
+          target_id: string | null
+          target_type: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          at?: string
+          diff?: Json | null
+          id?: number
+          ip?: unknown
+          organization_id?: string | null
+          target_id?: string | null
+          target_type?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          at?: string
+          diff?: Json | null
+          id?: number
+          ip?: unknown
+          organization_id?: string | null
+          target_id?: string | null
+          target_type?: string | null
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audit_log_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       calls: {
         Row: {
           agent_id: string
@@ -103,23 +228,185 @@ export type Database = {
         }
         Relationships: []
       }
-      profiles: {
+      failed_login_attempts: {
+        Row: {
+          at: string
+          id: number
+          identifier: string
+          ip: unknown
+        }
+        Insert: {
+          at?: string
+          id?: number
+          identifier: string
+          ip?: unknown
+        }
+        Update: {
+          at?: string
+          id?: number
+          identifier?: string
+          ip?: unknown
+        }
+        Relationships: []
+      }
+      ip_allowlist: {
+        Row: {
+          active: boolean
+          cidr: unknown
+          created_at: string
+          created_by: string | null
+          id: string
+          label: string | null
+          organization_id: string
+        }
+        Insert: {
+          active?: boolean
+          cidr: unknown
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          label?: string | null
+          organization_id: string
+        }
+        Update: {
+          active?: boolean
+          cidr?: unknown
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          label?: string | null
+          organization_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ip_allowlist_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      login_history: {
+        Row: {
+          at: string
+          country: string | null
+          device_id: string | null
+          id: string
+          identifier: string | null
+          ip: unknown
+          reason: string | null
+          success: boolean
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          at?: string
+          country?: string | null
+          device_id?: string | null
+          id?: string
+          identifier?: string | null
+          ip?: unknown
+          reason?: string | null
+          success: boolean
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          at?: string
+          country?: string | null
+          device_id?: string | null
+          id?: string
+          identifier?: string | null
+          ip?: unknown
+          reason?: string | null
+          success?: boolean
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "login_history_device_id_fkey"
+            columns: ["device_id"]
+            isOneToOne: false
+            referencedRelation: "user_devices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      organizations: {
         Row: {
           created_at: string
-          full_name: string | null
           id: string
+          name: string
+          slug: string
+          updated_at: string
         }
         Insert: {
           created_at?: string
-          full_name?: string | null
-          id: string
+          id?: string
+          name: string
+          slug: string
+          updated_at?: string
         }
         Update: {
           created_at?: string
-          full_name?: string | null
           id?: string
+          name?: string
+          slug?: string
+          updated_at?: string
         }
         Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          full_name: string | null
+          id: string
+          organization_id: string | null
+          phone: string | null
+          staff_id: string | null
+          timezone: string
+          updated_at: string
+          username: string | null
+          working_hours: Json
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          full_name?: string | null
+          id: string
+          organization_id?: string | null
+          phone?: string | null
+          staff_id?: string | null
+          timezone?: string
+          updated_at?: string
+          username?: string | null
+          working_hours?: Json
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          organization_id?: string | null
+          phone?: string | null
+          staff_id?: string | null
+          timezone?: string
+          updated_at?: string
+          username?: string | null
+          working_hours?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       qa_criteria: {
         Row: {
@@ -222,29 +509,246 @@ export type Database = {
           },
         ]
       }
-      user_roles: {
+      role_permissions: {
         Row: {
-          id: string
+          created_at: string
+          permission: string
           role: Database["public"]["Enums"]["app_role"]
+        }
+        Insert: {
+          created_at?: string
+          permission: string
+          role: Database["public"]["Enums"]["app_role"]
+        }
+        Update: {
+          created_at?: string
+          permission?: string
+          role?: Database["public"]["Enums"]["app_role"]
+        }
+        Relationships: []
+      }
+      sso_providers: {
+        Row: {
+          active: boolean
+          config: Json
+          created_at: string
+          display_name: string
+          id: string
+          kind: string
+          organization_id: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          config?: Json
+          created_at?: string
+          display_name: string
+          id?: string
+          kind: string
+          organization_id: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          config?: Json
+          created_at?: string
+          display_name?: string
+          id?: string
+          kind?: string
+          organization_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sso_providers_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      team_members: {
+        Row: {
+          is_leader: boolean
+          joined_at: string
+          team_id: string
           user_id: string
         }
         Insert: {
-          id?: string
-          role: Database["public"]["Enums"]["app_role"]
+          is_leader?: boolean
+          joined_at?: string
+          team_id: string
           user_id: string
         }
         Update: {
+          is_leader?: boolean
+          joined_at?: string
+          team_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_members_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      teams: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          organization_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
           id?: string
-          role?: Database["public"]["Enums"]["app_role"]
+          name: string
+          organization_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          organization_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "teams_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      two_factor_secrets: {
+        Row: {
+          backup_codes_hashed: string[]
+          created_at: string
+          enabled: boolean
+          enrolled_at: string | null
+          last_used_at: string | null
+          secret_encrypted: string
+          user_id: string
+        }
+        Insert: {
+          backup_codes_hashed?: string[]
+          created_at?: string
+          enabled?: boolean
+          enrolled_at?: string | null
+          last_used_at?: string | null
+          secret_encrypted: string
+          user_id: string
+        }
+        Update: {
+          backup_codes_hashed?: string[]
+          created_at?: string
+          enabled?: boolean
+          enrolled_at?: string | null
+          last_used_at?: string | null
+          secret_encrypted?: string
           user_id?: string
         }
         Relationships: []
+      }
+      user_devices: {
+        Row: {
+          created_at: string
+          device_fingerprint: string
+          id: string
+          label: string | null
+          last_ip: unknown
+          last_seen_at: string
+          trusted: boolean
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          device_fingerprint: string
+          id?: string
+          label?: string | null
+          last_ip?: unknown
+          last_seen_at?: string
+          trusted?: boolean
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          device_fingerprint?: string
+          id?: string
+          label?: string | null
+          last_ip?: unknown
+          last_seen_at?: string
+          trusted?: boolean
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          granted_at: string
+          granted_by: string | null
+          id: string
+          organization_id: string | null
+          role: Database["public"]["Enums"]["app_role"]
+          team_id: string | null
+          user_id: string
+        }
+        Insert: {
+          granted_at?: string
+          granted_by?: string | null
+          id?: string
+          organization_id?: string | null
+          role: Database["public"]["Enums"]["app_role"]
+          team_id?: string | null
+          user_id: string
+        }
+        Update: {
+          granted_at?: string
+          granted_by?: string | null
+          id?: string
+          organization_id?: string | null
+          role?: Database["public"]["Enums"]["app_role"]
+          team_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_roles_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_roles_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      has_permission: {
+        Args: { _permission: string; _user_id: string }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -252,9 +756,37 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_account_suspended: { Args: { _user_id: string }; Returns: boolean }
+      max_role_level: { Args: { _user_id: string }; Returns: number }
+      record_audit: {
+        Args: {
+          _action: string
+          _actor: string
+          _diff: Json
+          _ip: unknown
+          _org: string
+          _target_id: string
+          _target_type: string
+          _ua: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
-      app_role: "agent" | "manager"
+      agent_presence:
+        | "available"
+        | "on_call"
+        | "acw"
+        | "break"
+        | "training"
+        | "meeting"
+        | "offline"
+      app_role:
+        | "agent"
+        | "team_leader"
+        | "supervisor"
+        | "ops_admin"
+        | "super_admin"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -382,7 +914,22 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["agent", "manager"],
+      agent_presence: [
+        "available",
+        "on_call",
+        "acw",
+        "break",
+        "training",
+        "meeting",
+        "offline",
+      ],
+      app_role: [
+        "agent",
+        "team_leader",
+        "supervisor",
+        "ops_admin",
+        "super_admin",
+      ],
     },
   },
 } as const
