@@ -8,6 +8,7 @@ import {
   CCButton, CCStatusPill, CCWidget, CCFormSection, CCFormGrid, CCField,
   CCInput, CCTextarea, CCSelect, CCCheckbox,
 } from "@/components/cc";
+import { DUMMY_ANNOUNCEMENTS } from "@/lib/dummy-data";
 
 export const Route = createFileRoute("/_authenticated/announcements/")({
   component: AnnouncementsPage,
@@ -55,7 +56,7 @@ function AnnouncementsPage() {
         actions={canPost ? <CCButton onClick={() => setOpen(true)}>Post announcement</CCButton> : null}
       />
       <div className="p-6 space-y-4">
-        {((list.data ?? []) as any[]).map((a) => {
+        {(((list.data && list.data.length > 0) ? list.data : DUMMY_ANNOUNCEMENTS) as any[]).map((a) => {
           const tone: any = a.urgency === "urgent" ? "danger" : a.urgency === "high" ? "warning" : "info";
           const isRead = reads.data?.has(a.id);
           return (
@@ -79,9 +80,6 @@ function AnnouncementsPage() {
             </CCWidget>
           );
         })}
-        {list.data && list.data.length === 0 && (
-          <div className="text-center text-sm text-[color:var(--cc-ink-500)] py-10">No announcements yet.</div>
-        )}
       </div>
       {open && <NewAnnouncementDialog onClose={() => { setOpen(false); qc.invalidateQueries({ queryKey: ["announcements"] }); }} />}
     </>

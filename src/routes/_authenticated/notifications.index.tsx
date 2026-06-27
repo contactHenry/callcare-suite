@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { PageHeader } from "@/components/AppShell";
 import { CCButton, CCStatusPill, CCWidget } from "@/components/cc";
+import { DUMMY_NOTIFICATIONS } from "@/lib/dummy-data";
 
 export const Route = createFileRoute("/_authenticated/notifications/")({
   component: NotificationsPage,
@@ -47,7 +48,8 @@ function NotificationsPage() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["notifications"] }),
   });
 
-  const items: any[] = (list.data ?? []) as any[];
+  const apiItems: any[] = (list.data ?? []) as any[];
+  const items: any[] = apiItems.length > 0 ? apiItems : DUMMY_NOTIFICATIONS;
   const unreadCount = items.filter((n) => !n.read_at).length;
 
   return (

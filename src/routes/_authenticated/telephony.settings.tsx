@@ -18,7 +18,21 @@ function TelephonySettings() {
   const [form, setForm] = useState<any>(null);
   const [saving, setSaving] = useState(false);
 
-  useEffect(() => { (async () => { setForm(await getTelephonySettings()); })(); }, []);
+  useEffect(() => { (async () => {
+    const DEFAULTS = {
+      provider: "twilio",
+      recording_enabled: true,
+      recording_consent_required: true,
+      recording_consent_notice: "This call may be recorded for training and quality assurance purposes.",
+      voicemail_drop_enabled: false,
+      voicemail_drop_legal_ack: false,
+      two_party_consent_regions: ["CA", "FL", "WA", "IL", "PA"],
+    };
+    try {
+      const r = await getTelephonySettings();
+      setForm(r ?? DEFAULTS);
+    } catch { setForm(DEFAULTS); }
+  })(); }, []);
 
   if (!form) return <div className="p-6 text-sm text-muted-foreground">Loading…</div>;
 

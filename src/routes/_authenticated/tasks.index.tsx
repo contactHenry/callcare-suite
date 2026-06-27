@@ -10,6 +10,7 @@ import {
   CCButton, CCFormSection, CCFormGrid, CCField, CCInput, CCTextarea, CCSelect,
   CCStatusPill, CCTable, CCThead, CCTh, CCTd, CCTr,
 } from "@/components/cc";
+import { DUMMY_TASKS } from "@/lib/dummy-data";
 
 export const Route = createFileRoute("/_authenticated/tasks/")({
   component: TasksPage,
@@ -25,6 +26,7 @@ function TasksPage() {
     queryKey: ["tasks", scope, overdueOnly],
     queryFn: () => listTasks({ data: { scope, overdueOnly } }),
   });
+  const rows: any[] = (tasks.data && tasks.data.length > 0) ? tasks.data : DUMMY_TASKS;
 
   const [openNew, setOpenNew] = useState(false);
 
@@ -75,15 +77,9 @@ function TasksPage() {
               </tr>
             </CCThead>
             <tbody>
-              {(tasks.data ?? []).map((t: any) => (
+              {rows.map((t: any) => (
                 <TaskRow key={t.id} task={t} onChange={() => qc.invalidateQueries({ queryKey: ["tasks"] })} />
               ))}
-              {tasks.data && tasks.data.length === 0 && (
-                <CCTr>
-                  <CCTd className="text-[color:var(--cc-ink-500)]">No tasks. You're caught up.</CCTd>
-                  <CCTd /><CCTd /><CCTd /><CCTd /><CCTd />
-                </CCTr>
-              )}
             </tbody>
           </CCTable>
         </div>

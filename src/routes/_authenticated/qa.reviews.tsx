@@ -10,6 +10,7 @@ import {
 import {
   CCButton, CCStatusPill, CCFormSection, CCField, CCTextarea, CCWidget, CCSparkline, CCMetricWidget,
 } from "@/components/cc";
+import { DUMMY_QA_REVIEWS, DUMMY_QA_DISPUTES, DUMMY_QA_POINTS } from "@/lib/dummy-data";
 
 export const Route = createFileRoute("/_authenticated/qa/reviews")({
   component: ReviewsPage,
@@ -47,8 +48,11 @@ function ReviewsPage() {
     },
   });
 
-  const points = (trend.data ?? []).map((p: any) => p.score);
+  const trendPoints = (trend.data ?? []).map((p: any) => p.score);
+  const points = trendPoints.length > 0 ? trendPoints : DUMMY_QA_POINTS;
   const avg = points.length ? points.reduce((a: number, b: number) => a + b, 0) / points.length : 0;
+  const reviewRows: any[] = (reviews.data && reviews.data.length > 0) ? reviews.data : DUMMY_QA_REVIEWS;
+  const disputeRows: any[] = (disputes.data && disputes.data.length > 0) ? disputes.data : DUMMY_QA_DISPUTES;
 
   return (
     <>
@@ -64,37 +68,31 @@ function ReviewsPage() {
             tone={avg >= 80 ? "positive" : avg >= 65 ? "warning" : "negative"}
             trend={{ points }}
           />
-          <CCMetricWidget title="Reviews" value={(reviews.data?.length ?? 0).toString()} />
+          <CCMetricWidget title="Reviews" value={reviewRows.length.toString()} />
           <CCMetricWidget
             title="Open disputes"
-            value={(disputes.data?.filter((d: any) => d.status === "open").length ?? 0).toString()}
+            value={disputeRows.filter((d: any) => d.status === "open").length.toString()}
             tone="warning"
           />
         </div>
 
         <CCWidget title="Recent reviews">
           <ul className="divide-y divide-[color:var(--cc-ink-100)]">
-            {(reviews.data ?? []).map((r: any) => (
+            {reviewRows.map((r: any) => (
               <ReviewRow key={r.id} review={r} canModerate={isLeader} onChange={() => {
                 qc.invalidateQueries({ queryKey: ["qa-reviews"] });
                 qc.invalidateQueries({ queryKey: ["qa-disputes"] });
               }} />
             ))}
-            {reviews.data && reviews.data.length === 0 && (
-              <li className="py-6 text-sm text-[color:var(--cc-ink-500)]">No reviews yet.</li>
-            )}
           </ul>
         </CCWidget>
 
         {isLeader && (
           <CCWidget title="Disputes queue">
             <ul className="divide-y divide-[color:var(--cc-ink-100)]">
-              {(disputes.data ?? []).map((d: any) => (
+              {disputeRows.map((d: any) => (
                 <DisputeRow key={d.id} dispute={d} onResolved={() => qc.invalidateQueries({ queryKey: ["qa-disputes"] })} />
               ))}
-              {disputes.data && disputes.data.length === 0 && (
-                <li className="py-6 text-sm text-[color:var(--cc-ink-500)]">No disputes.</li>
-              )}
             </ul>
           </CCWidget>
         )}

@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { PageHeader } from "@/components/AppShell";
 import { CCButton, CCStatusPill, CCWidget, CCTable, CCThead, CCTh, CCTd, CCTr } from "@/components/cc";
+import { DUMMY_PUNCHES, DUMMY_SHIFTS } from "@/lib/dummy-data";
 
 export const Route = createFileRoute("/_authenticated/attendance/")({
   component: AttendancePage,
@@ -52,7 +53,9 @@ function AttendancePage() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["punches"] }),
   });
 
-  const last = ((punches.data ?? []) as any[])[0];
+  const punchRows: any[] = (punches.data && punches.data.length > 0) ? (punches.data as any[]) : DUMMY_PUNCHES;
+  const shiftRows: any[] = (shifts.data && shifts.data.length > 0) ? (shifts.data as any[]) : DUMMY_SHIFTS;
+  const last = punchRows[0];
   const onShift = last?.kind === "clock_in" || last?.kind === "break_end";
   const onBreak = last?.kind === "break_start";
 
@@ -92,23 +95,20 @@ function AttendancePage() {
           <CCTable>
             <CCThead><tr><CCTh>Starts</CCTh><CCTh>Ends</CCTh><CCTh>Notes</CCTh></tr></CCThead>
             <tbody>
-              {((shifts.data ?? []) as any[]).map((s) => (
+              {shiftRows.map((s) => (
                 <CCTr key={s.id}>
                   <CCTd className="tabular-nums">{new Date(s.starts_at).toLocaleString()}</CCTd>
                   <CCTd className="tabular-nums">{new Date(s.ends_at).toLocaleString()}</CCTd>
                   <CCTd className="text-[color:var(--cc-ink-700)]">{s.notes ?? "—"}</CCTd>
                 </CCTr>
               ))}
-              {shifts.data && shifts.data.length === 0 && (
-                <CCTr><CCTd className="text-[color:var(--cc-ink-500)]">No shifts scheduled.</CCTd><CCTd /><CCTd /></CCTr>
-              )}
             </tbody>
           </CCTable>
         </CCWidget>
 
         <CCWidget title="Recent punches">
           <ul className="divide-y divide-[color:var(--cc-ink-100)]">
-            {((punches.data ?? []) as any[]).map((p) => (
+            {punchRows.map((p) => (
               <li key={p.id} className="py-2 flex items-center justify-between">
                 <span className="text-sm">{KIND_LABEL[p.kind] ?? p.kind}</span>
                 <span className="text-xs text-[color:var(--cc-ink-500)] tabular-nums">{new Date(p.at).toLocaleString()}</span>

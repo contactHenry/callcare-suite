@@ -13,6 +13,7 @@ import {
   CCStatusPill,
 } from "@/components/cc";
 import { Plus, Trash2 } from "lucide-react";
+import { DUMMY_SCRIPTS } from "@/lib/dummy-data";
 
 export const Route = createFileRoute("/_authenticated/scripts/")({
   component: ScriptsPage,
@@ -27,6 +28,7 @@ function ScriptsPage() {
 
   const qc = useQueryClient();
   const scripts = useQuery({ queryKey: ["scripts"], queryFn: () => listScripts({ data: {} }) });
+  const scriptList: any[] = (scripts.data && scripts.data.length > 0) ? scripts.data : DUMMY_SCRIPTS;
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [creatingName, setCreatingName] = useState("");
 
@@ -50,7 +52,7 @@ function ScriptsPage() {
             </div>
           )}
           <ul className="cc-surface rounded-[var(--cc-radius-lg)] shadow-[var(--cc-shadow-sm)] divide-y divide-[color:var(--cc-ink-100)]">
-            {(scripts.data ?? []).map((s: any) => (
+            {scriptList.map((s: any) => (
               <li key={s.id}>
                 <button
                   onClick={() => setSelectedId(s.id)}
@@ -69,9 +71,6 @@ function ScriptsPage() {
                 </button>
               </li>
             ))}
-            {scripts.data && scripts.data.length === 0 && (
-              <li className="p-4 text-sm text-[color:var(--cc-ink-500)]">No scripts yet.</li>
-            )}
           </ul>
         </aside>
 

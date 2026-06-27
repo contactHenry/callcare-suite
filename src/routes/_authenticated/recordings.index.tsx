@@ -14,6 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { listRecordings, getRecordingUrl, tagCallReview, setSupervisorComments } from "@/lib/calls.functions";
 import { Search, Play, Tag, MessageSquare, ShieldAlert, Headphones } from "lucide-react";
 import { toast } from "sonner";
+import { DUMMY_RECORDINGS } from "@/lib/dummy-data";
 
 export const Route = createFileRoute("/_authenticated/recordings/")({
   component: RecordingsLibrary,
@@ -35,6 +36,7 @@ function RecordingsLibrary() {
     queryKey: ["recordings", search, from, to],
     queryFn: () => listRecordings({ data: { search: search || undefined, from: from || undefined, to: to || undefined, limit: 50, offset: 0 } }),
   });
+  const rows: any[] = (data?.rows && data.rows.length > 0) ? data.rows : DUMMY_RECORDINGS;
 
   return (
     <div>
@@ -80,10 +82,7 @@ function RecordingsLibrary() {
               {isLoading && (
                 <TableRow><TableCell colSpan={8} className="text-sm text-muted-foreground">Loading…</TableCell></TableRow>
               )}
-              {!isLoading && (data?.rows.length ?? 0) === 0 && (
-                <TableRow><TableCell colSpan={8} className="text-sm text-muted-foreground">No recordings match these filters.</TableCell></TableRow>
-              )}
-              {data?.rows.map((r: any) => (
+              {!isLoading && rows.map((r: any) => (
                 <TableRow key={r.id} className="hover:bg-muted/40">
                   <TableCell className="text-sm">{new Date(r.started_at).toLocaleString()}</TableCell>
                   <TableCell><Badge variant="outline">{r.direction}</Badge></TableCell>

@@ -12,6 +12,7 @@ import { Ear, MessageCircle, Megaphone, ArrowRightLeft, Clock, Activity } from "
 import { listLiveCalls, listQueue, startMonitorSession, stopMonitorSession } from "@/lib/calls.functions";
 import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
+import { DUMMY_LIVE_CALLS, DUMMY_QUEUE } from "@/lib/dummy-data";
 
 export const Route = createFileRoute("/_authenticated/monitoring/")({
   component: LiveMonitoring,
@@ -40,6 +41,8 @@ function LiveMonitoring() {
     queryFn: () => listQueue(),
     refetchInterval: 5000,
   });
+  const liveRows: any[] = (live.data && live.data.length > 0) ? live.data : DUMMY_LIVE_CALLS;
+  const queueRows: any[] = (queue.data && queue.data.length > 0) ? queue.data : DUMMY_QUEUE;
 
   // tick for the elapsed columns
   const [, setTick] = useState(0);
@@ -81,7 +84,7 @@ function LiveMonitoring() {
           <div className="flex items-center gap-2 text-sm">
             <Activity className="size-4 text-emerald-600 animate-pulse" />
             <span className="font-medium">Active calls</span>
-            <span className="text-muted-foreground">({live.data?.length ?? 0})</span>
+            <span className="text-muted-foreground">({liveRows.length})</span>
           </div>
           <div className="border-b">
             <Table>
@@ -96,10 +99,7 @@ function LiveMonitoring() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {(live.data ?? []).length === 0 && (
-                  <TableRow><TableCell colSpan={6} className="text-sm text-muted-foreground">No active calls right now.</TableCell></TableRow>
-                )}
-                {(live.data ?? []).map((c: any) => (
+                {liveRows.map((c: any) => (
                   <TableRow key={c.id} className="hover:bg-muted/40">
                     <TableCell><Badge variant="outline">{c.direction}</Badge></TableCell>
                     <TableCell className="text-sm">{c.contacts?.name ?? "Unknown"}</TableCell>
@@ -124,13 +124,10 @@ function LiveMonitoring() {
           <div className="flex items-center gap-2 text-sm">
             <Clock className="size-4 text-amber-600" />
             <span className="font-medium">Inbound queue</span>
-            <span className="text-muted-foreground">({queue.data?.length ?? 0})</span>
+            <span className="text-muted-foreground">({queueRows.length})</span>
           </div>
           <div className="border rounded-lg divide-y bg-card">
-            {(queue.data ?? []).length === 0 && (
-              <div className="p-3 text-xs text-muted-foreground">Queue is empty.</div>
-            )}
-            {(queue.data ?? []).map((q: any) => (
+            {queueRows.map((q: any) => (
               <div key={q.id} className="p-3 text-sm flex items-center justify-between">
                 <div>
                   <div className="font-medium">{q.contacts?.name ?? "Unknown"}</div>

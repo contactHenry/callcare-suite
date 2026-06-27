@@ -15,6 +15,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { toast } from "sonner";
 import { Phone, Download, Upload, Users, GitMerge, ShieldCheck } from "lucide-react";
 import { useAuth } from "@/lib/auth";
+import { DUMMY_CLIENTS } from "@/lib/dummy-data";
 
 export const Route = createFileRoute("/_authenticated/clients/")({ component: ClientsPage });
 
@@ -60,8 +61,10 @@ function ClientsPage() {
   });
   const agentsQuery = useQuery({ queryKey: ["assignable-agents"], queryFn: () => agentsFn() });
 
-  const rows = query.data?.rows ?? [];
-  const total = query.data?.total ?? 0;
+  const apiRows = query.data?.rows ?? [];
+  const usingDummy = apiRows.length === 0;
+  const rows: any[] = usingDummy ? DUMMY_CLIENTS : apiRows;
+  const total = usingDummy ? DUMMY_CLIENTS.length : (query.data?.total ?? 0);
   const allOnPage = useMemo(() => new Set(rows.map((r: any) => r.id)), [rows]);
 
   function toggle(id: string) {

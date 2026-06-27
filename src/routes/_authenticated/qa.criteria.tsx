@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import { Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { DUMMY_QA_CRITERIA } from "@/lib/dummy-data";
 
 export const Route = createFileRoute("/_authenticated/qa/criteria")({
   beforeLoad: async () => {
@@ -28,7 +29,7 @@ export const Route = createFileRoute("/_authenticated/qa/criteria")({
 
 function Criteria() {
   const qc = useQueryClient();
-  const { data: criteria = [] } = useQuery({
+  const { data: criteriaRaw = [] } = useQuery({
     queryKey: ["criteria-all"],
     queryFn: async () => {
       const { data, error } = await supabase.from("qa_criteria").select("*").order("created_at");
@@ -36,6 +37,7 @@ function Criteria() {
       return data;
     },
   });
+  const criteria: any[] = (criteriaRaw && criteriaRaw.length > 0) ? (criteriaRaw as any[]) : DUMMY_QA_CRITERIA;
 
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({ label: "", description: "", weight: 1 });
