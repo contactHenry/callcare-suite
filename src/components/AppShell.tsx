@@ -5,8 +5,11 @@ import {
   Sparkles, UsersRound, PhoneCall, ClipboardCheck, LayoutDashboard, LogOut,
   SlidersHorizontal, UserRoundCog, ShieldCheck, ScrollText, ContactRound,
   AudioLines, Radio, Settings2, ListChecks, BookOpenText, Gauge, LineChart,
+  Bell, AlertOctagon, CalendarClock, Megaphone, FileBarChart2, Plug, FileCheck2,
 } from "lucide-react";
 import type { ReactNode } from "react";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 
 const ROLE_LABEL: Record<string, string> = {
@@ -34,6 +37,8 @@ export function AppShell({ children }: { children: ReactNode }) {
       items: [
         { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard, show: true },
         { to: "/tasks", label: "Tasks", icon: ListChecks, show: true },
+        { to: "/announcements", label: "Announcements", icon: Megaphone, show: true },
+        { to: "/attendance", label: "Attendance", icon: CalendarClock, show: true },
       ],
     },
     {
@@ -50,6 +55,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       items: [
         { to: "/clients", label: "Clients", icon: ContactRound, show: true },
         { to: "/contacts", label: "Contacts", icon: UsersRound, show: true },
+        { to: "/complaints", label: "Complaints", icon: AlertOctagon, show: true },
       ],
     },
     {
@@ -64,6 +70,9 @@ export function AppShell({ children }: { children: ReactNode }) {
     {
       label: "Administration",
       items: [
+        { to: "/reports", label: "Reports", icon: FileBarChart2, show: atLeast("team_leader") },
+        { to: "/compliance", label: "Compliance", icon: FileCheck2, show: atLeast("team_leader") },
+        { to: "/integrations", label: "Integrations", icon: Plug, show: atLeast("supervisor") },
         { to: "/staff", label: "Staff", icon: UserRoundCog, show: atLeast("ops_admin") },
         { to: "/telephony/settings", label: "Telephony", icon: Settings2, show: atLeast("ops_admin") },
         { to: "/security/audit", label: "Audit log", icon: ScrollText, show: atLeast("ops_admin") },
@@ -137,8 +146,52 @@ export function AppShell({ children }: { children: ReactNode }) {
           </Button>
         </div>
       </aside>
-      <main className="flex-1 min-w-0">{children}</main>
+      <main className="flex-1 min-w-0">
+        <NotificationsBell />
+        {children}
+      </main>
     </div>
+  );
+}
+
+function NotificationsBell() {
+  const { user } = useAuth();
+  const [unread, setUnread] = useState(0);
+
+  useEffect(() => {
+    if (!user?.id) return;
+    let cancelled = false;
+    const load = async () => {
+      const { count } = await supabase
+        .from("notifications" as any)
+        .select("id", { count: "exact", head: true })
+        .is("read_at", null)
+        .eq("user_id", user.id);
+      if (!cancelled) setUnread(count ?? 0);
+    };
+    load();
+    const channel = supabase
+      .channel(`notifications:${user.id}`)
+      .on("postgres_changes",
+        { event: "*", schema: "public", table: "notifications", filter: `user_id=eq.${user.id}` },
+        load,
+      ).subscribe();
+    return () => { cancelled = true; supabase.removeChannel(channel); };
+  }, [user?.id]);
+
+  return (
+    <Link
+      to="/notifications"
+      aria-label={`Notifications (${unread} unread)`}
+      className="fixed top-4 right-6 z-40 inline-flex items-center justify-center size-10 rounded-full bg-background border shadow-sm hover:bg-accent transition-colors"
+    >
+      <Bell className="size-[18px]" strokeWidth={2} />
+      {unread > 0 && (
+        <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-[color:var(--cc-danger)] text-white text-[10px] font-semibold flex items-center justify-center">
+          {unread > 99 ? "99+" : unread}
+        </span>
+      )}
+    </Link>
   );
 }
 

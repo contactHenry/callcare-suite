@@ -92,6 +92,151 @@ export type Database = {
         }
         Relationships: []
       }
+      announcement_reads: {
+        Row: {
+          acknowledged_at: string
+          announcement_id: string
+          user_id: string
+        }
+        Insert: {
+          acknowledged_at?: string
+          announcement_id: string
+          user_id: string
+        }
+        Update: {
+          acknowledged_at?: string
+          announcement_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "announcement_reads_announcement_id_fkey"
+            columns: ["announcement_id"]
+            isOneToOne: false
+            referencedRelation: "announcements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      announcements: {
+        Row: {
+          audience: string
+          author_id: string
+          body: string
+          created_at: string
+          id: string
+          organization_id: string | null
+          require_ack: boolean
+          team_id: string | null
+          title: string
+          urgency: string
+        }
+        Insert: {
+          audience?: string
+          author_id: string
+          body: string
+          created_at?: string
+          id?: string
+          organization_id?: string | null
+          require_ack?: boolean
+          team_id?: string | null
+          title: string
+          urgency?: string
+        }
+        Update: {
+          audience?: string
+          author_id?: string
+          body?: string
+          created_at?: string
+          id?: string
+          organization_id?: string | null
+          require_ack?: boolean
+          team_id?: string | null
+          title?: string
+          urgency?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "announcements_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "announcements_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      attendance_punches: {
+        Row: {
+          at: string
+          id: string
+          kind: string
+          note: string | null
+          user_id: string
+        }
+        Insert: {
+          at?: string
+          id?: string
+          kind: string
+          note?: string | null
+          user_id: string
+        }
+        Update: {
+          at?: string
+          id?: string
+          kind?: string
+          note?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      attendance_shifts: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          ends_at: string
+          id: string
+          notes: string | null
+          starts_at: string
+          team_id: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          ends_at: string
+          id?: string
+          notes?: string | null
+          starts_at: string
+          team_id?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          ends_at?: string
+          id?: string
+          notes?: string | null
+          starts_at?: string
+          team_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attendance_shifts_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       audit_log: {
         Row: {
           action: string
@@ -1012,6 +1157,120 @@ export type Database = {
           },
         ]
       }
+      complaint_updates: {
+        Row: {
+          author_id: string
+          body: string
+          complaint_id: string
+          created_at: string
+          id: string
+          status_change: Database["public"]["Enums"]["complaint_status"] | null
+        }
+        Insert: {
+          author_id: string
+          body: string
+          complaint_id: string
+          created_at?: string
+          id?: string
+          status_change?: Database["public"]["Enums"]["complaint_status"] | null
+        }
+        Update: {
+          author_id?: string
+          body?: string
+          complaint_id?: string
+          created_at?: string
+          id?: string
+          status_change?: Database["public"]["Enums"]["complaint_status"] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "complaint_updates_complaint_id_fkey"
+            columns: ["complaint_id"]
+            isOneToOne: false
+            referencedRelation: "complaints"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      complaints: {
+        Row: {
+          call_id: string | null
+          category: string | null
+          client_id: string | null
+          created_at: string
+          description: string | null
+          due_at: string | null
+          id: string
+          organization_id: string | null
+          owner_id: string | null
+          priority: Database["public"]["Enums"]["complaint_priority"]
+          raised_by: string | null
+          resolution: string | null
+          resolved_at: string | null
+          status: Database["public"]["Enums"]["complaint_status"]
+          subject: string
+          updated_at: string
+        }
+        Insert: {
+          call_id?: string | null
+          category?: string | null
+          client_id?: string | null
+          created_at?: string
+          description?: string | null
+          due_at?: string | null
+          id?: string
+          organization_id?: string | null
+          owner_id?: string | null
+          priority?: Database["public"]["Enums"]["complaint_priority"]
+          raised_by?: string | null
+          resolution?: string | null
+          resolved_at?: string | null
+          status?: Database["public"]["Enums"]["complaint_status"]
+          subject: string
+          updated_at?: string
+        }
+        Update: {
+          call_id?: string | null
+          category?: string | null
+          client_id?: string | null
+          created_at?: string
+          description?: string | null
+          due_at?: string | null
+          id?: string
+          organization_id?: string | null
+          owner_id?: string | null
+          priority?: Database["public"]["Enums"]["complaint_priority"]
+          raised_by?: string | null
+          resolution?: string | null
+          resolved_at?: string | null
+          status?: Database["public"]["Enums"]["complaint_status"]
+          subject?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "complaints_call_id_fkey"
+            columns: ["call_id"]
+            isOneToOne: false
+            referencedRelation: "calls"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "complaints_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "complaints_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contacts: {
         Row: {
           address_city: string | null
@@ -1142,6 +1401,66 @@ export type Database = {
           },
         ]
       }
+      data_requests: {
+        Row: {
+          client_id: string | null
+          created_at: string
+          fulfilled_at: string | null
+          id: string
+          kind: string
+          notes: string | null
+          organization_id: string | null
+          reason: string | null
+          requested_by: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+        }
+        Insert: {
+          client_id?: string | null
+          created_at?: string
+          fulfilled_at?: string | null
+          id?: string
+          kind: string
+          notes?: string | null
+          organization_id?: string | null
+          reason?: string | null
+          requested_by?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+        }
+        Update: {
+          client_id?: string | null
+          created_at?: string
+          fulfilled_at?: string | null
+          id?: string
+          kind?: string
+          notes?: string | null
+          organization_id?: string | null
+          reason?: string | null
+          requested_by?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "data_requests_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "data_requests_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       failed_login_attempts: {
         Row: {
           at: string
@@ -1162,6 +1481,53 @@ export type Database = {
           ip?: unknown
         }
         Relationships: []
+      }
+      integrations: {
+        Row: {
+          category: string
+          config: Json
+          configured_by: string | null
+          created_at: string
+          id: string
+          last_sync_at: string | null
+          organization_id: string | null
+          provider: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          config?: Json
+          configured_by?: string | null
+          created_at?: string
+          id?: string
+          last_sync_at?: string | null
+          organization_id?: string | null
+          provider: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          config?: Json
+          configured_by?: string | null
+          created_at?: string
+          id?: string
+          last_sync_at?: string | null
+          organization_id?: string | null
+          provider?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "integrations_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       ip_allowlist: {
         Row: {
@@ -1244,6 +1610,56 @@ export type Database = {
             columns: ["device_id"]
             isOneToOne: false
             referencedRelation: "user_devices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notifications: {
+        Row: {
+          body: string | null
+          channel: string
+          created_at: string
+          id: string
+          kind: string
+          link: string | null
+          organization_id: string | null
+          read_at: string | null
+          severity: string
+          title: string
+          user_id: string
+        }
+        Insert: {
+          body?: string | null
+          channel?: string
+          created_at?: string
+          id?: string
+          kind: string
+          link?: string | null
+          organization_id?: string | null
+          read_at?: string | null
+          severity?: string
+          title: string
+          user_id: string
+        }
+        Update: {
+          body?: string | null
+          channel?: string
+          created_at?: string
+          id?: string
+          kind?: string
+          link?: string | null
+          organization_id?: string | null
+          read_at?: string | null
+          severity?: string
+          title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
@@ -1699,6 +2115,47 @@ export type Database = {
           },
           {
             foreignKeyName: "qa_scorecards_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      report_runs: {
+        Row: {
+          created_at: string
+          filters: Json
+          format: string
+          id: string
+          organization_id: string | null
+          report_key: string
+          row_count: number | null
+          run_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          filters?: Json
+          format?: string
+          id?: string
+          organization_id?: string | null
+          report_key: string
+          row_count?: number | null
+          run_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          filters?: Json
+          format?: string
+          id?: string
+          organization_id?: string | null
+          report_key?: string
+          row_count?: number | null
+          run_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "report_runs_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
@@ -2229,6 +2686,18 @@ export type Database = {
         Returns: boolean
       }
       max_role_level: { Args: { _user_id: string }; Returns: number }
+      notify: {
+        Args: {
+          _body?: string
+          _channel?: string
+          _kind: string
+          _link?: string
+          _severity?: string
+          _title: string
+          _user: string
+        }
+        Returns: string
+      }
       record_audit: {
         Args: {
           _action: string
@@ -2288,6 +2757,13 @@ export type Database = {
         | "escalated"
         | "do_not_call"
         | "closed"
+      complaint_priority: "low" | "normal" | "high" | "urgent"
+      complaint_status:
+        | "open"
+        | "investigating"
+        | "resolved"
+        | "closed"
+        | "escalated"
       consent_state: "unknown" | "granted" | "revoked"
       contact_method: "phone" | "email" | "sms" | "whatsapp" | "no_contact"
       monitor_kind: "listen" | "whisper" | "barge" | "takeover"
@@ -2478,6 +2954,14 @@ export const Constants = {
         "escalated",
         "do_not_call",
         "closed",
+      ],
+      complaint_priority: ["low", "normal", "high", "urgent"],
+      complaint_status: [
+        "open",
+        "investigating",
+        "resolved",
+        "closed",
+        "escalated",
       ],
       consent_state: ["unknown", "granted", "revoked"],
       contact_method: ["phone", "email", "sms", "whatsapp", "no_contact"],

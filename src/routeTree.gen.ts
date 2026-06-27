@@ -19,11 +19,18 @@ import { Route as AuthenticatedDashboardRouteImport } from './routes/_authentica
 import { Route as AuthenticatedTasksIndexRouteImport } from './routes/_authenticated/tasks.index'
 import { Route as AuthenticatedStaffIndexRouteImport } from './routes/_authenticated/staff.index'
 import { Route as AuthenticatedScriptsIndexRouteImport } from './routes/_authenticated/scripts.index'
+import { Route as AuthenticatedReportsIndexRouteImport } from './routes/_authenticated/reports.index'
 import { Route as AuthenticatedRecordingsIndexRouteImport } from './routes/_authenticated/recordings.index'
+import { Route as AuthenticatedNotificationsIndexRouteImport } from './routes/_authenticated/notifications.index'
 import { Route as AuthenticatedMonitoringIndexRouteImport } from './routes/_authenticated/monitoring.index'
+import { Route as AuthenticatedIntegrationsIndexRouteImport } from './routes/_authenticated/integrations.index'
 import { Route as AuthenticatedContactsIndexRouteImport } from './routes/_authenticated/contacts.index'
+import { Route as AuthenticatedComplianceIndexRouteImport } from './routes/_authenticated/compliance.index'
+import { Route as AuthenticatedComplaintsIndexRouteImport } from './routes/_authenticated/complaints.index'
 import { Route as AuthenticatedClientsIndexRouteImport } from './routes/_authenticated/clients.index'
 import { Route as AuthenticatedCallsIndexRouteImport } from './routes/_authenticated/calls.index'
+import { Route as AuthenticatedAttendanceIndexRouteImport } from './routes/_authenticated/attendance.index'
+import { Route as AuthenticatedAnnouncementsIndexRouteImport } from './routes/_authenticated/announcements.index'
 import { Route as AuthenticatedTelephonySettingsRouteImport } from './routes/_authenticated/telephony.settings'
 import { Route as AuthenticatedSecurityAuditRouteImport } from './routes/_authenticated/security.audit'
 import { Route as AuthenticatedQaScorecardsRouteImport } from './routes/_authenticated/qa.scorecards'
@@ -88,10 +95,22 @@ const AuthenticatedScriptsIndexRoute =
     path: '/scripts/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedReportsIndexRoute =
+  AuthenticatedReportsIndexRouteImport.update({
+    id: '/reports/',
+    path: '/reports/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedRecordingsIndexRoute =
   AuthenticatedRecordingsIndexRouteImport.update({
     id: '/recordings/',
     path: '/recordings/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedNotificationsIndexRoute =
+  AuthenticatedNotificationsIndexRouteImport.update({
+    id: '/notifications/',
+    path: '/notifications/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedMonitoringIndexRoute =
@@ -100,10 +119,28 @@ const AuthenticatedMonitoringIndexRoute =
     path: '/monitoring/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedIntegrationsIndexRoute =
+  AuthenticatedIntegrationsIndexRouteImport.update({
+    id: '/integrations/',
+    path: '/integrations/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedContactsIndexRoute =
   AuthenticatedContactsIndexRouteImport.update({
     id: '/contacts/',
     path: '/contacts/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedComplianceIndexRoute =
+  AuthenticatedComplianceIndexRouteImport.update({
+    id: '/compliance/',
+    path: '/compliance/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedComplaintsIndexRoute =
+  AuthenticatedComplaintsIndexRouteImport.update({
+    id: '/complaints/',
+    path: '/complaints/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedClientsIndexRoute =
@@ -117,6 +154,18 @@ const AuthenticatedCallsIndexRoute = AuthenticatedCallsIndexRouteImport.update({
   path: '/calls/',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedAttendanceIndexRoute =
+  AuthenticatedAttendanceIndexRouteImport.update({
+    id: '/attendance/',
+    path: '/attendance/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedAnnouncementsIndexRoute =
+  AuthenticatedAnnouncementsIndexRouteImport.update({
+    id: '/announcements/',
+    path: '/announcements/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedTelephonySettingsRoute =
   AuthenticatedTelephonySettingsRouteImport.update({
     id: '/telephony/settings',
@@ -210,11 +259,18 @@ export interface FileRoutesByFullPath {
   '/qa/scorecards': typeof AuthenticatedQaScorecardsRoute
   '/security/audit': typeof AuthenticatedSecurityAuditRoute
   '/telephony/settings': typeof AuthenticatedTelephonySettingsRoute
+  '/announcements/': typeof AuthenticatedAnnouncementsIndexRoute
+  '/attendance/': typeof AuthenticatedAttendanceIndexRoute
   '/calls/': typeof AuthenticatedCallsIndexRoute
   '/clients/': typeof AuthenticatedClientsIndexRoute
+  '/complaints/': typeof AuthenticatedComplaintsIndexRoute
+  '/compliance/': typeof AuthenticatedComplianceIndexRoute
   '/contacts/': typeof AuthenticatedContactsIndexRoute
+  '/integrations/': typeof AuthenticatedIntegrationsIndexRoute
   '/monitoring/': typeof AuthenticatedMonitoringIndexRoute
+  '/notifications/': typeof AuthenticatedNotificationsIndexRoute
   '/recordings/': typeof AuthenticatedRecordingsIndexRoute
+  '/reports/': typeof AuthenticatedReportsIndexRoute
   '/scripts/': typeof AuthenticatedScriptsIndexRoute
   '/staff/': typeof AuthenticatedStaffIndexRoute
   '/tasks/': typeof AuthenticatedTasksIndexRoute
@@ -239,11 +295,18 @@ export interface FileRoutesByTo {
   '/qa/scorecards': typeof AuthenticatedQaScorecardsRoute
   '/security/audit': typeof AuthenticatedSecurityAuditRoute
   '/telephony/settings': typeof AuthenticatedTelephonySettingsRoute
+  '/announcements': typeof AuthenticatedAnnouncementsIndexRoute
+  '/attendance': typeof AuthenticatedAttendanceIndexRoute
   '/calls': typeof AuthenticatedCallsIndexRoute
   '/clients': typeof AuthenticatedClientsIndexRoute
+  '/complaints': typeof AuthenticatedComplaintsIndexRoute
+  '/compliance': typeof AuthenticatedComplianceIndexRoute
   '/contacts': typeof AuthenticatedContactsIndexRoute
+  '/integrations': typeof AuthenticatedIntegrationsIndexRoute
   '/monitoring': typeof AuthenticatedMonitoringIndexRoute
+  '/notifications': typeof AuthenticatedNotificationsIndexRoute
   '/recordings': typeof AuthenticatedRecordingsIndexRoute
+  '/reports': typeof AuthenticatedReportsIndexRoute
   '/scripts': typeof AuthenticatedScriptsIndexRoute
   '/staff': typeof AuthenticatedStaffIndexRoute
   '/tasks': typeof AuthenticatedTasksIndexRoute
@@ -270,11 +333,18 @@ export interface FileRoutesById {
   '/_authenticated/qa/scorecards': typeof AuthenticatedQaScorecardsRoute
   '/_authenticated/security/audit': typeof AuthenticatedSecurityAuditRoute
   '/_authenticated/telephony/settings': typeof AuthenticatedTelephonySettingsRoute
+  '/_authenticated/announcements/': typeof AuthenticatedAnnouncementsIndexRoute
+  '/_authenticated/attendance/': typeof AuthenticatedAttendanceIndexRoute
   '/_authenticated/calls/': typeof AuthenticatedCallsIndexRoute
   '/_authenticated/clients/': typeof AuthenticatedClientsIndexRoute
+  '/_authenticated/complaints/': typeof AuthenticatedComplaintsIndexRoute
+  '/_authenticated/compliance/': typeof AuthenticatedComplianceIndexRoute
   '/_authenticated/contacts/': typeof AuthenticatedContactsIndexRoute
+  '/_authenticated/integrations/': typeof AuthenticatedIntegrationsIndexRoute
   '/_authenticated/monitoring/': typeof AuthenticatedMonitoringIndexRoute
+  '/_authenticated/notifications/': typeof AuthenticatedNotificationsIndexRoute
   '/_authenticated/recordings/': typeof AuthenticatedRecordingsIndexRoute
+  '/_authenticated/reports/': typeof AuthenticatedReportsIndexRoute
   '/_authenticated/scripts/': typeof AuthenticatedScriptsIndexRoute
   '/_authenticated/staff/': typeof AuthenticatedStaffIndexRoute
   '/_authenticated/tasks/': typeof AuthenticatedTasksIndexRoute
@@ -301,11 +371,18 @@ export interface FileRouteTypes {
     | '/qa/scorecards'
     | '/security/audit'
     | '/telephony/settings'
+    | '/announcements/'
+    | '/attendance/'
     | '/calls/'
     | '/clients/'
+    | '/complaints/'
+    | '/compliance/'
     | '/contacts/'
+    | '/integrations/'
     | '/monitoring/'
+    | '/notifications/'
     | '/recordings/'
+    | '/reports/'
     | '/scripts/'
     | '/staff/'
     | '/tasks/'
@@ -330,11 +407,18 @@ export interface FileRouteTypes {
     | '/qa/scorecards'
     | '/security/audit'
     | '/telephony/settings'
+    | '/announcements'
+    | '/attendance'
     | '/calls'
     | '/clients'
+    | '/complaints'
+    | '/compliance'
     | '/contacts'
+    | '/integrations'
     | '/monitoring'
+    | '/notifications'
     | '/recordings'
+    | '/reports'
     | '/scripts'
     | '/staff'
     | '/tasks'
@@ -360,11 +444,18 @@ export interface FileRouteTypes {
     | '/_authenticated/qa/scorecards'
     | '/_authenticated/security/audit'
     | '/_authenticated/telephony/settings'
+    | '/_authenticated/announcements/'
+    | '/_authenticated/attendance/'
     | '/_authenticated/calls/'
     | '/_authenticated/clients/'
+    | '/_authenticated/complaints/'
+    | '/_authenticated/compliance/'
     | '/_authenticated/contacts/'
+    | '/_authenticated/integrations/'
     | '/_authenticated/monitoring/'
+    | '/_authenticated/notifications/'
     | '/_authenticated/recordings/'
+    | '/_authenticated/reports/'
     | '/_authenticated/scripts/'
     | '/_authenticated/staff/'
     | '/_authenticated/tasks/'
@@ -449,11 +540,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedScriptsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/reports/': {
+      id: '/_authenticated/reports/'
+      path: '/reports'
+      fullPath: '/reports/'
+      preLoaderRoute: typeof AuthenticatedReportsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/recordings/': {
       id: '/_authenticated/recordings/'
       path: '/recordings'
       fullPath: '/recordings/'
       preLoaderRoute: typeof AuthenticatedRecordingsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/notifications/': {
+      id: '/_authenticated/notifications/'
+      path: '/notifications'
+      fullPath: '/notifications/'
+      preLoaderRoute: typeof AuthenticatedNotificationsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/monitoring/': {
@@ -463,11 +568,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMonitoringIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/integrations/': {
+      id: '/_authenticated/integrations/'
+      path: '/integrations'
+      fullPath: '/integrations/'
+      preLoaderRoute: typeof AuthenticatedIntegrationsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/contacts/': {
       id: '/_authenticated/contacts/'
       path: '/contacts'
       fullPath: '/contacts/'
       preLoaderRoute: typeof AuthenticatedContactsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/compliance/': {
+      id: '/_authenticated/compliance/'
+      path: '/compliance'
+      fullPath: '/compliance/'
+      preLoaderRoute: typeof AuthenticatedComplianceIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/complaints/': {
+      id: '/_authenticated/complaints/'
+      path: '/complaints'
+      fullPath: '/complaints/'
+      preLoaderRoute: typeof AuthenticatedComplaintsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/clients/': {
@@ -482,6 +608,20 @@ declare module '@tanstack/react-router' {
       path: '/calls'
       fullPath: '/calls/'
       preLoaderRoute: typeof AuthenticatedCallsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/attendance/': {
+      id: '/_authenticated/attendance/'
+      path: '/attendance'
+      fullPath: '/attendance/'
+      preLoaderRoute: typeof AuthenticatedAttendanceIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/announcements/': {
+      id: '/_authenticated/announcements/'
+      path: '/announcements'
+      fullPath: '/announcements/'
+      preLoaderRoute: typeof AuthenticatedAnnouncementsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/telephony/settings': {
@@ -593,11 +733,18 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedQaScorecardsRoute: typeof AuthenticatedQaScorecardsRoute
   AuthenticatedSecurityAuditRoute: typeof AuthenticatedSecurityAuditRoute
   AuthenticatedTelephonySettingsRoute: typeof AuthenticatedTelephonySettingsRoute
+  AuthenticatedAnnouncementsIndexRoute: typeof AuthenticatedAnnouncementsIndexRoute
+  AuthenticatedAttendanceIndexRoute: typeof AuthenticatedAttendanceIndexRoute
   AuthenticatedCallsIndexRoute: typeof AuthenticatedCallsIndexRoute
   AuthenticatedClientsIndexRoute: typeof AuthenticatedClientsIndexRoute
+  AuthenticatedComplaintsIndexRoute: typeof AuthenticatedComplaintsIndexRoute
+  AuthenticatedComplianceIndexRoute: typeof AuthenticatedComplianceIndexRoute
   AuthenticatedContactsIndexRoute: typeof AuthenticatedContactsIndexRoute
+  AuthenticatedIntegrationsIndexRoute: typeof AuthenticatedIntegrationsIndexRoute
   AuthenticatedMonitoringIndexRoute: typeof AuthenticatedMonitoringIndexRoute
+  AuthenticatedNotificationsIndexRoute: typeof AuthenticatedNotificationsIndexRoute
   AuthenticatedRecordingsIndexRoute: typeof AuthenticatedRecordingsIndexRoute
+  AuthenticatedReportsIndexRoute: typeof AuthenticatedReportsIndexRoute
   AuthenticatedScriptsIndexRoute: typeof AuthenticatedScriptsIndexRoute
   AuthenticatedStaffIndexRoute: typeof AuthenticatedStaffIndexRoute
   AuthenticatedTasksIndexRoute: typeof AuthenticatedTasksIndexRoute
@@ -618,11 +765,18 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedQaScorecardsRoute: AuthenticatedQaScorecardsRoute,
   AuthenticatedSecurityAuditRoute: AuthenticatedSecurityAuditRoute,
   AuthenticatedTelephonySettingsRoute: AuthenticatedTelephonySettingsRoute,
+  AuthenticatedAnnouncementsIndexRoute: AuthenticatedAnnouncementsIndexRoute,
+  AuthenticatedAttendanceIndexRoute: AuthenticatedAttendanceIndexRoute,
   AuthenticatedCallsIndexRoute: AuthenticatedCallsIndexRoute,
   AuthenticatedClientsIndexRoute: AuthenticatedClientsIndexRoute,
+  AuthenticatedComplaintsIndexRoute: AuthenticatedComplaintsIndexRoute,
+  AuthenticatedComplianceIndexRoute: AuthenticatedComplianceIndexRoute,
   AuthenticatedContactsIndexRoute: AuthenticatedContactsIndexRoute,
+  AuthenticatedIntegrationsIndexRoute: AuthenticatedIntegrationsIndexRoute,
   AuthenticatedMonitoringIndexRoute: AuthenticatedMonitoringIndexRoute,
+  AuthenticatedNotificationsIndexRoute: AuthenticatedNotificationsIndexRoute,
   AuthenticatedRecordingsIndexRoute: AuthenticatedRecordingsIndexRoute,
+  AuthenticatedReportsIndexRoute: AuthenticatedReportsIndexRoute,
   AuthenticatedScriptsIndexRoute: AuthenticatedScriptsIndexRoute,
   AuthenticatedStaffIndexRoute: AuthenticatedStaffIndexRoute,
   AuthenticatedTasksIndexRoute: AuthenticatedTasksIndexRoute,
@@ -652,13 +806,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
