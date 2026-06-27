@@ -13,6 +13,10 @@ import {
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Phone, ArrowLeft, Mail, MapPin, Upload, Trash2 } from "lucide-react";
+import { placeOutboundCall } from "@/lib/calls.functions";
+import { CallControlBar, RecordingConsentBanner, type CallSession } from "@/components/CallControlBar";
+import { getTelephonySettings } from "@/lib/calls.functions";
+import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 
@@ -57,6 +61,27 @@ function ClientDetail() {
   const q = useQuery({ queryKey: ["client", id], queryFn: () => getFn({ data: { id } }) });
   const agents = useQuery({ queryKey: ["assignable-agents"], queryFn: () => agentsFn() });
 
+  // Live call state for click-to-call from this profile
+  const [session, setSession] = useState<CallSession | null>(null);
+  const [telSettings, setTelSettings] = useState<any>(null);
+  useEffect(() => { (async () => { try { setTelSettings(await getTelephonySettings()); } catch {} })(); }, []);
+
+  async function startCall(toNumber: string) {
+    try {
+      const r = await placeOutboundCall({ data: { contactId: id, toNumber } });
+      setSession({
+        callId: r.callId,
+        toNumber,
+        contactName: q.data?.client?.name,
+        startedAt: new Date().toISOString(),
+        direction: "outbound",
+        recording: telSettings?.recording_enabled ?? true,
+        consentNotice: telSettings?.recording_consent_notice ?? null,
+        voicemailDropEnabled: telSettings?.voicemail_drop_enabled ?? false,
+      });
+    } catch (e: any) { toast.error(e?.message ?? "Could not place call"); }
+  }
+
   if (q.isLoading) return <div className="p-6 text-sm text-[color:var(--cc-ink-500)]">Loading…</div>;
   if (q.isError || !q.data) return <div className="p-6 text-sm text-[color:var(--cc-danger)]">Failed to load client.</div>;
 
@@ -71,8 +96,10 @@ function ClientDetail() {
         actions={
           <div className="flex items-center gap-2">
             <Link to="/clients"><CCButton variant="ghost"><ArrowLeft className="size-4 mr-1" />Back</CCButton></Link>
-            {c.phone && (
-              <a href={`tel:${c.phone}`}><CCButton><Phone className="size-4 mr-1" />Call {c.phone}</CCButton></a>
+            {c.phone && !session && (
+              <CCButton onClick={() => startCall(c.phone!)}>
+                <Phone className="size-4 mr-1" />Call {c.phone}
+              </CCButton>
             )}
           </div>
         }
@@ -81,6 +108,15 @@ function ClientDetail() {
       <div className="px-6 py-6 grid gap-6 lg:grid-cols-[1fr_2fr]">
         {/* LEFT: profile summary + quick actions */}
         <div className="space-y-4">
+          {session && (
+            <CallControlBar session={session} onEnded={() => setSession(null)} />
+          )}
+          {!session && telSettings?.recording_consent_required && (
+            <RecordingConsentBanner
+              notice={telSettings?.recording_consent_notice}
+              required={telSettings?.recording_consent_required}
+            />
+          )}
           <div className="rounded-[var(--cc-radius-md)] border border-[color:var(--cc-ink-200)] bg-white p-4 space-y-3">
             <div className="flex items-center justify-between">
               <CCStatusPill tone={STATUS_TONE[c.lifecycle_status] ?? "neutral"} dot>

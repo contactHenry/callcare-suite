@@ -139,49 +139,473 @@ export type Database = {
           },
         ]
       }
+      call_monitoring_sessions: {
+        Row: {
+          call_id: string
+          ended_at: string | null
+          id: string
+          kind: Database["public"]["Enums"]["monitor_kind"]
+          notes: string | null
+          started_at: string
+          supervisor_id: string
+        }
+        Insert: {
+          call_id: string
+          ended_at?: string | null
+          id?: string
+          kind: Database["public"]["Enums"]["monitor_kind"]
+          notes?: string | null
+          started_at?: string
+          supervisor_id: string
+        }
+        Update: {
+          call_id?: string
+          ended_at?: string | null
+          id?: string
+          kind?: Database["public"]["Enums"]["monitor_kind"]
+          notes?: string | null
+          started_at?: string
+          supervisor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "call_monitoring_sessions_call_id_fkey"
+            columns: ["call_id"]
+            isOneToOne: false
+            referencedRelation: "calls"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      call_queue: {
+        Row: {
+          assigned_agent_id: string | null
+          call_id: string | null
+          contact_id: string | null
+          estimated_wait_seconds: number | null
+          from_number: string | null
+          id: string
+          organization_id: string | null
+          picked_at: string | null
+          priority: number
+          queued_at: string
+          status: string
+          team_id: string | null
+          to_number: string | null
+        }
+        Insert: {
+          assigned_agent_id?: string | null
+          call_id?: string | null
+          contact_id?: string | null
+          estimated_wait_seconds?: number | null
+          from_number?: string | null
+          id?: string
+          organization_id?: string | null
+          picked_at?: string | null
+          priority?: number
+          queued_at?: string
+          status?: string
+          team_id?: string | null
+          to_number?: string | null
+        }
+        Update: {
+          assigned_agent_id?: string | null
+          call_id?: string | null
+          contact_id?: string | null
+          estimated_wait_seconds?: number | null
+          from_number?: string | null
+          id?: string
+          organization_id?: string | null
+          picked_at?: string | null
+          priority?: number
+          queued_at?: string
+          status?: string
+          team_id?: string | null
+          to_number?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "call_queue_call_id_fkey"
+            columns: ["call_id"]
+            isOneToOne: false
+            referencedRelation: "calls"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "call_queue_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "call_queue_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "call_queue_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      call_recording_access_log: {
+        Row: {
+          accessed_at: string
+          call_id: string
+          id: number
+          ip: unknown
+          reason: string | null
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          accessed_at?: string
+          call_id: string
+          id?: number
+          ip?: unknown
+          reason?: string | null
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          accessed_at?: string
+          call_id?: string
+          id?: number
+          ip?: unknown
+          reason?: string | null
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "call_recording_access_log_call_id_fkey"
+            columns: ["call_id"]
+            isOneToOne: false
+            referencedRelation: "calls"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      call_review_tags: {
+        Row: {
+          call_id: string
+          created_at: string
+          created_by: string
+          id: string
+          marked_for: string | null
+          note: string | null
+          tag: string
+        }
+        Insert: {
+          call_id: string
+          created_at?: string
+          created_by: string
+          id?: string
+          marked_for?: string | null
+          note?: string | null
+          tag: string
+        }
+        Update: {
+          call_id?: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          marked_for?: string | null
+          note?: string | null
+          tag?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "call_review_tags_call_id_fkey"
+            columns: ["call_id"]
+            isOneToOne: false
+            referencedRelation: "calls"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      call_transfers: {
+        Row: {
+          call_id: string
+          completed_at: string | null
+          created_at: string
+          from_agent_id: string | null
+          id: string
+          kind: Database["public"]["Enums"]["transfer_kind"]
+          reason: string | null
+          to_agent_id: string | null
+          to_team_id: string | null
+        }
+        Insert: {
+          call_id: string
+          completed_at?: string | null
+          created_at?: string
+          from_agent_id?: string | null
+          id?: string
+          kind?: Database["public"]["Enums"]["transfer_kind"]
+          reason?: string | null
+          to_agent_id?: string | null
+          to_team_id?: string | null
+        }
+        Update: {
+          call_id?: string
+          completed_at?: string | null
+          created_at?: string
+          from_agent_id?: string | null
+          id?: string
+          kind?: Database["public"]["Enums"]["transfer_kind"]
+          reason?: string | null
+          to_agent_id?: string | null
+          to_team_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "call_transfers_call_id_fkey"
+            columns: ["call_id"]
+            isOneToOne: false
+            referencedRelation: "calls"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      caller_ids: {
+        Row: {
+          active: boolean
+          created_at: string
+          e164_number: string
+          id: string
+          is_default: boolean
+          label: string
+          organization_id: string | null
+          team_id: string | null
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          e164_number: string
+          id?: string
+          is_default?: boolean
+          label: string
+          organization_id?: string | null
+          team_id?: string | null
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          e164_number?: string
+          id?: string
+          is_default?: boolean
+          label?: string
+          organization_id?: string | null
+          team_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "caller_ids_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "caller_ids_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       calls: {
         Row: {
           agent_id: string
+          answered_at: string | null
           audio_path: string | null
+          caller_id_used: string | null
+          campaign_id: string | null
           contact_id: string | null
           created_at: string
           direction: string
           duration_seconds: number
+          ended_at: string | null
+          failure_reason: string | null
+          follow_up_date: string | null
+          from_number: string | null
           id: string
           notes: string | null
+          organization_id: string | null
           outcome: string
+          provider: string | null
+          provider_call_sid: string | null
+          quality_score: number | null
+          recording_duration_seconds: number | null
+          recording_masked_ranges: Json
+          recording_path: string | null
+          recording_sensitive: boolean
+          retry_count: number
           started_at: string
+          status: Database["public"]["Enums"]["call_status"]
+          supervisor_comments: string | null
+          team_id: string | null
+          to_number: string | null
+          updated_at: string
+          voicemail_detected: boolean
+          voicemail_dropped: boolean
         }
         Insert: {
           agent_id: string
+          answered_at?: string | null
           audio_path?: string | null
+          caller_id_used?: string | null
+          campaign_id?: string | null
           contact_id?: string | null
           created_at?: string
           direction?: string
           duration_seconds?: number
+          ended_at?: string | null
+          failure_reason?: string | null
+          follow_up_date?: string | null
+          from_number?: string | null
           id?: string
           notes?: string | null
+          organization_id?: string | null
           outcome?: string
+          provider?: string | null
+          provider_call_sid?: string | null
+          quality_score?: number | null
+          recording_duration_seconds?: number | null
+          recording_masked_ranges?: Json
+          recording_path?: string | null
+          recording_sensitive?: boolean
+          retry_count?: number
           started_at?: string
+          status?: Database["public"]["Enums"]["call_status"]
+          supervisor_comments?: string | null
+          team_id?: string | null
+          to_number?: string | null
+          updated_at?: string
+          voicemail_detected?: boolean
+          voicemail_dropped?: boolean
         }
         Update: {
           agent_id?: string
+          answered_at?: string | null
           audio_path?: string | null
+          caller_id_used?: string | null
+          campaign_id?: string | null
           contact_id?: string | null
           created_at?: string
           direction?: string
           duration_seconds?: number
+          ended_at?: string | null
+          failure_reason?: string | null
+          follow_up_date?: string | null
+          from_number?: string | null
           id?: string
           notes?: string | null
+          organization_id?: string | null
           outcome?: string
+          provider?: string | null
+          provider_call_sid?: string | null
+          quality_score?: number | null
+          recording_duration_seconds?: number | null
+          recording_masked_ranges?: Json
+          recording_path?: string | null
+          recording_sensitive?: boolean
+          retry_count?: number
           started_at?: string
+          status?: Database["public"]["Enums"]["call_status"]
+          supervisor_comments?: string | null
+          team_id?: string | null
+          to_number?: string | null
+          updated_at?: string
+          voicemail_detected?: boolean
+          voicemail_dropped?: boolean
         }
         Relationships: [
+          {
+            foreignKeyName: "calls_caller_id_used_fkey"
+            columns: ["caller_id_used"]
+            isOneToOne: false
+            referencedRelation: "caller_ids"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "calls_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "calls_contact_id_fkey"
             columns: ["contact_id"]
             isOneToOne: false
             referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "calls_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "calls_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      campaigns: {
+        Row: {
+          active: boolean
+          created_at: string
+          created_by: string | null
+          description: string | null
+          dial_mode: string
+          id: string
+          name: string
+          organization_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          dial_mode?: string
+          id?: string
+          name: string
+          organization_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          dial_mode?: string
+          id?: string
+          name?: string
+          organization_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campaigns_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
@@ -891,6 +1315,63 @@ export type Database = {
           },
         ]
       }
+      telephony_settings: {
+        Row: {
+          default_inbound_team_id: string | null
+          organization_id: string
+          provider: string
+          recording_consent_notice: string | null
+          recording_consent_required: boolean
+          recording_enabled: boolean
+          two_party_consent_regions: string[]
+          updated_at: string
+          updated_by: string | null
+          voicemail_drop_enabled: boolean
+          voicemail_drop_legal_ack: boolean
+        }
+        Insert: {
+          default_inbound_team_id?: string | null
+          organization_id: string
+          provider?: string
+          recording_consent_notice?: string | null
+          recording_consent_required?: boolean
+          recording_enabled?: boolean
+          two_party_consent_regions?: string[]
+          updated_at?: string
+          updated_by?: string | null
+          voicemail_drop_enabled?: boolean
+          voicemail_drop_legal_ack?: boolean
+        }
+        Update: {
+          default_inbound_team_id?: string | null
+          organization_id?: string
+          provider?: string
+          recording_consent_notice?: string | null
+          recording_consent_required?: boolean
+          recording_enabled?: boolean
+          two_party_consent_regions?: string[]
+          updated_at?: string
+          updated_by?: string | null
+          voicemail_drop_enabled?: boolean
+          voicemail_drop_legal_ack?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "telephony_settings_default_inbound_team_id_fkey"
+            columns: ["default_inbound_team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "telephony_settings_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: true
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       two_factor_secrets: {
         Row: {
           backup_codes_hashed: string[]
@@ -1058,6 +1539,19 @@ export type Database = {
         | "supervisor"
         | "ops_admin"
         | "super_admin"
+      call_direction: "inbound" | "outbound"
+      call_status:
+        | "queued"
+        | "ringing"
+        | "in_progress"
+        | "on_hold"
+        | "completed"
+        | "failed"
+        | "no_answer"
+        | "busy"
+        | "voicemail"
+        | "abandoned"
+        | "canceled"
       client_change_state: "pending" | "approved" | "rejected" | "cancelled"
       client_status:
         | "new"
@@ -1075,6 +1569,8 @@ export type Database = {
         | "closed"
       consent_state: "unknown" | "granted" | "revoked"
       contact_method: "phone" | "email" | "sms" | "whatsapp" | "no_contact"
+      monitor_kind: "listen" | "whisper" | "barge" | "takeover"
+      transfer_kind: "warm" | "cold" | "conference"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1218,6 +1714,20 @@ export const Constants = {
         "ops_admin",
         "super_admin",
       ],
+      call_direction: ["inbound", "outbound"],
+      call_status: [
+        "queued",
+        "ringing",
+        "in_progress",
+        "on_hold",
+        "completed",
+        "failed",
+        "no_answer",
+        "busy",
+        "voicemail",
+        "abandoned",
+        "canceled",
+      ],
       client_change_state: ["pending", "approved", "rejected", "cancelled"],
       client_status: [
         "new",
@@ -1236,6 +1746,8 @@ export const Constants = {
       ],
       consent_state: ["unknown", "granted", "revoked"],
       contact_method: ["phone", "email", "sms", "whatsapp", "no_contact"],
+      monitor_kind: ["listen", "whisper", "barge", "takeover"],
+      transfer_kind: ["warm", "cold", "conference"],
     },
   },
 } as const
