@@ -52,7 +52,17 @@ function IntegrationsPage() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["integrations"] }),
   });
 
-  const byProvider = new Map<string, any>(((enabled.data ?? []) as any[]).map((i: any) => [i.provider, i]));
+  const apiRows = (enabled.data ?? []) as any[];
+  const DUMMY_STATE: Record<string, string> = {
+    "Twilio Voice": "connected", "SendGrid": "connected", "Twilio SMS": "connected",
+    "HubSpot": "connected", "Stripe": "error", "Calendly": "disabled",
+    "Zendesk": "connected", "WhatsApp Business": "disabled", "Google Calendar": "connected",
+    "Microsoft Outlook": "disabled", "Power BI": "connected", "Onfido": "disabled",
+    "Amazon S3": "connected",
+  };
+  const seedRows = apiRows.length > 0 ? apiRows
+    : CATALOG.map((c, i) => ({ id: `seed-${i}`, provider: c.provider, category: c.category, status: DUMMY_STATE[c.provider] ?? "disabled" }));
+  const byProvider = new Map<string, any>(seedRows.map((i: any) => [i.provider, i]));
 
   return (
     <>
