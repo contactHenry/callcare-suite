@@ -43,6 +43,7 @@ import { Route as AuthenticatedClientsApprovalsRouteImport } from './routes/_aut
 import { Route as AuthenticatedClientsIdRouteImport } from './routes/_authenticated/clients.$id'
 import { Route as AuthenticatedCallsNewRouteImport } from './routes/_authenticated/calls.new'
 import { Route as AuthenticatedCallsIdRouteImport } from './routes/_authenticated/calls.$id'
+import { Route as AuthenticatedAdminRolesRouteImport } from './routes/_authenticated/admin.roles'
 import { Route as AuthenticatedAdminPermissionsRouteImport } from './routes/_authenticated/admin.permissions'
 
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
@@ -232,6 +233,11 @@ const AuthenticatedCallsIdRoute = AuthenticatedCallsIdRouteImport.update({
   path: '/calls/$id',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedAdminRolesRoute = AuthenticatedAdminRolesRouteImport.update({
+  id: '/admin/roles',
+  path: '/admin/roles',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedAdminPermissionsRoute =
   AuthenticatedAdminPermissionsRouteImport.update({
     id: '/admin/permissions',
@@ -247,6 +253,7 @@ export interface FileRoutesByFullPath {
   '/auth/2fa': typeof Auth2faRoute
   '/auth/forgot': typeof AuthForgotRoute
   '/admin/permissions': typeof AuthenticatedAdminPermissionsRoute
+  '/admin/roles': typeof AuthenticatedAdminRolesRoute
   '/calls/$id': typeof AuthenticatedCallsIdRoute
   '/calls/new': typeof AuthenticatedCallsNewRoute
   '/clients/$id': typeof AuthenticatedClientsIdRoute
@@ -283,6 +290,7 @@ export interface FileRoutesByTo {
   '/auth/2fa': typeof Auth2faRoute
   '/auth/forgot': typeof AuthForgotRoute
   '/admin/permissions': typeof AuthenticatedAdminPermissionsRoute
+  '/admin/roles': typeof AuthenticatedAdminRolesRoute
   '/calls/$id': typeof AuthenticatedCallsIdRoute
   '/calls/new': typeof AuthenticatedCallsNewRoute
   '/clients/$id': typeof AuthenticatedClientsIdRoute
@@ -321,6 +329,7 @@ export interface FileRoutesById {
   '/auth/2fa': typeof Auth2faRoute
   '/auth/forgot': typeof AuthForgotRoute
   '/_authenticated/admin/permissions': typeof AuthenticatedAdminPermissionsRoute
+  '/_authenticated/admin/roles': typeof AuthenticatedAdminRolesRoute
   '/_authenticated/calls/$id': typeof AuthenticatedCallsIdRoute
   '/_authenticated/calls/new': typeof AuthenticatedCallsNewRoute
   '/_authenticated/clients/$id': typeof AuthenticatedClientsIdRoute
@@ -359,6 +368,7 @@ export interface FileRouteTypes {
     | '/auth/2fa'
     | '/auth/forgot'
     | '/admin/permissions'
+    | '/admin/roles'
     | '/calls/$id'
     | '/calls/new'
     | '/clients/$id'
@@ -395,6 +405,7 @@ export interface FileRouteTypes {
     | '/auth/2fa'
     | '/auth/forgot'
     | '/admin/permissions'
+    | '/admin/roles'
     | '/calls/$id'
     | '/calls/new'
     | '/clients/$id'
@@ -432,6 +443,7 @@ export interface FileRouteTypes {
     | '/auth/2fa'
     | '/auth/forgot'
     | '/_authenticated/admin/permissions'
+    | '/_authenticated/admin/roles'
     | '/_authenticated/calls/$id'
     | '/_authenticated/calls/new'
     | '/_authenticated/clients/$id'
@@ -708,6 +720,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCallsIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/admin/roles': {
+      id: '/_authenticated/admin/roles'
+      path: '/admin/roles'
+      fullPath: '/admin/roles'
+      preLoaderRoute: typeof AuthenticatedAdminRolesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/admin/permissions': {
       id: '/_authenticated/admin/permissions'
       path: '/admin/permissions'
@@ -721,6 +740,7 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedAdminPermissionsRoute: typeof AuthenticatedAdminPermissionsRoute
+  AuthenticatedAdminRolesRoute: typeof AuthenticatedAdminRolesRoute
   AuthenticatedCallsIdRoute: typeof AuthenticatedCallsIdRoute
   AuthenticatedCallsNewRoute: typeof AuthenticatedCallsNewRoute
   AuthenticatedClientsIdRoute: typeof AuthenticatedClientsIdRoute
@@ -753,6 +773,7 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedAdminPermissionsRoute: AuthenticatedAdminPermissionsRoute,
+  AuthenticatedAdminRolesRoute: AuthenticatedAdminRolesRoute,
   AuthenticatedCallsIdRoute: AuthenticatedCallsIdRoute,
   AuthenticatedCallsNewRoute: AuthenticatedCallsNewRoute,
   AuthenticatedClientsIdRoute: AuthenticatedClientsIdRoute,
