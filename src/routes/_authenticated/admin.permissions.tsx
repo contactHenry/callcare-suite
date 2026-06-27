@@ -29,9 +29,9 @@ function PermissionsPage() {
   const toggleFn = useServerFn(togglePermission);
   const { data } = useQuery({ queryKey: ["permissions"], queryFn: () => listFn() });
 
-  const rows = data?.rows ?? [];
-  const permissions: string[] = Array.from(new Set(rows.map((r: any) => String(r.permission)))).sort();
-  const grants = new Set<string>(rows.map((r: any) => `${r.role}:${r.permission}`));
+  const rows: any[] = (data?.rows ?? []) as any[];
+  const permissions: string[] = Array.from(new Set(rows.map((r) => String(r.permission)))).sort();
+  const grants = new Set<string>(rows.map((r) => `${r.role}:${r.permission}`));
 
   const mut = useMutation({
     mutationFn: ({ role, permission, granted }: any) =>
