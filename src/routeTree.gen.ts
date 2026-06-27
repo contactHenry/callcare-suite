@@ -18,6 +18,7 @@ import { Route as Auth2faRouteImport } from './routes/auth.2fa'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedStaffIndexRouteImport } from './routes/_authenticated/staff.index'
 import { Route as AuthenticatedContactsIndexRouteImport } from './routes/_authenticated/contacts.index'
+import { Route as AuthenticatedClientsIndexRouteImport } from './routes/_authenticated/clients.index'
 import { Route as AuthenticatedCallsIndexRouteImport } from './routes/_authenticated/calls.index'
 import { Route as AuthenticatedSecurityAuditRouteImport } from './routes/_authenticated/security.audit'
 import { Route as AuthenticatedQaDashboardRouteImport } from './routes/_authenticated/qa.dashboard'
@@ -70,6 +71,12 @@ const AuthenticatedContactsIndexRoute =
   AuthenticatedContactsIndexRouteImport.update({
     id: '/contacts/',
     path: '/contacts/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedClientsIndexRoute =
+  AuthenticatedClientsIndexRouteImport.update({
+    id: '/clients/',
+    path: '/clients/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedCallsIndexRoute = AuthenticatedCallsIndexRouteImport.update({
@@ -131,6 +138,7 @@ export interface FileRoutesByFullPath {
   '/qa/dashboard': typeof AuthenticatedQaDashboardRoute
   '/security/audit': typeof AuthenticatedSecurityAuditRoute
   '/calls/': typeof AuthenticatedCallsIndexRoute
+  '/clients/': typeof AuthenticatedClientsIndexRoute
   '/contacts/': typeof AuthenticatedContactsIndexRoute
   '/staff/': typeof AuthenticatedStaffIndexRoute
 }
@@ -149,6 +157,7 @@ export interface FileRoutesByTo {
   '/qa/dashboard': typeof AuthenticatedQaDashboardRoute
   '/security/audit': typeof AuthenticatedSecurityAuditRoute
   '/calls': typeof AuthenticatedCallsIndexRoute
+  '/clients': typeof AuthenticatedClientsIndexRoute
   '/contacts': typeof AuthenticatedContactsIndexRoute
   '/staff': typeof AuthenticatedStaffIndexRoute
 }
@@ -169,6 +178,7 @@ export interface FileRoutesById {
   '/_authenticated/qa/dashboard': typeof AuthenticatedQaDashboardRoute
   '/_authenticated/security/audit': typeof AuthenticatedSecurityAuditRoute
   '/_authenticated/calls/': typeof AuthenticatedCallsIndexRoute
+  '/_authenticated/clients/': typeof AuthenticatedClientsIndexRoute
   '/_authenticated/contacts/': typeof AuthenticatedContactsIndexRoute
   '/_authenticated/staff/': typeof AuthenticatedStaffIndexRoute
 }
@@ -189,6 +199,7 @@ export interface FileRouteTypes {
     | '/qa/dashboard'
     | '/security/audit'
     | '/calls/'
+    | '/clients/'
     | '/contacts/'
     | '/staff/'
   fileRoutesByTo: FileRoutesByTo
@@ -207,6 +218,7 @@ export interface FileRouteTypes {
     | '/qa/dashboard'
     | '/security/audit'
     | '/calls'
+    | '/clients'
     | '/contacts'
     | '/staff'
   id:
@@ -226,6 +238,7 @@ export interface FileRouteTypes {
     | '/_authenticated/qa/dashboard'
     | '/_authenticated/security/audit'
     | '/_authenticated/calls/'
+    | '/_authenticated/clients/'
     | '/_authenticated/contacts/'
     | '/_authenticated/staff/'
   fileRoutesById: FileRoutesById
@@ -302,6 +315,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedContactsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/clients/': {
+      id: '/_authenticated/clients/'
+      path: '/clients'
+      fullPath: '/clients/'
+      preLoaderRoute: typeof AuthenticatedClientsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/calls/': {
       id: '/_authenticated/calls/'
       path: '/calls'
@@ -371,6 +391,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedQaDashboardRoute: typeof AuthenticatedQaDashboardRoute
   AuthenticatedSecurityAuditRoute: typeof AuthenticatedSecurityAuditRoute
   AuthenticatedCallsIndexRoute: typeof AuthenticatedCallsIndexRoute
+  AuthenticatedClientsIndexRoute: typeof AuthenticatedClientsIndexRoute
   AuthenticatedContactsIndexRoute: typeof AuthenticatedContactsIndexRoute
   AuthenticatedStaffIndexRoute: typeof AuthenticatedStaffIndexRoute
 }
@@ -385,6 +406,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedQaDashboardRoute: AuthenticatedQaDashboardRoute,
   AuthenticatedSecurityAuditRoute: AuthenticatedSecurityAuditRoute,
   AuthenticatedCallsIndexRoute: AuthenticatedCallsIndexRoute,
+  AuthenticatedClientsIndexRoute: AuthenticatedClientsIndexRoute,
   AuthenticatedContactsIndexRoute: AuthenticatedContactsIndexRoute,
   AuthenticatedStaffIndexRoute: AuthenticatedStaffIndexRoute,
 }

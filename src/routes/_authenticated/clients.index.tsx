@@ -188,7 +188,7 @@ function ClientsPage() {
             )}
             {rows.map((c: any) => (
               <CCTr key={c.id}>
-                <CCTd onClick={undefined as any}>
+                <CCTd>
                   <input type="checkbox" checked={selected.has(c.id)} onChange={() => toggle(c.id)}
                     onClick={(e) => e.stopPropagation()} />
                 </CCTd>
