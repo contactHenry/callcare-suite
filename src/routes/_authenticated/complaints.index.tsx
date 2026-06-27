@@ -8,6 +8,7 @@ import {
   CCButton, CCStatusPill, CCFormSection, CCFormGrid, CCField, CCInput,
   CCTextarea, CCSelect, CCTable, CCThead, CCTh, CCTd, CCTr,
 } from "@/components/cc";
+import { DUMMY_COMPLAINTS } from "@/lib/dummy-data";
 
 export const Route = createFileRoute("/_authenticated/complaints/")({
   component: ComplaintsPage,
@@ -52,7 +53,7 @@ function ComplaintsPage() {
               </tr>
             </CCThead>
             <tbody>
-              {((list.data ?? []) as any[]).map((c) => {
+              {(((list.data && list.data.length > 0) ? list.data : DUMMY_COMPLAINTS) as any[]).map((c) => {
                 const statusTone: any = c.status === "resolved" || c.status === "closed"
                   ? "success" : c.status === "escalated" ? "danger"
                   : c.status === "investigating" ? "info" : "warning";
@@ -72,12 +73,6 @@ function ComplaintsPage() {
                   </CCTr>
                 );
               })}
-              {list.data && list.data.length === 0 && (
-                <CCTr>
-                  <CCTd className="text-[color:var(--cc-ink-500)]">No complaints logged.</CCTd>
-                  <CCTd /><CCTd /><CCTd /><CCTd /><CCTd />
-                </CCTr>
-              )}
             </tbody>
           </CCTable>
         </div>
