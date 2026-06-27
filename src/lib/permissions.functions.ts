@@ -29,7 +29,14 @@ export function requirePermission(permission: string) {
     });
 }
 
-/** Record a structured audit entry from a server fn. */
+/**
+ * Record a structured audit entry from a server fn.
+ *
+ * IP/UA capture intentionally lives in dedicated security recorders
+ * below — pulling `@tanstack/react-start/server` here would break the
+ * import-protection boundary because this module is reachable from
+ * client-bundled routes via several `*.functions.ts` consumers.
+ */
 export async function audit(
   supabase: any,
   actor: string,
@@ -38,13 +45,6 @@ export async function audit(
   targetId: string,
   diff: Record<string, unknown> = {},
 ) {
-  const { getRequestHeader, getRequestIP } = await import("@tanstack/react-start/server");
-  const ip = (() => {
-    try { return getRequestIP({ xForwardedFor: true }); } catch { return null; }
-  })();
-  const ua = (() => {
-    try { return getRequestHeader("user-agent") ?? null; } catch { return null; }
-  })();
   await supabase.rpc("record_audit", {
     _actor: actor,
     _org: null,
@@ -52,8 +52,8 @@ export async function audit(
     _target_type: targetType,
     _target_id: targetId,
     _diff: diff,
-    _ip: ip,
-    _ua: ua,
+    _ip: null,
+    _ua: null,
   });
 }
 
