@@ -43,8 +43,9 @@ export const placeOutboundCall = createServerFn({ method: "POST" })
       if (cid?.e164_number) fromNumber = cid.e164_number;
     }
 
-    const { data: settings } = await supabase
-      .from("telephony_settings").select("*").eq("organization_id", orgId).maybeSingle();
+    const { data: settings } = orgId
+      ? await supabase.from("telephony_settings").select("*").eq("organization_id", orgId).maybeSingle()
+      : { data: null as any };
 
     // Create call row first so we have an id to pass to the provider
     const { data: row, error } = await supabase.from("calls").insert({
@@ -178,9 +179,11 @@ export const dropVoicemail = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
     const { data: row } = await supabase.from("calls").select("provider,provider_call_sid,organization_id").eq("id", data.callId).maybeSingle();
-    const { data: settings } = await supabase
-      .from("telephony_settings").select("voicemail_drop_enabled,voicemail_drop_legal_ack")
-      .eq("organization_id", row?.organization_id).maybeSingle();
+    const { data: settings } = row?.organization_id
+      ? await supabase.from("telephony_settings")
+          .select("voicemail_drop_enabled,voicemail_drop_legal_ack")
+          .eq("organization_id", row.organization_id).maybeSingle()
+      : { data: null as any };
     if (!settings?.voicemail_drop_enabled || !settings?.voicemail_drop_legal_ack) {
       throw new Response("Voicemail drop is not enabled for this organization", { status: 403 });
     }
@@ -339,7 +342,8 @@ export const getTelephonySettings = createServerFn({ method: "POST" })
   .handler(async ({ context }) => {
     const { supabase, userId } = context;
     const { data: profile } = await supabase.from("profiles").select("organization_id").eq("id", userId).maybeSingle();
-    const { data } = await supabase.from("telephony_settings").select("*").eq("organization_id", profile?.organization_id).maybeSingle();
+    if (!profile?.organization_id) return null;
+    const { data } = await supabase.from("telephony_settings").select("*").eq("organization_id", profile.organization_id).maybeSingle();
     return data;
   });
 
