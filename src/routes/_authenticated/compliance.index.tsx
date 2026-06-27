@@ -8,6 +8,7 @@ import {
   CCButton, CCStatusPill, CCWidget, CCFormSection, CCFormGrid, CCField,
   CCInput, CCTextarea, CCSelect, CCTable, CCThead, CCTh, CCTd, CCTr,
 } from "@/components/cc";
+import { DUMMY_DATA_REQUESTS } from "@/lib/dummy-data";
 
 export const Route = createFileRoute("/_authenticated/compliance/")({
   component: CompliancePage,
@@ -54,7 +55,7 @@ function CompliancePage() {
               <CCTh>Status</CCTh><CCTh>Date</CCTh><CCTh></CCTh>
             </tr></CCThead>
             <tbody>
-              {((list.data ?? []) as any[]).map((r) => {
+              {(((list.data && list.data.length > 0) ? list.data : DUMMY_DATA_REQUESTS) as any[]).map((r) => {
                 const tone: any = r.status === "completed" ? "success"
                   : r.status === "rejected" ? "danger"
                   : r.status === "approved" ? "info" : "warning";
@@ -79,9 +80,6 @@ function CompliancePage() {
                   </CCTr>
                 );
               })}
-              {list.data && list.data.length === 0 && (
-                <CCTr><CCTd className="text-[color:var(--cc-ink-500)]">No requests.</CCTd><CCTd /><CCTd /><CCTd /><CCTd /><CCTd /></CCTr>
-              )}
             </tbody>
           </CCTable>
         </CCWidget>
