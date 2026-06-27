@@ -3,10 +3,9 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { PageHeader } from "@/components/AppShell";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Phone, Users, ClipboardCheck, Star } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { DUMMY_DASHBOARD, DUMMY_CALLS } from "@/lib/dummy-data";
+import { CCStat, CCCard, CCCardHeader, CCStatusPill, CCPresence } from "@/components/cc";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   component: Dashboard,
@@ -71,15 +70,10 @@ function Dashboard() {
   const view = isEmpty ? DUMMY_DASHBOARD : stats!;
 
   const tiles = [
-    { label: "Calls today", value: view.callsToday, icon: Phone, to: "/calls" },
-    { label: "Contacts", value: view.contacts, icon: Users, to: "/contacts" },
-    {
-      label: "Avg QA score",
-      value: view.avgScore != null ? `${view.avgScore}%` : "—",
-      icon: Star,
-      to: "/qa/dashboard",
-    },
-    { label: "Awaiting QA", value: view.pendingQa, icon: ClipboardCheck, to: "/calls" },
+    { label: "Calls today", value: String(view.callsToday), to: "/calls" },
+    { label: "Contacts", value: String(view.contacts), to: "/contacts" },
+    { label: "Avg QA score", value: view.avgScore != null ? `${view.avgScore}%` : "—", to: "/qa/dashboard" },
+    { label: "Awaiting QA", value: String(view.pendingQa), to: "/calls" },
   ];
 
   const recentCalls = DUMMY_CALLS.slice(0, 5);
@@ -88,54 +82,64 @@ function Dashboard() {
     <>
       <PageHeader title="Dashboard" description="Your activity at a glance." />
       <div className="p-6 space-y-6">
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {tiles.map((t) => {
-            const Icon = t.icon;
-            return (
-              <Link key={t.label} to={t.to}>
-                <Card className="hover:bg-accent/30 transition-colors">
-                  <CardHeader className="flex flex-row items-center justify-between pb-2">
-                    <CardTitle className="text-sm font-medium text-muted-foreground">{t.label}</CardTitle>
-                    <Icon className="size-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-3xl font-semibold tracking-tight">{t.value}</div>
-                  </CardContent>
-                </Card>
-              </Link>
-            );
-          })}
+        <div className="flex items-center gap-4">
+          <CCPresence status="available" />
+          <span className="text-xs text-[color:var(--cc-ink-500)]">
+            Design system: <span className="font-medium text-[color:var(--cc-ink-700)]">cc/* (proof-of-concept)</span>
+          </span>
         </div>
-        <Card className="rounded-none border-0 shadow-none bg-transparent">
-          <CardHeader className="px-0">
-            <CardTitle>{isEmpty ? "Recent calls (sample)" : "Get started"}</CardTitle>
-          </CardHeader>
-          <CardContent className="text-sm space-y-2 px-0">
-            {isEmpty ? (
-              <ul className="divide-y">
-                {recentCalls.map((c) => (
-                  <li key={c.id} className="py-2 flex items-center justify-between">
-                    <div>
-                      <div className="font-medium text-foreground">{c.contacts.name}</div>
-                      <div className="text-xs text-muted-foreground">
-                        {c.agent_name} · {c.direction} · {c.outcome}
-                      </div>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {tiles.map((t) => (
+            <Link key={t.label} to={t.to} className="block">
+              <CCStat label={t.label} value={t.value} />
+            </Link>
+          ))}
+        </div>
+        <CCCard>
+          <CCCardHeader
+            title={isEmpty ? "Recent calls (sample)" : "Get started"}
+            hint={isEmpty ? "Sample data" : undefined}
+          />
+          {isEmpty ? (
+            <ul className="divide-y divide-[color:var(--cc-ink-200)]">
+              {recentCalls.map((c) => (
+                <li key={c.id} className="py-3 flex items-center justify-between gap-4">
+                  <div className="min-w-0">
+                    <div className="font-medium text-[color:var(--cc-ink-900)] truncate">
+                      {c.contacts.name}
                     </div>
-                    <div className="text-xs text-muted-foreground">
+                    <div className="text-xs text-[color:var(--cc-ink-500)] truncate">
+                      {c.agent_name} · {c.direction}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 shrink-0">
+                    <CCStatusPill
+                      tone={
+                        c.outcome === "resolved"
+                          ? "success"
+                          : c.outcome === "escalated" || c.outcome === "no_answer"
+                            ? "danger"
+                            : "warning"
+                      }
+                      dot
+                    >
+                      {c.outcome.replace("_", " ")}
+                    </CCStatusPill>
+                    <span className="text-xs text-[color:var(--cc-ink-500)] whitespace-nowrap">
                       {new Date(c.started_at).toLocaleString()}
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <div className="text-muted-foreground space-y-2">
-                <p>1. Add a contact in the <Link to="/contacts" className="underline">CRM</Link>.</p>
-                <p>2. Log a call against that contact from <Link to="/calls/new" className="underline">New call</Link> — optionally attach a recording.</p>
-                <p>3. {isManager ? "Open any call to score it against the scorecard." : "Wait for a manager to review and score your calls."}</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                    </span>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <div className="text-sm text-[color:var(--cc-ink-700)] space-y-2">
+              <p>1. Add a contact in the <Link to="/contacts" className="underline">CRM</Link>.</p>
+              <p>2. Log a call from <Link to="/calls/new" className="underline">New call</Link> — optionally attach a recording.</p>
+              <p>3. {isManager ? "Open any call to score it." : "Wait for a manager to review your calls."}</p>
+            </div>
+          )}
+        </CCCard>
       </div>
     </>
   );
