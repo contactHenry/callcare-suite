@@ -4,7 +4,6 @@
  * sensitive actions later (role changes, suspensions, etc.).
  */
 import { createMiddleware, createServerFn } from "@tanstack/react-start";
-import { getRequestHeader, getRequestIP } from "@tanstack/react-start/server";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
@@ -39,6 +38,7 @@ export async function audit(
   targetId: string,
   diff: Record<string, unknown> = {},
 ) {
+  const { getRequestHeader, getRequestIP } = await import("@tanstack/react-start/server");
   const ip = (() => {
     try { return getRequestIP({ xForwardedFor: true }); } catch { return null; }
   })();
@@ -69,6 +69,7 @@ export const recordLoginEvent = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { userId } = context as { userId: string };
+    const { getRequestHeader, getRequestIP } = await import("@tanstack/react-start/server");
     let ip: string | undefined;
     let ua: string | undefined;
     try { ip = getRequestIP({ xForwardedFor: true }) ?? undefined; } catch {}
@@ -90,6 +91,7 @@ export const recordFailedLogin = createServerFn({ method: "POST" })
     z.object({ email: z.string().email().max(255).toLowerCase() }).parse(data),
   )
   .handler(async ({ data }) => {
+    const { getRequestIP } = await import("@tanstack/react-start/server");
     let ip: string | undefined;
     try { ip = getRequestIP({ xForwardedFor: true }) ?? undefined; } catch {}
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
