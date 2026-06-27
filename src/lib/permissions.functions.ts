@@ -32,12 +32,10 @@ export function requirePermission(permission: string) {
 /**
  * Record a structured audit entry from a server fn.
  *
- * The real implementation lives in `./audit.server` because it imports
- * `@tanstack/react-start/server`, which the import-protection plugin
- * blocks from any client-reachable module. This wrapper dynamic-imports
- * the server-only module — safe because callers only invoke `audit`
- * inside `createServerFn().handler(...)` bodies, which never ship to
- * the client.
+ * IP/UA capture intentionally lives in dedicated security recorders
+ * below — pulling `@tanstack/react-start/server` here would break the
+ * import-protection boundary because this module is reachable from
+ * client-bundled routes via several `*.functions.ts` consumers.
  */
 export async function audit(
   supabase: any,
@@ -47,8 +45,16 @@ export async function audit(
   targetId: string,
   diff: Record<string, unknown> = {},
 ) {
-  const { audit: _audit } = await import("./audit.server");
-  return _audit(supabase, actor, action, targetType, targetId, diff);
+  await supabase.rpc("record_audit", {
+    _actor: actor,
+    _org: null,
+    _action: action,
+    _target_type: targetType,
+    _target_id: targetId,
+    _diff: diff,
+    _ip: null,
+    _ua: null,
+  });
 }
 
 /* ------------------------------------------------------------------ */
