@@ -76,6 +76,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         { to: "/staff", label: "Staff", icon: UserRoundCog, show: atLeast("ops_admin") },
         { to: "/telephony/settings", label: "Telephony", icon: Settings2, show: atLeast("ops_admin") },
         { to: "/security/audit", label: "Audit log", icon: ScrollText, show: atLeast("ops_admin") },
+        { to: "/admin/roles", label: "Roles & access", icon: KeyRound, show: atLeast("ops_admin") },
         { to: "/admin/permissions", label: "Permissions", icon: ShieldCheck, show: atLeast("super_admin") },
       ],
     },
