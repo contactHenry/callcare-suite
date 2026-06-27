@@ -27,6 +27,7 @@ import { Route as AuthenticatedCallsIndexRouteImport } from './routes/_authentic
 import { Route as AuthenticatedTelephonySettingsRouteImport } from './routes/_authenticated/telephony.settings'
 import { Route as AuthenticatedSecurityAuditRouteImport } from './routes/_authenticated/security.audit'
 import { Route as AuthenticatedQaScorecardsRouteImport } from './routes/_authenticated/qa.scorecards'
+import { Route as AuthenticatedQaReviewsRouteImport } from './routes/_authenticated/qa.reviews'
 import { Route as AuthenticatedQaDashboardRouteImport } from './routes/_authenticated/qa.dashboard'
 import { Route as AuthenticatedQaCriteriaRouteImport } from './routes/_authenticated/qa.criteria'
 import { Route as AuthenticatedContactsIdRouteImport } from './routes/_authenticated/contacts.$id'
@@ -134,6 +135,11 @@ const AuthenticatedQaScorecardsRoute =
     path: '/qa/scorecards',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedQaReviewsRoute = AuthenticatedQaReviewsRouteImport.update({
+  id: '/qa/reviews',
+  path: '/qa/reviews',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedQaDashboardRoute =
   AuthenticatedQaDashboardRouteImport.update({
     id: '/qa/dashboard',
@@ -200,6 +206,7 @@ export interface FileRoutesByFullPath {
   '/contacts/$id': typeof AuthenticatedContactsIdRoute
   '/qa/criteria': typeof AuthenticatedQaCriteriaRoute
   '/qa/dashboard': typeof AuthenticatedQaDashboardRoute
+  '/qa/reviews': typeof AuthenticatedQaReviewsRoute
   '/qa/scorecards': typeof AuthenticatedQaScorecardsRoute
   '/security/audit': typeof AuthenticatedSecurityAuditRoute
   '/telephony/settings': typeof AuthenticatedTelephonySettingsRoute
@@ -228,6 +235,7 @@ export interface FileRoutesByTo {
   '/contacts/$id': typeof AuthenticatedContactsIdRoute
   '/qa/criteria': typeof AuthenticatedQaCriteriaRoute
   '/qa/dashboard': typeof AuthenticatedQaDashboardRoute
+  '/qa/reviews': typeof AuthenticatedQaReviewsRoute
   '/qa/scorecards': typeof AuthenticatedQaScorecardsRoute
   '/security/audit': typeof AuthenticatedSecurityAuditRoute
   '/telephony/settings': typeof AuthenticatedTelephonySettingsRoute
@@ -258,6 +266,7 @@ export interface FileRoutesById {
   '/_authenticated/contacts/$id': typeof AuthenticatedContactsIdRoute
   '/_authenticated/qa/criteria': typeof AuthenticatedQaCriteriaRoute
   '/_authenticated/qa/dashboard': typeof AuthenticatedQaDashboardRoute
+  '/_authenticated/qa/reviews': typeof AuthenticatedQaReviewsRoute
   '/_authenticated/qa/scorecards': typeof AuthenticatedQaScorecardsRoute
   '/_authenticated/security/audit': typeof AuthenticatedSecurityAuditRoute
   '/_authenticated/telephony/settings': typeof AuthenticatedTelephonySettingsRoute
@@ -288,6 +297,7 @@ export interface FileRouteTypes {
     | '/contacts/$id'
     | '/qa/criteria'
     | '/qa/dashboard'
+    | '/qa/reviews'
     | '/qa/scorecards'
     | '/security/audit'
     | '/telephony/settings'
@@ -316,6 +326,7 @@ export interface FileRouteTypes {
     | '/contacts/$id'
     | '/qa/criteria'
     | '/qa/dashboard'
+    | '/qa/reviews'
     | '/qa/scorecards'
     | '/security/audit'
     | '/telephony/settings'
@@ -345,6 +356,7 @@ export interface FileRouteTypes {
     | '/_authenticated/contacts/$id'
     | '/_authenticated/qa/criteria'
     | '/_authenticated/qa/dashboard'
+    | '/_authenticated/qa/reviews'
     | '/_authenticated/qa/scorecards'
     | '/_authenticated/security/audit'
     | '/_authenticated/telephony/settings'
@@ -493,6 +505,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedQaScorecardsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/qa/reviews': {
+      id: '/_authenticated/qa/reviews'
+      path: '/qa/reviews'
+      fullPath: '/qa/reviews'
+      preLoaderRoute: typeof AuthenticatedQaReviewsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/qa/dashboard': {
       id: '/_authenticated/qa/dashboard'
       path: '/qa/dashboard'
@@ -570,6 +589,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedContactsIdRoute: typeof AuthenticatedContactsIdRoute
   AuthenticatedQaCriteriaRoute: typeof AuthenticatedQaCriteriaRoute
   AuthenticatedQaDashboardRoute: typeof AuthenticatedQaDashboardRoute
+  AuthenticatedQaReviewsRoute: typeof AuthenticatedQaReviewsRoute
   AuthenticatedQaScorecardsRoute: typeof AuthenticatedQaScorecardsRoute
   AuthenticatedSecurityAuditRoute: typeof AuthenticatedSecurityAuditRoute
   AuthenticatedTelephonySettingsRoute: typeof AuthenticatedTelephonySettingsRoute
@@ -594,6 +614,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedContactsIdRoute: AuthenticatedContactsIdRoute,
   AuthenticatedQaCriteriaRoute: AuthenticatedQaCriteriaRoute,
   AuthenticatedQaDashboardRoute: AuthenticatedQaDashboardRoute,
+  AuthenticatedQaReviewsRoute: AuthenticatedQaReviewsRoute,
   AuthenticatedQaScorecardsRoute: AuthenticatedQaScorecardsRoute,
   AuthenticatedSecurityAuditRoute: AuthenticatedSecurityAuditRoute,
   AuthenticatedTelephonySettingsRoute: AuthenticatedTelephonySettingsRoute,
