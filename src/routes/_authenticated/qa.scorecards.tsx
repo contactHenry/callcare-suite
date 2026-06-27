@@ -7,6 +7,7 @@ import {
   CCButton, CCFormSection, CCFormGrid, CCField, CCInput, CCSelect, CCTextarea, CCCheckbox, CCStatusPill,
 } from "@/components/cc";
 import { Plus, Trash2 } from "lucide-react";
+import { DUMMY_SCORECARDS } from "@/lib/dummy-data";
 
 export const Route = createFileRoute("/_authenticated/qa/scorecards")({
   component: ScorecardsPage,
@@ -18,6 +19,7 @@ type Section = { name: string; items: Item[] };
 function ScorecardsPage() {
   const qc = useQueryClient();
   const list = useQuery({ queryKey: ["scorecards"], queryFn: () => listScorecards() });
+  const cards: any[] = (list.data && list.data.length > 0) ? list.data : DUMMY_SCORECARDS;
   const [editing, setEditing] = useState<any | null>(null);
 
   return (
@@ -28,7 +30,7 @@ function ScorecardsPage() {
         actions={<CCButton onClick={() => setEditing({ name: "", passThreshold: 80, sections: [] })}>New scorecard</CCButton>}
       />
       <div className="p-6 grid gap-4 lg:grid-cols-2">
-        {(list.data ?? []).map((s: any) => {
+        {cards.map((s: any) => {
           const totalWeight = (s.sections ?? []).reduce((a: number, sec: any) => a + sec.items.reduce((b: number, it: any) => b + Number(it.weight), 0), 0);
           return (
             <article key={s.id} className="cc-surface rounded-[var(--cc-radius-lg)] shadow-[var(--cc-shadow-sm)] p-5 space-y-3">
@@ -58,9 +60,6 @@ function ScorecardsPage() {
             </article>
           );
         })}
-        {list.data && list.data.length === 0 && (
-          <p className="text-sm text-[color:var(--cc-ink-500)]">No scorecards yet — create the first one.</p>
-        )}
       </div>
 
       {editing && <ScorecardEditor draft={editing} onClose={() => { setEditing(null); qc.invalidateQueries({ queryKey: ["scorecards"] }); }} />}
