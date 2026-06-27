@@ -18,6 +18,7 @@ import { Route as Auth2faRouteImport } from './routes/auth.2fa'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedStaffIndexRouteImport } from './routes/_authenticated/staff.index'
 import { Route as AuthenticatedRecordingsIndexRouteImport } from './routes/_authenticated/recordings.index'
+import { Route as AuthenticatedMonitoringIndexRouteImport } from './routes/_authenticated/monitoring.index'
 import { Route as AuthenticatedContactsIndexRouteImport } from './routes/_authenticated/contacts.index'
 import { Route as AuthenticatedClientsIndexRouteImport } from './routes/_authenticated/clients.index'
 import { Route as AuthenticatedCallsIndexRouteImport } from './routes/_authenticated/calls.index'
@@ -75,6 +76,12 @@ const AuthenticatedRecordingsIndexRoute =
   AuthenticatedRecordingsIndexRouteImport.update({
     id: '/recordings/',
     path: '/recordings/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedMonitoringIndexRoute =
+  AuthenticatedMonitoringIndexRouteImport.update({
+    id: '/monitoring/',
+    path: '/monitoring/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedContactsIndexRoute =
@@ -170,6 +177,7 @@ export interface FileRoutesByFullPath {
   '/calls/': typeof AuthenticatedCallsIndexRoute
   '/clients/': typeof AuthenticatedClientsIndexRoute
   '/contacts/': typeof AuthenticatedContactsIndexRoute
+  '/monitoring/': typeof AuthenticatedMonitoringIndexRoute
   '/recordings/': typeof AuthenticatedRecordingsIndexRoute
   '/staff/': typeof AuthenticatedStaffIndexRoute
 }
@@ -193,6 +201,7 @@ export interface FileRoutesByTo {
   '/calls': typeof AuthenticatedCallsIndexRoute
   '/clients': typeof AuthenticatedClientsIndexRoute
   '/contacts': typeof AuthenticatedContactsIndexRoute
+  '/monitoring': typeof AuthenticatedMonitoringIndexRoute
   '/recordings': typeof AuthenticatedRecordingsIndexRoute
   '/staff': typeof AuthenticatedStaffIndexRoute
 }
@@ -218,6 +227,7 @@ export interface FileRoutesById {
   '/_authenticated/calls/': typeof AuthenticatedCallsIndexRoute
   '/_authenticated/clients/': typeof AuthenticatedClientsIndexRoute
   '/_authenticated/contacts/': typeof AuthenticatedContactsIndexRoute
+  '/_authenticated/monitoring/': typeof AuthenticatedMonitoringIndexRoute
   '/_authenticated/recordings/': typeof AuthenticatedRecordingsIndexRoute
   '/_authenticated/staff/': typeof AuthenticatedStaffIndexRoute
 }
@@ -243,6 +253,7 @@ export interface FileRouteTypes {
     | '/calls/'
     | '/clients/'
     | '/contacts/'
+    | '/monitoring/'
     | '/recordings/'
     | '/staff/'
   fileRoutesByTo: FileRoutesByTo
@@ -266,6 +277,7 @@ export interface FileRouteTypes {
     | '/calls'
     | '/clients'
     | '/contacts'
+    | '/monitoring'
     | '/recordings'
     | '/staff'
   id:
@@ -290,6 +302,7 @@ export interface FileRouteTypes {
     | '/_authenticated/calls/'
     | '/_authenticated/clients/'
     | '/_authenticated/contacts/'
+    | '/_authenticated/monitoring/'
     | '/_authenticated/recordings/'
     | '/_authenticated/staff/'
   fileRoutesById: FileRoutesById
@@ -364,6 +377,13 @@ declare module '@tanstack/react-router' {
       path: '/recordings'
       fullPath: '/recordings/'
       preLoaderRoute: typeof AuthenticatedRecordingsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/monitoring/': {
+      id: '/_authenticated/monitoring/'
+      path: '/monitoring'
+      fullPath: '/monitoring/'
+      preLoaderRoute: typeof AuthenticatedMonitoringIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/contacts/': {
@@ -475,6 +495,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedCallsIndexRoute: typeof AuthenticatedCallsIndexRoute
   AuthenticatedClientsIndexRoute: typeof AuthenticatedClientsIndexRoute
   AuthenticatedContactsIndexRoute: typeof AuthenticatedContactsIndexRoute
+  AuthenticatedMonitoringIndexRoute: typeof AuthenticatedMonitoringIndexRoute
   AuthenticatedRecordingsIndexRoute: typeof AuthenticatedRecordingsIndexRoute
   AuthenticatedStaffIndexRoute: typeof AuthenticatedStaffIndexRoute
 }
@@ -494,6 +515,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCallsIndexRoute: AuthenticatedCallsIndexRoute,
   AuthenticatedClientsIndexRoute: AuthenticatedClientsIndexRoute,
   AuthenticatedContactsIndexRoute: AuthenticatedContactsIndexRoute,
+  AuthenticatedMonitoringIndexRoute: AuthenticatedMonitoringIndexRoute,
   AuthenticatedRecordingsIndexRoute: AuthenticatedRecordingsIndexRoute,
   AuthenticatedStaffIndexRoute: AuthenticatedStaffIndexRoute,
 }
