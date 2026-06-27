@@ -108,7 +108,7 @@ function TeamLeaderDashboard() {
     queryKey: ["live-calls"],
     queryFn: async () => {
       const { data } = await supabase.from("calls").select("id, agent_id, contact_id, status, started_at")
-        .in("status", ["ringing", "active", "on_hold"]).limit(50);
+        .in("status", ["ringing", "in_progress", "on_hold"]).limit(50);
       return data ?? [];
     },
     refetchInterval: 5000,
