@@ -9,7 +9,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { requirePermission, audit } from "./permissions.functions";
-import { getTelephonyProvider } from "./telephony/provider";
+import { getTelephonyProvider, listKnownProviders } from "./telephony";
 
 const E164 = z.string().regex(/^\+?[1-9]\d{6,14}$/, "Invalid E.164 number");
 
@@ -450,4 +450,39 @@ export const listCampaigns = createServerFn({ method: "POST" })
   .handler(async ({ context }) => {
     const { data } = await context.supabase.from("campaigns").select("*").eq("active", true).order("name");
     return data ?? [];
+  });
+
+/* ====================== TELEPHONY PROVIDER INTROSPECTION ====================== */
+
+/**
+ * Returns the list of known providers, their capability flags, and whether
+ * each one is configured in the current server runtime. Used by the
+ * Telephony settings page to greyout unsupported features.
+ */
+export const listTelephonyProviders = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async () => {
+    return listKnownProviders().map((name) => {
+      const p = getTelephonyProvider(name);
+      return {
+        name: p.name,
+        capabilities: p.capabilities,
+        configured: p.isConfigured(),
+      };
+    });
+  });
+
+/**
+ * Non-destructive credential check for a given provider — no real call
+ * placed. Permission-gated so only telephony admins can probe.
+ */
+export const testTelephonyProvider = createServerFn({ method: "POST" })
+  .middleware([requirePermission("calls:manage_telephony")])
+  .inputValidator((d: { provider?: string }) =>
+    z.object({ provider: z.string().max(40).optional() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const provider = getTelephonyProvider(data.provider);
+    const health = await provider.healthCheck();
+    await audit(context.supabase, context.userId, "telephony.health_check", "provider", provider.name, { ...health });
+    return health;
   });

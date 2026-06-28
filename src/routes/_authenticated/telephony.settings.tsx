@@ -6,8 +6,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { AlertTriangle } from "lucide-react";
-import { getTelephonySettings, saveTelephonySettings } from "@/lib/calls.functions";
+import { AlertTriangle, CheckCircle2, CircleAlert, Loader2, Webhook } from "lucide-react";
+import {
+  getTelephonySettings, saveTelephonySettings,
+  listTelephonyProviders, testTelephonyProvider,
+} from "@/lib/calls.functions";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/telephony/settings")({
@@ -17,6 +20,9 @@ export const Route = createFileRoute("/_authenticated/telephony/settings")({
 function TelephonySettings() {
   const [form, setForm] = useState<any>(null);
   const [saving, setSaving] = useState(false);
+  const [providers, setProviders] = useState<Awaited<ReturnType<typeof listTelephonyProviders>>>([]);
+  const [testing, setTesting] = useState(false);
+  const [health, setHealth] = useState<Awaited<ReturnType<typeof testTelephonyProvider>> | null>(null);
 
   useEffect(() => { (async () => {
     const DEFAULTS = {
@@ -32,6 +38,7 @@ function TelephonySettings() {
       const r = await getTelephonySettings();
       setForm(r ?? DEFAULTS);
     } catch { setForm(DEFAULTS); }
+    try { setProviders(await listTelephonyProviders()); } catch {}
   })(); }, []);
 
   if (!form) return <div className="p-6 text-sm text-muted-foreground">Loading…</div>;
@@ -55,6 +62,22 @@ function TelephonySettings() {
     finally { setSaving(false); }
   }
 
+  async function runHealthCheck() {
+    setTesting(true); setHealth(null);
+    try {
+      const result = await testTelephonyProvider({ data: { provider: form.provider } });
+      setHealth(result);
+      result.ok ? toast.success(result.message) : toast.error(result.message);
+    } catch (e: any) {
+      toast.error(e?.message ?? "Test failed");
+    } finally { setTesting(false); }
+  }
+
+  const currentProvider = providers.find((p) => p.name === form.provider);
+  const webhookUrl = typeof window !== "undefined"
+    ? `${window.location.origin}/api/public/webhooks/telephony/${form.provider}`
+    : `/api/public/webhooks/telephony/${form.provider}`;
+
   return (
     <div>
       <PageHeader title="Telephony settings" description="Provider, recording policy, and per-jurisdiction compliance configuration." />
@@ -73,6 +96,42 @@ function TelephonySettings() {
             </select>
             <p className="text-xs text-muted-foreground mt-1">
               Provider integration is abstracted — business logic never depends on the choice here.
+            </p>
+          </Field>
+
+          {currentProvider && (
+            <div className="rounded-md border bg-muted/30 p-3 text-xs space-y-2">
+              <div className="flex flex-wrap gap-x-3 gap-y-1">
+                {Object.entries(currentProvider.capabilities).map(([k, v]) => (
+                  <span key={k} className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 ${v ? "bg-emerald-50 text-emerald-700" : "bg-muted text-muted-foreground"}`}>
+                    {v ? <CheckCircle2 className="size-3" /> : <CircleAlert className="size-3" />} {k.replace(/([A-Z])/g, " $1").toLowerCase()}
+                  </span>
+                ))}
+              </div>
+              <div className="flex items-center justify-between gap-3">
+                <span className={currentProvider.configured ? "text-emerald-700" : "text-amber-700"}>
+                  {currentProvider.configured ? "Credentials present in runtime." : "Credentials NOT detected — set provider env vars in Project Secrets."}
+                </span>
+                <Button size="sm" variant="outline" onClick={runHealthCheck} disabled={testing}>
+                  {testing ? <Loader2 className="size-3.5 mr-1 animate-spin" /> : null}
+                  Test connection
+                </Button>
+              </div>
+              {health && (
+                <div className={`flex items-start gap-2 rounded border px-2 py-1.5 ${health.ok ? "border-emerald-200 bg-emerald-50 text-emerald-800" : "border-amber-200 bg-amber-50 text-amber-900"}`}>
+                  {health.ok ? <CheckCircle2 className="size-3.5 mt-0.5" /> : <AlertTriangle className="size-3.5 mt-0.5" />}
+                  <span>{health.message}</span>
+                </div>
+              )}
+            </div>
+          )}
+
+          <Field label="Webhook URL (paste into provider's console)">
+            <div className="flex items-center gap-2">
+              <Input readOnly value={webhookUrl} className="font-mono text-xs" />
+            </div>
+            <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+              <Webhook className="size-3" /> Provider POSTs call-status and recording-ready events here. Signature is verified per provider.
             </p>
           </Field>
         </Section>

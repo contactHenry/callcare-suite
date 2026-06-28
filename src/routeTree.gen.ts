@@ -46,6 +46,7 @@ import { Route as AuthenticatedCallsNewRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedCallsIdRouteImport } from './routes/_authenticated/calls.$id'
 import { Route as AuthenticatedAdminRolesRouteImport } from './routes/_authenticated/admin.roles'
 import { Route as AuthenticatedAdminPermissionsRouteImport } from './routes/_authenticated/admin.permissions'
+import { Route as ApiPublicWebhooksTelephonyProviderRouteImport } from './routes/api/public/webhooks/telephony.$provider'
 
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
@@ -251,6 +252,12 @@ const AuthenticatedAdminPermissionsRoute =
     path: '/admin/permissions',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const ApiPublicWebhooksTelephonyProviderRoute =
+  ApiPublicWebhooksTelephonyProviderRouteImport.update({
+    id: '/api/public/webhooks/telephony/$provider',
+    path: '/api/public/webhooks/telephony/$provider',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -289,6 +296,7 @@ export interface FileRoutesByFullPath {
   '/scripts/': typeof AuthenticatedScriptsIndexRoute
   '/staff/': typeof AuthenticatedStaffIndexRoute
   '/tasks/': typeof AuthenticatedTasksIndexRoute
+  '/api/public/webhooks/telephony/$provider': typeof ApiPublicWebhooksTelephonyProviderRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -327,6 +335,7 @@ export interface FileRoutesByTo {
   '/scripts': typeof AuthenticatedScriptsIndexRoute
   '/staff': typeof AuthenticatedStaffIndexRoute
   '/tasks': typeof AuthenticatedTasksIndexRoute
+  '/api/public/webhooks/telephony/$provider': typeof ApiPublicWebhooksTelephonyProviderRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -367,6 +376,7 @@ export interface FileRoutesById {
   '/_authenticated/scripts/': typeof AuthenticatedScriptsIndexRoute
   '/_authenticated/staff/': typeof AuthenticatedStaffIndexRoute
   '/_authenticated/tasks/': typeof AuthenticatedTasksIndexRoute
+  '/api/public/webhooks/telephony/$provider': typeof ApiPublicWebhooksTelephonyProviderRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -407,6 +417,7 @@ export interface FileRouteTypes {
     | '/scripts/'
     | '/staff/'
     | '/tasks/'
+    | '/api/public/webhooks/telephony/$provider'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -445,6 +456,7 @@ export interface FileRouteTypes {
     | '/scripts'
     | '/staff'
     | '/tasks'
+    | '/api/public/webhooks/telephony/$provider'
   id:
     | '__root__'
     | '/'
@@ -484,6 +496,7 @@ export interface FileRouteTypes {
     | '/_authenticated/scripts/'
     | '/_authenticated/staff/'
     | '/_authenticated/tasks/'
+    | '/api/public/webhooks/telephony/$provider'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -491,6 +504,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRouteWithChildren
   ResetPasswordRoute: typeof ResetPasswordRoute
+  ApiPublicWebhooksTelephonyProviderRoute: typeof ApiPublicWebhooksTelephonyProviderRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -754,6 +768,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminPermissionsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/public/webhooks/telephony/$provider': {
+      id: '/api/public/webhooks/telephony/$provider'
+      path: '/api/public/webhooks/telephony/$provider'
+      fullPath: '/api/public/webhooks/telephony/$provider'
+      preLoaderRoute: typeof ApiPublicWebhooksTelephonyProviderRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -845,6 +866,8 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRouteWithChildren,
   ResetPasswordRoute: ResetPasswordRoute,
+  ApiPublicWebhooksTelephonyProviderRoute:
+    ApiPublicWebhooksTelephonyProviderRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

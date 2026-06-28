@@ -1,5 +1,6 @@
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import { useAuth } from "@/lib/auth";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
   Sparkles, UsersRound, PhoneCall, ClipboardCheck, LayoutDashboard, LogOut,
@@ -176,7 +177,17 @@ function NotificationsBell() {
       .channel(`notifications:${user.id}`)
       .on("postgres_changes",
         { event: "*", schema: "public", table: "notifications", filter: `user_id=eq.${user.id}` },
-        load,
+        (payload: any) => {
+          load();
+          // Surface only fresh inserts as a toast — updates (e.g. mark-read) shouldn't notify again.
+          if (payload?.eventType === "INSERT") {
+            const n = payload.new ?? {};
+            toast(n.title ?? "New notification", {
+              description: n.body ?? undefined,
+              action: n.link ? { label: "Open", onClick: () => { window.location.href = n.link; } } : undefined,
+            });
+          }
+        },
       ).subscribe();
     return () => { cancelled = true; supabase.removeChannel(channel); };
   }, [user?.id]);
