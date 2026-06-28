@@ -32,6 +32,7 @@ import { Route as AuthenticatedCallsIndexRouteImport } from './routes/_authentic
 import { Route as AuthenticatedAttendanceIndexRouteImport } from './routes/_authenticated/attendance.index'
 import { Route as AuthenticatedAnnouncementsIndexRouteImport } from './routes/_authenticated/announcements.index'
 import { Route as AuthenticatedTelephonySettingsRouteImport } from './routes/_authenticated/telephony.settings'
+import { Route as AuthenticatedSecurityMfaRouteImport } from './routes/_authenticated/security.mfa'
 import { Route as AuthenticatedSecurityAuditRouteImport } from './routes/_authenticated/security.audit'
 import { Route as AuthenticatedQaScorecardsRouteImport } from './routes/_authenticated/qa.scorecards'
 import { Route as AuthenticatedQaReviewsRouteImport } from './routes/_authenticated/qa.reviews'
@@ -173,6 +174,12 @@ const AuthenticatedTelephonySettingsRoute =
     path: '/telephony/settings',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedSecurityMfaRoute =
+  AuthenticatedSecurityMfaRouteImport.update({
+    id: '/security/mfa',
+    path: '/security/mfa',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedSecurityAuditRoute =
   AuthenticatedSecurityAuditRouteImport.update({
     id: '/security/audit',
@@ -265,6 +272,7 @@ export interface FileRoutesByFullPath {
   '/qa/reviews': typeof AuthenticatedQaReviewsRoute
   '/qa/scorecards': typeof AuthenticatedQaScorecardsRoute
   '/security/audit': typeof AuthenticatedSecurityAuditRoute
+  '/security/mfa': typeof AuthenticatedSecurityMfaRoute
   '/telephony/settings': typeof AuthenticatedTelephonySettingsRoute
   '/announcements/': typeof AuthenticatedAnnouncementsIndexRoute
   '/attendance/': typeof AuthenticatedAttendanceIndexRoute
@@ -302,6 +310,7 @@ export interface FileRoutesByTo {
   '/qa/reviews': typeof AuthenticatedQaReviewsRoute
   '/qa/scorecards': typeof AuthenticatedQaScorecardsRoute
   '/security/audit': typeof AuthenticatedSecurityAuditRoute
+  '/security/mfa': typeof AuthenticatedSecurityMfaRoute
   '/telephony/settings': typeof AuthenticatedTelephonySettingsRoute
   '/announcements': typeof AuthenticatedAnnouncementsIndexRoute
   '/attendance': typeof AuthenticatedAttendanceIndexRoute
@@ -341,6 +350,7 @@ export interface FileRoutesById {
   '/_authenticated/qa/reviews': typeof AuthenticatedQaReviewsRoute
   '/_authenticated/qa/scorecards': typeof AuthenticatedQaScorecardsRoute
   '/_authenticated/security/audit': typeof AuthenticatedSecurityAuditRoute
+  '/_authenticated/security/mfa': typeof AuthenticatedSecurityMfaRoute
   '/_authenticated/telephony/settings': typeof AuthenticatedTelephonySettingsRoute
   '/_authenticated/announcements/': typeof AuthenticatedAnnouncementsIndexRoute
   '/_authenticated/attendance/': typeof AuthenticatedAttendanceIndexRoute
@@ -380,6 +390,7 @@ export interface FileRouteTypes {
     | '/qa/reviews'
     | '/qa/scorecards'
     | '/security/audit'
+    | '/security/mfa'
     | '/telephony/settings'
     | '/announcements/'
     | '/attendance/'
@@ -417,6 +428,7 @@ export interface FileRouteTypes {
     | '/qa/reviews'
     | '/qa/scorecards'
     | '/security/audit'
+    | '/security/mfa'
     | '/telephony/settings'
     | '/announcements'
     | '/attendance'
@@ -455,6 +467,7 @@ export interface FileRouteTypes {
     | '/_authenticated/qa/reviews'
     | '/_authenticated/qa/scorecards'
     | '/_authenticated/security/audit'
+    | '/_authenticated/security/mfa'
     | '/_authenticated/telephony/settings'
     | '/_authenticated/announcements/'
     | '/_authenticated/attendance/'
@@ -643,6 +656,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedTelephonySettingsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/security/mfa': {
+      id: '/_authenticated/security/mfa'
+      path: '/security/mfa'
+      fullPath: '/security/mfa'
+      preLoaderRoute: typeof AuthenticatedSecurityMfaRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/security/audit': {
       id: '/_authenticated/security/audit'
       path: '/security/audit'
@@ -752,6 +772,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedQaReviewsRoute: typeof AuthenticatedQaReviewsRoute
   AuthenticatedQaScorecardsRoute: typeof AuthenticatedQaScorecardsRoute
   AuthenticatedSecurityAuditRoute: typeof AuthenticatedSecurityAuditRoute
+  AuthenticatedSecurityMfaRoute: typeof AuthenticatedSecurityMfaRoute
   AuthenticatedTelephonySettingsRoute: typeof AuthenticatedTelephonySettingsRoute
   AuthenticatedAnnouncementsIndexRoute: typeof AuthenticatedAnnouncementsIndexRoute
   AuthenticatedAttendanceIndexRoute: typeof AuthenticatedAttendanceIndexRoute
@@ -785,6 +806,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedQaReviewsRoute: AuthenticatedQaReviewsRoute,
   AuthenticatedQaScorecardsRoute: AuthenticatedQaScorecardsRoute,
   AuthenticatedSecurityAuditRoute: AuthenticatedSecurityAuditRoute,
+  AuthenticatedSecurityMfaRoute: AuthenticatedSecurityMfaRoute,
   AuthenticatedTelephonySettingsRoute: AuthenticatedTelephonySettingsRoute,
   AuthenticatedAnnouncementsIndexRoute: AuthenticatedAnnouncementsIndexRoute,
   AuthenticatedAttendanceIndexRoute: AuthenticatedAttendanceIndexRoute,

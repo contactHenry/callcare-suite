@@ -39,6 +39,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         { to: "/tasks", label: "Tasks", icon: ListChecks, show: true },
         { to: "/announcements", label: "Announcements", icon: Megaphone, show: true },
         { to: "/attendance", label: "Attendance", icon: CalendarClock, show: true },
+        { to: "/security/mfa", label: "Two-factor auth", icon: ShieldCheck, show: true },
       ],
     },
     {
