@@ -503,6 +503,13 @@ export type Database = {
             foreignKeyName: "call_queue_contact_id_fkey"
             columns: ["contact_id"]
             isOneToOne: false
+            referencedRelation: "client_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "call_queue_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
             referencedRelation: "contacts"
             referencedColumns: ["id"]
           },
@@ -805,6 +812,7 @@ export type Database = {
           contact_id: string | null
           created_at: string
           direction: string
+          disposition_id: string | null
           duration_seconds: number
           ended_at: string | null
           failure_reason: string | null
@@ -840,6 +848,7 @@ export type Database = {
           contact_id?: string | null
           created_at?: string
           direction?: string
+          disposition_id?: string | null
           duration_seconds?: number
           ended_at?: string | null
           failure_reason?: string | null
@@ -875,6 +884,7 @@ export type Database = {
           contact_id?: string | null
           created_at?: string
           direction?: string
+          disposition_id?: string | null
           duration_seconds?: number
           ended_at?: string | null
           failure_reason?: string | null
@@ -920,7 +930,21 @@ export type Database = {
             foreignKeyName: "calls_contact_id_fkey"
             columns: ["contact_id"]
             isOneToOne: false
+            referencedRelation: "client_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "calls_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
             referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "calls_disposition_id_fkey"
+            columns: ["disposition_id"]
+            isOneToOne: false
+            referencedRelation: "call_outcome_definitions"
             referencedColumns: ["id"]
           },
           {
@@ -1031,7 +1055,142 @@ export type Database = {
             foreignKeyName: "client_change_approvals_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
+            referencedRelation: "client_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_change_approvals_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
             referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_consents: {
+        Row: {
+          captured_at: string
+          captured_by: string | null
+          client_id: string
+          consent_type: string
+          evidence_url: string | null
+          id: string
+          notes: string | null
+          organization_id: string | null
+          source: string | null
+          state: Database["public"]["Enums"]["consent_state"]
+          superseded_at: string | null
+        }
+        Insert: {
+          captured_at?: string
+          captured_by?: string | null
+          client_id: string
+          consent_type: string
+          evidence_url?: string | null
+          id?: string
+          notes?: string | null
+          organization_id?: string | null
+          source?: string | null
+          state: Database["public"]["Enums"]["consent_state"]
+          superseded_at?: string | null
+        }
+        Update: {
+          captured_at?: string
+          captured_by?: string | null
+          client_id?: string
+          consent_type?: string
+          evidence_url?: string | null
+          id?: string
+          notes?: string | null
+          organization_id?: string | null
+          source?: string | null
+          state?: Database["public"]["Enums"]["consent_state"]
+          superseded_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_consents_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "client_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_consents_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_consents_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_contact_methods: {
+        Row: {
+          client_id: string
+          created_at: string
+          id: string
+          is_primary: boolean
+          label: string | null
+          method: Database["public"]["Enums"]["contact_method"]
+          normalized_value: string | null
+          organization_id: string | null
+          updated_at: string
+          value: string
+          verified_at: string | null
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          id?: string
+          is_primary?: boolean
+          label?: string | null
+          method: Database["public"]["Enums"]["contact_method"]
+          normalized_value?: string | null
+          organization_id?: string | null
+          updated_at?: string
+          value: string
+          verified_at?: string | null
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          id?: string
+          is_primary?: boolean
+          label?: string | null
+          method?: Database["public"]["Enums"]["contact_method"]
+          normalized_value?: string | null
+          organization_id?: string | null
+          updated_at?: string
+          value?: string
+          verified_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_contact_methods_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "client_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_contact_methods_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_contact_methods_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
@@ -1072,6 +1231,13 @@ export type Database = {
             foreignKeyName: "client_documents_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
+            referencedRelation: "client_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_documents_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
             referencedRelation: "contacts"
             referencedColumns: ["id"]
           },
@@ -1107,7 +1273,21 @@ export type Database = {
             foreignKeyName: "client_merges_merged_id_fkey"
             columns: ["merged_id"]
             isOneToOne: false
+            referencedRelation: "client_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_merges_merged_id_fkey"
+            columns: ["merged_id"]
+            isOneToOne: false
             referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_merges_surviving_id_fkey"
+            columns: ["surviving_id"]
+            isOneToOne: false
+            referencedRelation: "client_profiles"
             referencedColumns: ["id"]
           },
           {
@@ -1148,6 +1328,13 @@ export type Database = {
           to_status?: Database["public"]["Enums"]["client_status"]
         }
         Relationships: [
+          {
+            foreignKeyName: "client_status_transitions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "client_profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "client_status_transitions_client_id_fkey"
             columns: ["client_id"]
@@ -1253,6 +1440,13 @@ export type Database = {
             columns: ["call_id"]
             isOneToOne: false
             referencedRelation: "calls"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "complaints_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "client_profiles"
             referencedColumns: ["id"]
           },
           {
@@ -1389,6 +1583,13 @@ export type Database = {
             foreignKeyName: "contacts_merged_into_id_fkey"
             columns: ["merged_into_id"]
             isOneToOne: false
+            referencedRelation: "client_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contacts_merged_into_id_fkey"
+            columns: ["merged_into_id"]
+            isOneToOne: false
             referencedRelation: "contacts"
             referencedColumns: ["id"]
           },
@@ -1509,6 +1710,13 @@ export type Database = {
           status?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "data_requests_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "client_profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "data_requests_client_id_fkey"
             columns: ["client_id"]
@@ -2484,6 +2692,13 @@ export type Database = {
             foreignKeyName: "tasks_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
+            referencedRelation: "client_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
             referencedRelation: "contacts"
             referencedColumns: ["id"]
           },
@@ -2756,7 +2971,147 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      client_profiles: {
+        Row: {
+          address_city: string | null
+          address_country: string | null
+          address_line1: string | null
+          address_line2: string | null
+          address_postcode: string | null
+          address_region: string | null
+          alt_phone: string | null
+          assigned_agent_id: string | null
+          assigned_team_id: string | null
+          campaign_source: string | null
+          category: string | null
+          company: string | null
+          consent_status: Database["public"]["Enums"]["consent_state"] | null
+          created_at: string | null
+          deleted_at: string | null
+          do_not_call: boolean | null
+          dob: string | null
+          email: string | null
+          id: string | null
+          last_contacted_at: string | null
+          lifecycle_status: Database["public"]["Enums"]["client_status"] | null
+          merged_into_id: string | null
+          name: string | null
+          next_follow_up_at: string | null
+          notes: string | null
+          organization_id: string | null
+          owner_id: string | null
+          phone: string | null
+          preferred_method: Database["public"]["Enums"]["contact_method"] | null
+          preferred_time: string | null
+          status: string | null
+          tags: string[] | null
+          updated_at: string | null
+        }
+        Insert: {
+          address_city?: string | null
+          address_country?: string | null
+          address_line1?: string | null
+          address_line2?: string | null
+          address_postcode?: string | null
+          address_region?: string | null
+          alt_phone?: string | null
+          assigned_agent_id?: string | null
+          assigned_team_id?: string | null
+          campaign_source?: string | null
+          category?: string | null
+          company?: string | null
+          consent_status?: Database["public"]["Enums"]["consent_state"] | null
+          created_at?: string | null
+          deleted_at?: string | null
+          do_not_call?: boolean | null
+          dob?: string | null
+          email?: string | null
+          id?: string | null
+          last_contacted_at?: string | null
+          lifecycle_status?: Database["public"]["Enums"]["client_status"] | null
+          merged_into_id?: string | null
+          name?: string | null
+          next_follow_up_at?: string | null
+          notes?: string | null
+          organization_id?: string | null
+          owner_id?: string | null
+          phone?: string | null
+          preferred_method?:
+            | Database["public"]["Enums"]["contact_method"]
+            | null
+          preferred_time?: string | null
+          status?: string | null
+          tags?: string[] | null
+          updated_at?: string | null
+        }
+        Update: {
+          address_city?: string | null
+          address_country?: string | null
+          address_line1?: string | null
+          address_line2?: string | null
+          address_postcode?: string | null
+          address_region?: string | null
+          alt_phone?: string | null
+          assigned_agent_id?: string | null
+          assigned_team_id?: string | null
+          campaign_source?: string | null
+          category?: string | null
+          company?: string | null
+          consent_status?: Database["public"]["Enums"]["consent_state"] | null
+          created_at?: string | null
+          deleted_at?: string | null
+          do_not_call?: boolean | null
+          dob?: string | null
+          email?: string | null
+          id?: string | null
+          last_contacted_at?: string | null
+          lifecycle_status?: Database["public"]["Enums"]["client_status"] | null
+          merged_into_id?: string | null
+          name?: string | null
+          next_follow_up_at?: string | null
+          notes?: string | null
+          organization_id?: string | null
+          owner_id?: string | null
+          phone?: string | null
+          preferred_method?:
+            | Database["public"]["Enums"]["contact_method"]
+            | null
+          preferred_time?: string | null
+          status?: string | null
+          tags?: string[] | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contacts_assigned_team_id_fkey"
+            columns: ["assigned_team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contacts_merged_into_id_fkey"
+            columns: ["merged_into_id"]
+            isOneToOne: false
+            referencedRelation: "client_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contacts_merged_into_id_fkey"
+            columns: ["merged_into_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contacts_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       has_permission: {
@@ -2771,6 +3126,10 @@ export type Database = {
         Returns: boolean
       }
       is_account_suspended: { Args: { _user_id: string }; Returns: boolean }
+      is_team_leader_of: {
+        Args: { _team_id: string; _user_id: string }
+        Returns: boolean
+      }
       is_valid_client_transition: {
         Args: {
           _from: Database["public"]["Enums"]["client_status"]
