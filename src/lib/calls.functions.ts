@@ -9,7 +9,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { requirePermission, audit } from "./permissions.functions";
-import { getTelephonyProvider } from "./telephony/provider";
+import { getTelephonyProvider, listKnownProviders } from "./telephony";
 
 const E164 = z.string().regex(/^\+?[1-9]\d{6,14}$/, "Invalid E.164 number");
 
