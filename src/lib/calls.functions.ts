@@ -483,6 +483,6 @@ export const testTelephonyProvider = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const provider = getTelephonyProvider(data.provider);
     const health = await provider.healthCheck();
-    await audit(context.supabase, context.userId, "telephony.health_check", "provider", provider.name, health);
+    await audit(context.supabase, context.userId, "telephony.health_check", "provider", provider.name, { ...health });
     return health;
   });
