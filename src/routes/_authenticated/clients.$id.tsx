@@ -423,3 +423,209 @@ function Documents({ clientId, docs, onUploaded, onDelete }:
     </div>
   );
 }
+
+/* ----------------------------- Channels ----------------------------- */
+
+const METHOD_LABEL: Record<string, string> = {
+  phone: "Phone", email: "Email", sms: "SMS", whatsapp: "WhatsApp", no_contact: "No contact",
+};
+
+function ChannelsPanel({ clientId }: { clientId: string }) {
+  const qc = useQueryClient();
+  const listFn = useServerFn(listContactMethods);
+  const addFn = useServerFn(addContactMethod);
+  const primaryFn = useServerFn(setPrimaryContactMethod);
+  const delFn = useServerFn(deleteContactMethod);
+  const q = useQuery({ queryKey: ["contact-methods", clientId], queryFn: () => listFn({ data: { clientId } }) });
+  const [draft, setDraft] = useState({ method: "phone", value: "", label: "", isPrimary: false });
+
+  const invalidate = () => qc.invalidateQueries({ queryKey: ["contact-methods", clientId] });
+
+  return (
+    <div className="rounded-[var(--cc-radius-md)] border border-[color:var(--cc-ink-200)] bg-white p-4 space-y-4">
+      <form
+        className="grid gap-3 md:grid-cols-[140px_1fr_140px_auto] items-end"
+        onSubmit={async (e) => {
+          e.preventDefault();
+          if (!draft.value.trim()) return;
+          try {
+            await addFn({ data: {
+              clientId, method: draft.method, value: draft.value.trim(),
+              label: draft.label.trim() || undefined, isPrimary: draft.isPrimary,
+            }});
+            toast.success("Channel added");
+            setDraft({ method: draft.method, value: "", label: "", isPrimary: false });
+            invalidate();
+          } catch (e: any) { toast.error(e?.message ?? "Failed"); }
+        }}
+      >
+        <CCField label="Method">
+          <CCSelect value={draft.method} onChange={(e) => setDraft({ ...draft, method: e.target.value })}>
+            <option value="phone">Phone</option><option value="email">Email</option>
+            <option value="sms">SMS</option><option value="whatsapp">WhatsApp</option>
+          </CCSelect>
+        </CCField>
+        <CCField label="Value">
+          <CCInput value={draft.value} onChange={(e) => setDraft({ ...draft, value: e.target.value })}
+            placeholder={draft.method === "email" ? "name@example.com" : "+44 7700 900123"} />
+        </CCField>
+        <CCField label="Label (optional)">
+          <CCInput value={draft.label} onChange={(e) => setDraft({ ...draft, label: e.target.value })}
+            placeholder="mobile / work" />
+        </CCField>
+        <CCButton type="submit"><Plus className="size-4 mr-1" />Add</CCButton>
+        <label className="md:col-span-4 flex items-center gap-2 text-sm -mt-1">
+          <input type="checkbox" checked={draft.isPrimary}
+            onChange={(e) => setDraft({ ...draft, isPrimary: e.target.checked })} />
+          Set as primary for this method
+        </label>
+      </form>
+
+      <div>
+        {q.isLoading && <p className="text-sm text-[color:var(--cc-ink-500)]">Loading channels…</p>}
+        {q.data?.methods.length === 0 && (
+          <p className="text-sm text-[color:var(--cc-ink-500)]">No channels yet. Add the client's phone or email above.</p>
+        )}
+        <ul className="divide-y divide-[color:var(--cc-ink-100)]">
+          {(q.data?.methods ?? []).map((m: any) => (
+            <li key={m.id} className="flex items-center justify-between py-2.5 text-sm">
+              <div className="flex items-center gap-3">
+                {m.method === "email"
+                  ? <Mail className="size-4 text-[color:var(--cc-ink-500)]" />
+                  : <Phone className="size-4 text-[color:var(--cc-ink-500)]" />}
+                <div>
+                  <div className="font-medium">{m.value}</div>
+                  <div className="text-xs text-[color:var(--cc-ink-500)]">
+                    {METHOD_LABEL[m.method]}{m.label ? ` · ${m.label}` : ""}
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                {m.is_primary
+                  ? <CCStatusPill tone="success">Primary</CCStatusPill>
+                  : <CCButton variant="ghost" size="sm"
+                      onClick={async () => { await primaryFn({ data: { id: m.id } }); invalidate(); }}>
+                      <Star className="size-4 mr-1" />Make primary
+                    </CCButton>}
+                <CCButton variant="ghost" size="sm"
+                  onClick={async () => {
+                    if (!confirm("Delete this channel?")) return;
+                    await delFn({ data: { id: m.id } }); invalidate();
+                  }}>
+                  <Trash2 className="size-4" />
+                </CCButton>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  );
+}
+
+/* ----------------------------- Consent ----------------------------- */
+
+const CONSENT_TYPES = [
+  { value: "marketing", label: "Marketing" },
+  { value: "calling", label: "Calling (DNC)" },
+  { value: "sms", label: "SMS" },
+  { value: "email", label: "Email" },
+  { value: "call_recording", label: "Call recording" },
+  { value: "data_processing", label: "Data processing" },
+];
+
+const STATE_TONE: Record<string, "success"|"warning"|"danger"|"neutral"> = {
+  granted: "success", revoked: "danger", unknown: "neutral",
+};
+
+function ConsentPanel({ clientId }: { clientId: string }) {
+  const qc = useQueryClient();
+  const listFn = useServerFn(listConsents);
+  const recordFn = useServerFn(recordConsent);
+  const q = useQuery({ queryKey: ["consents", clientId], queryFn: () => listFn({ data: { clientId } }) });
+  const [draft, setDraft] = useState({ consentType: "marketing", state: "granted", source: "agent_capture", notes: "" });
+
+  const invalidate = () => qc.invalidateQueries({ queryKey: ["consents", clientId] });
+  const live = (q.data?.consents ?? []).filter((c: any) => !c.superseded_at);
+  const history = (q.data?.consents ?? []).filter((c: any) => c.superseded_at);
+
+  return (
+    <div className="space-y-4">
+      <div className="rounded-[var(--cc-radius-md)] border border-[color:var(--cc-ink-200)] bg-white p-4 space-y-3">
+        <div className="flex items-center gap-2 text-sm font-medium">
+          <ShieldCheck className="size-4" />Current consent
+        </div>
+        {live.length === 0 && <p className="text-sm text-[color:var(--cc-ink-500)]">No consent on record.</p>}
+        <ul className="divide-y divide-[color:var(--cc-ink-100)]">
+          {live.map((c: any) => (
+            <li key={c.id} className="flex items-center justify-between py-2 text-sm">
+              <div>
+                <div className="font-medium capitalize">{c.consent_type.replace("_"," ")}</div>
+                <div className="text-xs text-[color:var(--cc-ink-500)]">
+                  {c.source ?? "—"} · {new Date(c.captured_at).toLocaleString()}
+                </div>
+              </div>
+              <CCStatusPill tone={STATE_TONE[c.state]}>{c.state}</CCStatusPill>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <form
+        className="rounded-[var(--cc-radius-md)] border border-[color:var(--cc-ink-200)] bg-white p-4 grid gap-3 md:grid-cols-[1fr_1fr_1fr_auto] items-end"
+        onSubmit={async (e) => {
+          e.preventDefault();
+          try {
+            await recordFn({ data: {
+              clientId,
+              consentType: draft.consentType,
+              state: draft.state,
+              source: draft.source.trim() || undefined,
+              notes: draft.notes.trim() || undefined,
+            }});
+            toast.success("Consent recorded");
+            setDraft({ ...draft, notes: "" });
+            invalidate();
+          } catch (e: any) { toast.error(e?.message ?? "Failed"); }
+        }}
+      >
+        <CCField label="Type">
+          <CCSelect value={draft.consentType} onChange={(e) => setDraft({ ...draft, consentType: e.target.value })}>
+            {CONSENT_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
+          </CCSelect>
+        </CCField>
+        <CCField label="State">
+          <CCSelect value={draft.state} onChange={(e) => setDraft({ ...draft, state: e.target.value })}>
+            <option value="granted">Granted</option>
+            <option value="revoked">Revoked</option>
+            <option value="unknown">Unknown</option>
+          </CCSelect>
+        </CCField>
+        <CCField label="Source">
+          <CCInput value={draft.source} onChange={(e) => setDraft({ ...draft, source: e.target.value })}
+            placeholder="agent_capture / web_form / import" />
+        </CCField>
+        <CCButton type="submit">Record</CCButton>
+        <CCField label="Notes (optional)" className="md:col-span-4">
+          <CCInput value={draft.notes} onChange={(e) => setDraft({ ...draft, notes: e.target.value })} />
+        </CCField>
+      </form>
+
+      {history.length > 0 && (
+        <div className="rounded-[var(--cc-radius-md)] border border-[color:var(--cc-ink-200)] bg-white p-4">
+          <div className="text-sm font-medium mb-2">History</div>
+          <ul className="divide-y divide-[color:var(--cc-ink-100)]">
+            {history.map((c: any) => (
+              <li key={c.id} className="flex items-center justify-between py-2 text-sm text-[color:var(--cc-ink-500)]">
+                <div>
+                  <span className="capitalize">{c.consent_type.replace("_"," ")}</span> · {c.state}
+                </div>
+                <span className="text-xs">{new Date(c.captured_at).toLocaleString()}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+}
