@@ -44,6 +44,14 @@ function AuthPage() {
       return toast.error(error.message);
     }
     recordLogin({ data: { device: navigator.userAgent.slice(0, 200) } }).catch(() => {});
+    // If the user has a verified TOTP factor, Supabase will report
+    // nextLevel = 'aal2'. Route them to the challenge before the app.
+    try {
+      const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+      if (aal?.currentLevel === "aal1" && aal?.nextLevel === "aal2") {
+        return navigate({ to: "/auth/2fa" });
+      }
+    } catch { /* MFA not enabled on project — fall through */ }
     navigate({ to: "/dashboard" });
   }
 
