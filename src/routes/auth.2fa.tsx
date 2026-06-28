@@ -1,15 +1,14 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { CCButton, CCCard, CCField, CCInput } from "@/components/cc";
 import { Headset, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 
 /**
- * Two-factor challenge screen.
- *
- * UI is fully wired; the verification call is stubbed — wiring it up requires
- * enabling Supabase Auth MFA in the dashboard and reading/storing the TOTP
- * factor on `two_factor_secrets`. The route is reachable on `/auth/2fa`.
+ * Two-factor challenge screen — wired to Supabase Auth MFA (TOTP).
+ * Reads the user's verified factor, issues a challenge, and verifies the
+ * 6-digit code. Requires Supabase Auth MFA to be enabled on the project.
  */
 export const Route = createFileRoute("/auth/2fa")({
   ssr: false,
@@ -21,16 +20,27 @@ function TwoFactorPage() {
   const navigate = useNavigate();
   const [code, setCode] = useState("");
   const [busy, setBusy] = useState(false);
+  const [factorId, setFactorId] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
+
+  useEffect(() => {
+    (async () => {
+      const { data, error } = await supabase.auth.mfa.listFactors();
+      if (error) { setLoadError(error.message); return; }
+      const totp = data?.totp?.find((f) => f.status === "verified") ?? data?.totp?.[0];
+      if (!totp) { setLoadError("No authenticator enrolled. Visit Security settings to set one up."); return; }
+      setFactorId(totp.id);
+    })();
+  }, []);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!/^\d{6}$/.test(code)) return toast.error("Enter the 6-digit code from your authenticator app.");
+    if (!factorId) return toast.error(loadError ?? "No authenticator available.");
     setBusy(true);
-    // STUB: integrate with supabase.auth.mfa.challenge + verify when MFA is
-    // enabled on the project. Keeping the UI shippable now so the flow is
-    // testable without backend MFA toggled on.
-    await new Promise((r) => setTimeout(r, 600));
+    const { error } = await supabase.auth.mfa.challengeAndVerify({ factorId, code });
     setBusy(false);
+    if (error) return toast.error(error.message);
     toast.success("Verified");
     navigate({ to: "/dashboard" });
   }
@@ -67,6 +77,9 @@ function TwoFactorPage() {
             {busy ? "Verifying…" : "Verify"}
           </CCButton>
         </form>
+        {loadError && (
+          <p className="mt-4 text-xs text-[color:var(--cc-danger)] text-center">{loadError}</p>
+        )}
         <p className="mt-6 text-xs text-[color:var(--cc-ink-500)] text-center">
           Lost your device? Contact your Operations Administrator to reset 2FA.
         </p>
