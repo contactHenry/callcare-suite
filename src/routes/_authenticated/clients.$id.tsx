@@ -12,7 +12,11 @@ import {
 } from "@/components/cc";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { Phone, ArrowLeft, Mail, MapPin, Upload, Trash2 } from "lucide-react";
+import { Phone, ArrowLeft, Mail, MapPin, Upload, Trash2, Star, Plus, ShieldCheck } from "lucide-react";
+import {
+  listContactMethods, addContactMethod, setPrimaryContactMethod, deleteContactMethod,
+} from "@/lib/contact-methods.functions";
+import { listConsents, recordConsent } from "@/lib/consents.functions";
 import { placeOutboundCall } from "@/lib/calls.functions";
 import { CallControlBar, RecordingConsentBanner, type CallSession } from "@/components/CallControlBar";
 import { getTelephonySettings } from "@/lib/calls.functions";
@@ -164,6 +168,8 @@ function ClientDetail() {
           <Tabs defaultValue="edit">
             <TabsList>
               <TabsTrigger value="edit">Profile</TabsTrigger>
+              <TabsTrigger value="channels">Channels</TabsTrigger>
+              <TabsTrigger value="consent">Consent</TabsTrigger>
               <TabsTrigger value="timeline">Activity</TabsTrigger>
               <TabsTrigger value="notes">Notes</TabsTrigger>
               <TabsTrigger value="docs">Documents</TabsTrigger>
@@ -181,6 +187,14 @@ function ClientDetail() {
                   } catch (e: any) { toast.error(e?.message ?? "Save failed"); }
                 }}
               />
+            </TabsContent>
+
+            <TabsContent value="channels">
+              <ChannelsPanel clientId={id} />
+            </TabsContent>
+
+            <TabsContent value="consent">
+              <ConsentPanel clientId={id} />
             </TabsContent>
 
             <TabsContent value="timeline">
