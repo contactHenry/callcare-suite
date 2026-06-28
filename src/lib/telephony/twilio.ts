@@ -53,7 +53,7 @@ export class TwilioProvider implements TelephonyProvider {
   async mute(_sid: string, _muted: boolean) { this.notImpl(); }
   async hold(_sid: string, _on: boolean) { this.notImpl(); }
   async transfer(_i: TransferInput) { this.notImpl(); }
-  async startMonitoring(_i: MonitorInput) { this.notImpl(); }
+  async startMonitoring(_i: MonitorInput): Promise<{ sessionSid: string }> { this.notImpl(); }
   async stopMonitoring(_sid: string) { this.notImpl(); }
   async dropVoicemail(_sid: string, _key: string) { this.notImpl(); }
   async finalizeRecording(_sid: string): Promise<RecordingHandle | null> { return null; }
