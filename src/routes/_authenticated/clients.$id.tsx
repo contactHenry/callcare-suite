@@ -606,9 +606,11 @@ function ConsentPanel({ clientId }: { clientId: string }) {
             placeholder="agent_capture / web_form / import" />
         </CCField>
         <CCButton type="submit">Record</CCButton>
-        <CCField label="Notes (optional)" className="md:col-span-4">
-          <CCInput value={draft.notes} onChange={(e) => setDraft({ ...draft, notes: e.target.value })} />
-        </CCField>
+        <div className="md:col-span-4">
+          <CCField label="Notes (optional)">
+            <CCInput value={draft.notes} onChange={(e) => setDraft({ ...draft, notes: e.target.value })} />
+          </CCField>
+        </div>
       </form>
 
       {history.length > 0 && (
