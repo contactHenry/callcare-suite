@@ -29,6 +29,7 @@ import { Route as AuthenticatedContactsIndexRouteImport } from './routes/_authen
 import { Route as AuthenticatedComplianceIndexRouteImport } from './routes/_authenticated/compliance.index'
 import { Route as AuthenticatedComplaintsIndexRouteImport } from './routes/_authenticated/complaints.index'
 import { Route as AuthenticatedClientsIndexRouteImport } from './routes/_authenticated/clients.index'
+import { Route as AuthenticatedCampaignsIndexRouteImport } from './routes/_authenticated/campaigns.index'
 import { Route as AuthenticatedCallsIndexRouteImport } from './routes/_authenticated/calls.index'
 import { Route as AuthenticatedAttendanceIndexRouteImport } from './routes/_authenticated/attendance.index'
 import { Route as AuthenticatedAnnouncementsIndexRouteImport } from './routes/_authenticated/announcements.index'
@@ -157,6 +158,12 @@ const AuthenticatedClientsIndexRoute =
   AuthenticatedClientsIndexRouteImport.update({
     id: '/clients/',
     path: '/clients/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedCampaignsIndexRoute =
+  AuthenticatedCampaignsIndexRouteImport.update({
+    id: '/campaigns/',
+    path: '/campaigns/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedCallsIndexRoute = AuthenticatedCallsIndexRouteImport.update({
@@ -291,6 +298,7 @@ export interface FileRoutesByFullPath {
   '/announcements/': typeof AuthenticatedAnnouncementsIndexRoute
   '/attendance/': typeof AuthenticatedAttendanceIndexRoute
   '/calls/': typeof AuthenticatedCallsIndexRoute
+  '/campaigns/': typeof AuthenticatedCampaignsIndexRoute
   '/clients/': typeof AuthenticatedClientsIndexRoute
   '/complaints/': typeof AuthenticatedComplaintsIndexRoute
   '/compliance/': typeof AuthenticatedComplianceIndexRoute
@@ -331,6 +339,7 @@ export interface FileRoutesByTo {
   '/announcements': typeof AuthenticatedAnnouncementsIndexRoute
   '/attendance': typeof AuthenticatedAttendanceIndexRoute
   '/calls': typeof AuthenticatedCallsIndexRoute
+  '/campaigns': typeof AuthenticatedCampaignsIndexRoute
   '/clients': typeof AuthenticatedClientsIndexRoute
   '/complaints': typeof AuthenticatedComplaintsIndexRoute
   '/compliance': typeof AuthenticatedComplianceIndexRoute
@@ -373,6 +382,7 @@ export interface FileRoutesById {
   '/_authenticated/announcements/': typeof AuthenticatedAnnouncementsIndexRoute
   '/_authenticated/attendance/': typeof AuthenticatedAttendanceIndexRoute
   '/_authenticated/calls/': typeof AuthenticatedCallsIndexRoute
+  '/_authenticated/campaigns/': typeof AuthenticatedCampaignsIndexRoute
   '/_authenticated/clients/': typeof AuthenticatedClientsIndexRoute
   '/_authenticated/complaints/': typeof AuthenticatedComplaintsIndexRoute
   '/_authenticated/compliance/': typeof AuthenticatedComplianceIndexRoute
@@ -415,6 +425,7 @@ export interface FileRouteTypes {
     | '/announcements/'
     | '/attendance/'
     | '/calls/'
+    | '/campaigns/'
     | '/clients/'
     | '/complaints/'
     | '/compliance/'
@@ -455,6 +466,7 @@ export interface FileRouteTypes {
     | '/announcements'
     | '/attendance'
     | '/calls'
+    | '/campaigns'
     | '/clients'
     | '/complaints'
     | '/compliance'
@@ -496,6 +508,7 @@ export interface FileRouteTypes {
     | '/_authenticated/announcements/'
     | '/_authenticated/attendance/'
     | '/_authenticated/calls/'
+    | '/_authenticated/campaigns/'
     | '/_authenticated/clients/'
     | '/_authenticated/complaints/'
     | '/_authenticated/compliance/'
@@ -662,6 +675,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedClientsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/campaigns/': {
+      id: '/_authenticated/campaigns/'
+      path: '/campaigns'
+      fullPath: '/campaigns/'
+      preLoaderRoute: typeof AuthenticatedCampaignsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/calls/': {
       id: '/_authenticated/calls/'
       path: '/calls'
@@ -818,6 +838,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAnnouncementsIndexRoute: typeof AuthenticatedAnnouncementsIndexRoute
   AuthenticatedAttendanceIndexRoute: typeof AuthenticatedAttendanceIndexRoute
   AuthenticatedCallsIndexRoute: typeof AuthenticatedCallsIndexRoute
+  AuthenticatedCampaignsIndexRoute: typeof AuthenticatedCampaignsIndexRoute
   AuthenticatedClientsIndexRoute: typeof AuthenticatedClientsIndexRoute
   AuthenticatedComplaintsIndexRoute: typeof AuthenticatedComplaintsIndexRoute
   AuthenticatedComplianceIndexRoute: typeof AuthenticatedComplianceIndexRoute
@@ -853,6 +874,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAnnouncementsIndexRoute: AuthenticatedAnnouncementsIndexRoute,
   AuthenticatedAttendanceIndexRoute: AuthenticatedAttendanceIndexRoute,
   AuthenticatedCallsIndexRoute: AuthenticatedCallsIndexRoute,
+  AuthenticatedCampaignsIndexRoute: AuthenticatedCampaignsIndexRoute,
   AuthenticatedClientsIndexRoute: AuthenticatedClientsIndexRoute,
   AuthenticatedComplaintsIndexRoute: AuthenticatedComplaintsIndexRoute,
   AuthenticatedComplianceIndexRoute: AuthenticatedComplianceIndexRoute,
