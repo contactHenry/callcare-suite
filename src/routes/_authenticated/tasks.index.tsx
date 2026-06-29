@@ -65,8 +65,7 @@ function TasksPage() {
           </label>
         </div>
 
-        <div className="cc-surface rounded-[var(--cc-radius-lg)] shadow-[var(--cc-shadow-sm)] overflow-hidden">
-          <CCTable>
+        <CCTable>
             <CCThead>
               <tr>
                 <CCTh>Task</CCTh>
@@ -87,8 +86,7 @@ function TasksPage() {
                 />
               ))}
             </tbody>
-          </CCTable>
-        </div>
+        </CCTable>
       </div>
 
       {openNew && <NewTaskDialog onClose={() => setOpenNew(false)} />}
