@@ -1,6 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { PageHeader } from "@/components/AppShell";
@@ -9,6 +10,8 @@ import {
   CCInput, CCTextarea, CCSelect, CCTable, CCThead, CCTh, CCTd, CCTr,
 } from "@/components/cc";
 import { DUMMY_DATA_REQUESTS } from "@/lib/dummy-data";
+import { getOrgCompliance, updateOrgCompliance } from "@/lib/admin.functions";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/compliance/")({
   component: CompliancePage,
@@ -18,6 +21,7 @@ function CompliancePage() {
   const { user, atLeast } = useAuth();
   const qc = useQueryClient();
   const canReview = atLeast("ops_admin");
+  const canConfigure = atLeast("super_admin");
   const [open, setOpen] = useState(false);
 
   const list = useQuery({
@@ -44,10 +48,19 @@ function CompliancePage() {
     <>
       <PageHeader
         title="Compliance & data protection"
-        description="Data subject access requests (DSAR), deletions, exports, and restriction requests."
+        description="Governance hub: DSARs, consent ledger, audit log, retention windows, and contact-hour restrictions."
         actions={<CCButton onClick={() => setOpen(true)}>New request</CCButton>}
       />
       <div className="p-6 space-y-6">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <HubLink to="/security/audit" label="Audit log" hint="Append-only ledger" />
+          <HubLink to="/integrations" label="Integrations" hint="Toggle providers" />
+          <HubLink to="/clients/approvals" label="Approvals queue" hint="Sensitive client edits" />
+          <HubLink to="/recordings" label="Recordings" hint="Access logged per playback" />
+        </div>
+
+        {canConfigure && <OrgComplianceCard />}
+
         <CCWidget title="Open requests">
           <CCTable>
             <CCThead><tr>
