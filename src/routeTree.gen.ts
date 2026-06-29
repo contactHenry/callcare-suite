@@ -16,6 +16,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthForgotRouteImport } from './routes/auth.forgot'
 import { Route as Auth2faRouteImport } from './routes/auth.2fa'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedTeamsIndexRouteImport } from './routes/_authenticated/teams.index'
 import { Route as AuthenticatedTasksIndexRouteImport } from './routes/_authenticated/tasks.index'
 import { Route as AuthenticatedStaffIndexRouteImport } from './routes/_authenticated/staff.index'
 import { Route as AuthenticatedScriptsIndexRouteImport } from './routes/_authenticated/scripts.index'
@@ -82,6 +83,11 @@ const Auth2faRoute = Auth2faRouteImport.update({
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedTeamsIndexRoute = AuthenticatedTeamsIndexRouteImport.update({
+  id: '/teams/',
+  path: '/teams/',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedTasksIndexRoute = AuthenticatedTasksIndexRouteImport.update({
@@ -312,6 +318,7 @@ export interface FileRoutesByFullPath {
   '/scripts/': typeof AuthenticatedScriptsIndexRoute
   '/staff/': typeof AuthenticatedStaffIndexRoute
   '/tasks/': typeof AuthenticatedTasksIndexRoute
+  '/teams/': typeof AuthenticatedTeamsIndexRoute
   '/api/public/webhooks/telephony/$provider': typeof ApiPublicWebhooksTelephonyProviderRoute
 }
 export interface FileRoutesByTo {
@@ -353,6 +360,7 @@ export interface FileRoutesByTo {
   '/scripts': typeof AuthenticatedScriptsIndexRoute
   '/staff': typeof AuthenticatedStaffIndexRoute
   '/tasks': typeof AuthenticatedTasksIndexRoute
+  '/teams': typeof AuthenticatedTeamsIndexRoute
   '/api/public/webhooks/telephony/$provider': typeof ApiPublicWebhooksTelephonyProviderRoute
 }
 export interface FileRoutesById {
@@ -396,6 +404,7 @@ export interface FileRoutesById {
   '/_authenticated/scripts/': typeof AuthenticatedScriptsIndexRoute
   '/_authenticated/staff/': typeof AuthenticatedStaffIndexRoute
   '/_authenticated/tasks/': typeof AuthenticatedTasksIndexRoute
+  '/_authenticated/teams/': typeof AuthenticatedTeamsIndexRoute
   '/api/public/webhooks/telephony/$provider': typeof ApiPublicWebhooksTelephonyProviderRoute
 }
 export interface FileRouteTypes {
@@ -439,6 +448,7 @@ export interface FileRouteTypes {
     | '/scripts/'
     | '/staff/'
     | '/tasks/'
+    | '/teams/'
     | '/api/public/webhooks/telephony/$provider'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -480,6 +490,7 @@ export interface FileRouteTypes {
     | '/scripts'
     | '/staff'
     | '/tasks'
+    | '/teams'
     | '/api/public/webhooks/telephony/$provider'
   id:
     | '__root__'
@@ -522,6 +533,7 @@ export interface FileRouteTypes {
     | '/_authenticated/scripts/'
     | '/_authenticated/staff/'
     | '/_authenticated/tasks/'
+    | '/_authenticated/teams/'
     | '/api/public/webhooks/telephony/$provider'
   fileRoutesById: FileRoutesById
 }
@@ -582,6 +594,13 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/teams/': {
+      id: '/_authenticated/teams/'
+      path: '/teams'
+      fullPath: '/teams/'
+      preLoaderRoute: typeof AuthenticatedTeamsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/tasks/': {
@@ -852,6 +871,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedScriptsIndexRoute: typeof AuthenticatedScriptsIndexRoute
   AuthenticatedStaffIndexRoute: typeof AuthenticatedStaffIndexRoute
   AuthenticatedTasksIndexRoute: typeof AuthenticatedTasksIndexRoute
+  AuthenticatedTeamsIndexRoute: typeof AuthenticatedTeamsIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -888,6 +908,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedScriptsIndexRoute: AuthenticatedScriptsIndexRoute,
   AuthenticatedStaffIndexRoute: AuthenticatedStaffIndexRoute,
   AuthenticatedTasksIndexRoute: AuthenticatedTasksIndexRoute,
+  AuthenticatedTeamsIndexRoute: AuthenticatedTeamsIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
