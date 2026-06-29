@@ -290,17 +290,33 @@ export const getTaskDetail = createServerFn({ method: "POST" })
     const { supabase } = context;
     const [task, comments, attachments] = await Promise.all([
       supabase.from("tasks")
-        .select("*, client:contacts(id,name,phone), assignee:profiles!tasks_assigned_to_fkey(id,full_name)")
+        .select("*, client:contacts(id,name,phone)")
         .eq("id", data.id).maybeSingle(),
       supabase.from("task_comments")
-        .select("*, author:profiles!task_comments_author_id_fkey(id,full_name)")
+        .select("*")
         .eq("task_id", data.id).order("created_at", { ascending: true }),
       supabase.from("task_attachments")
         .select("*").eq("task_id", data.id).order("created_at", { ascending: false }),
     ]);
+    // Resolve display names separately (avoids relying on FK metadata).
+    const ids = new Set<string>();
+    if (task.data?.assigned_to) ids.add(task.data.assigned_to);
+    (comments.data ?? []).forEach((c: any) => c.author_id && ids.add(c.author_id));
+    let nameById: Record<string, string> = {};
+    if (ids.size) {
+      const { data: profiles } = await supabase
+        .from("profiles").select("id, full_name").in("id", Array.from(ids));
+      nameById = Object.fromEntries((profiles ?? []).map((p: any) => [p.id, p.full_name]));
+    }
+    const taskOut = task.data
+      ? { ...task.data, assignee: task.data.assigned_to ? { id: task.data.assigned_to, full_name: nameById[task.data.assigned_to] ?? null } : null }
+      : null;
+    const commentsOut = (comments.data ?? []).map((c: any) => ({
+      ...c, author: c.author_id ? { id: c.author_id, full_name: nameById[c.author_id] ?? null } : null,
+    }));
     return {
-      task: task.data,
-      comments: comments.data ?? [],
+      task: taskOut,
+      comments: commentsOut,
       attachments: attachments.data ?? [],
     };
   });
