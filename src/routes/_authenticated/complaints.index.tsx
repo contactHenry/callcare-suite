@@ -42,8 +42,7 @@ function ComplaintsPage() {
         actions={<CCButton onClick={() => setOpen(true)}>Log complaint</CCButton>}
       />
       <div className="p-6">
-        <div className="cc-surface rounded-[var(--cc-radius-lg)] shadow-[var(--cc-shadow-sm)] overflow-hidden">
-          <CCTable>
+        <CCTable>
             <CCThead>
               <tr>
                 <CCTh>Subject</CCTh>
@@ -87,8 +86,7 @@ function ComplaintsPage() {
                 );
               })}
             </tbody>
-          </CCTable>
-        </div>
+        </CCTable>
       </div>
       {open && <NewComplaintDialog onClose={() => { setOpen(false); qc.invalidateQueries({ queryKey: ["complaints"] }); }} />}
       {detailId && <ComplaintDetailDialog id={detailId} canManage={isLeader} onClose={() => { setDetailId(null); qc.invalidateQueries({ queryKey: ["complaints"] }); }} />}
