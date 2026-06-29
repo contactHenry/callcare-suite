@@ -15,6 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { useAvailability, PRESENCE_LABEL, PRESENCE_COLOR, type Presence } from "@/hooks/use-availability";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { PersistentCallBar } from "@/components/PersistentCallBar";
 
 const ROLE_LABEL: Record<string, string> = {
   agent: "Agent",
@@ -47,7 +48,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard, show: true },
         { to: "/clients", label: "Clients", icon: ContactRound, show: true },
         { to: "/calls", label: "Calls", icon: PhoneCall, show: true },
-        { to: "/monitoring", label: "Live Calls", icon: Radio, show: atLeast("team_leader") },
+        { to: "/live-calls", label: "Live Calls", icon: Radio, show: atLeast("team_leader") },
         { to: "/recordings", label: "Call Recordings", icon: AudioLines, show: atLeast("team_leader") },
         { to: "/follow-ups", label: "Follow-Ups", icon: CalendarCheck2, show: true },
         { to: "/tasks", label: "Tasks", icon: ListChecks, show: true },
@@ -143,6 +144,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         <NotificationsBell />
         {children}
       </main>
+      <PersistentCallBar />
     </div>
   );
 }
