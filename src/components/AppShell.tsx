@@ -15,6 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { useAvailability, PRESENCE_LABEL, PRESENCE_COLOR, type Presence } from "@/hooks/use-availability";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { PersistentCallBar } from "@/components/PersistentCallBar";
 
 const ROLE_LABEL: Record<string, string> = {
   agent: "Agent",
@@ -143,6 +144,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         <NotificationsBell />
         {children}
       </main>
+      <PersistentCallBar />
     </div>
   );
 }
