@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -18,6 +19,7 @@ function ComplaintsPage() {
   const { user, atLeast } = useAuth();
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
+  const [detailId, setDetailId] = useState<string | null>(null);
   const isLeader = atLeast("team_leader");
 
   const list = useQuery({
@@ -25,7 +27,7 @@ function ComplaintsPage() {
     queryFn: async () => {
       const { data } = await supabase
         .from("complaints" as any)
-        .select("*, client:contacts(name), owner:profiles!complaints_owner_id_fkey(full_name)")
+        .select("*, client:contacts(id,name), call:calls(id,started_at), owner:profiles!complaints_owner_id_fkey(full_name)")
         .order("created_at", { ascending: false })
         .limit(100);
       return data ?? [];
@@ -59,13 +61,24 @@ function ComplaintsPage() {
                   : c.status === "investigating" ? "info" : "warning";
                 const prTone: any = c.priority === "urgent" || c.priority === "high" ? "danger"
                   : c.priority === "low" ? "neutral" : "info";
+                const overdue = c.due_at && !c.resolved_at && new Date(c.due_at) < new Date();
                 return (
-                  <CCTr key={c.id}>
+                  <CCTr key={c.id} onClick={() => setDetailId(c.id)} className="cursor-pointer">
                     <CCTd>
-                      <div className="font-medium text-[color:var(--cc-ink-900)]">{c.subject}</div>
-                      {c.category && <div className="text-xs text-[color:var(--cc-ink-500)]">{c.category}</div>}
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium text-[color:var(--cc-ink-900)]">{c.subject}</span>
+                        {overdue && <CCStatusPill tone="danger" dot>overdue</CCStatusPill>}
+                      </div>
+                      <div className="text-xs text-[color:var(--cc-ink-500)] flex flex-wrap gap-2 mt-0.5">
+                        {c.category && <span>{c.category}</span>}
+                        {c.call?.id && <span>· linked call</span>}
+                      </div>
                     </CCTd>
-                    <CCTd className="text-[color:var(--cc-ink-700)]">{c.client?.name ?? "—"}</CCTd>
+                    <CCTd className="text-[color:var(--cc-ink-700)]">
+                      {c.client?.id ? (
+                        <Link to="/clients/$id" params={{ id: c.client.id }} onClick={(e) => e.stopPropagation()} className="hover:underline">{c.client.name}</Link>
+                      ) : (c.client?.name ?? "—")}
+                    </CCTd>
                     <CCTd className="text-[color:var(--cc-ink-700)]">{c.owner?.full_name ?? "Unassigned"}</CCTd>
                     <CCTd><CCStatusPill tone={prTone} dot>{c.priority}</CCStatusPill></CCTd>
                     <CCTd><CCStatusPill tone={statusTone} dot>{c.status}</CCStatusPill></CCTd>
@@ -78,6 +91,7 @@ function ComplaintsPage() {
         </div>
       </div>
       {open && <NewComplaintDialog onClose={() => { setOpen(false); qc.invalidateQueries({ queryKey: ["complaints"] }); }} />}
+      {detailId && <ComplaintDetailDialog id={detailId} canManage={isLeader} onClose={() => { setDetailId(null); qc.invalidateQueries({ queryKey: ["complaints"] }); }} />}
     </>
   );
 }
