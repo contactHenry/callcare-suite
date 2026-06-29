@@ -6,7 +6,7 @@ import {
   Sparkles, UsersRound, PhoneCall, ClipboardCheck, LayoutDashboard, LogOut,
   UserRoundCog, ShieldCheck, ScrollText, ContactRound,
   AudioLines, Radio, Settings2, ListChecks, BookOpenText, Gauge, LineChart,
-  Bell, AlertOctagon, FileBarChart2, Plug, KeyRound,
+  Bell, AlertOctagon, FileBarChart2, Plug, KeyRound, ShieldAlert,
   Users as UsersIcon, Target, CalendarCheck2, Cog, ChevronDown,
 } from "lucide-react";
 import type { ReactNode } from "react";
@@ -73,10 +73,16 @@ export function AppShell({ children }: { children: ReactNode }) {
       ],
     },
     {
-      label: "Admin",
+      label: "Compliance & Audit",
       items: [
+        { to: "/compliance", label: "Compliance", icon: ShieldAlert, show: atLeast("ops_admin") },
         { to: "/security/audit", label: "Audit Logs", icon: ScrollText, show: atLeast("ops_admin") },
         { to: "/integrations", label: "Integrations", icon: Plug, show: atLeast("ops_admin") },
+      ],
+    },
+    {
+      label: "Admin",
+      items: [
         { to: "/settings", label: "Settings", icon: Cog, show: true },
       ],
     },

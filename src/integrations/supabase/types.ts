@@ -2024,23 +2024,47 @@ export type Database = {
       }
       organizations: {
         Row: {
+          audit_retention_days: number
+          contact_days: number[]
+          contact_hours_end: string
+          contact_hours_start: string
+          contact_hours_timezone: string
           created_at: string
           id: string
           name: string
+          record_retention_days: number
+          recording_retention_days: number
+          region: string | null
           slug: string
           updated_at: string
         }
         Insert: {
+          audit_retention_days?: number
+          contact_days?: number[]
+          contact_hours_end?: string
+          contact_hours_start?: string
+          contact_hours_timezone?: string
           created_at?: string
           id?: string
           name: string
+          record_retention_days?: number
+          recording_retention_days?: number
+          region?: string | null
           slug: string
           updated_at?: string
         }
         Update: {
+          audit_retention_days?: number
+          contact_days?: number[]
+          contact_hours_end?: string
+          contact_hours_start?: string
+          contact_hours_timezone?: string
           created_at?: string
           id?: string
           name?: string
+          record_retention_days?: number
+          recording_retention_days?: number
+          region?: string | null
           slug?: string
           updated_at?: string
         }
