@@ -25,6 +25,7 @@ import { Route as AuthenticatedReportsIndexRouteImport } from './routes/_authent
 import { Route as AuthenticatedRecordingsIndexRouteImport } from './routes/_authenticated/recordings.index'
 import { Route as AuthenticatedNotificationsIndexRouteImport } from './routes/_authenticated/notifications.index'
 import { Route as AuthenticatedMonitoringIndexRouteImport } from './routes/_authenticated/monitoring.index'
+import { Route as AuthenticatedLiveCallsIndexRouteImport } from './routes/_authenticated/live-calls.index'
 import { Route as AuthenticatedIntegrationsIndexRouteImport } from './routes/_authenticated/integrations.index'
 import { Route as AuthenticatedFollowUpsIndexRouteImport } from './routes/_authenticated/follow-ups.index'
 import { Route as AuthenticatedContactsIndexRouteImport } from './routes/_authenticated/contacts.index'
@@ -135,6 +136,12 @@ const AuthenticatedMonitoringIndexRoute =
   AuthenticatedMonitoringIndexRouteImport.update({
     id: '/monitoring/',
     path: '/monitoring/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedLiveCallsIndexRoute =
+  AuthenticatedLiveCallsIndexRouteImport.update({
+    id: '/live-calls/',
+    path: '/live-calls/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedIntegrationsIndexRoute =
@@ -318,6 +325,7 @@ export interface FileRoutesByFullPath {
   '/contacts/': typeof AuthenticatedContactsIndexRoute
   '/follow-ups/': typeof AuthenticatedFollowUpsIndexRoute
   '/integrations/': typeof AuthenticatedIntegrationsIndexRoute
+  '/live-calls/': typeof AuthenticatedLiveCallsIndexRoute
   '/monitoring/': typeof AuthenticatedMonitoringIndexRoute
   '/notifications/': typeof AuthenticatedNotificationsIndexRoute
   '/recordings/': typeof AuthenticatedRecordingsIndexRoute
@@ -361,6 +369,7 @@ export interface FileRoutesByTo {
   '/contacts': typeof AuthenticatedContactsIndexRoute
   '/follow-ups': typeof AuthenticatedFollowUpsIndexRoute
   '/integrations': typeof AuthenticatedIntegrationsIndexRoute
+  '/live-calls': typeof AuthenticatedLiveCallsIndexRoute
   '/monitoring': typeof AuthenticatedMonitoringIndexRoute
   '/notifications': typeof AuthenticatedNotificationsIndexRoute
   '/recordings': typeof AuthenticatedRecordingsIndexRoute
@@ -406,6 +415,7 @@ export interface FileRoutesById {
   '/_authenticated/contacts/': typeof AuthenticatedContactsIndexRoute
   '/_authenticated/follow-ups/': typeof AuthenticatedFollowUpsIndexRoute
   '/_authenticated/integrations/': typeof AuthenticatedIntegrationsIndexRoute
+  '/_authenticated/live-calls/': typeof AuthenticatedLiveCallsIndexRoute
   '/_authenticated/monitoring/': typeof AuthenticatedMonitoringIndexRoute
   '/_authenticated/notifications/': typeof AuthenticatedNotificationsIndexRoute
   '/_authenticated/recordings/': typeof AuthenticatedRecordingsIndexRoute
@@ -451,6 +461,7 @@ export interface FileRouteTypes {
     | '/contacts/'
     | '/follow-ups/'
     | '/integrations/'
+    | '/live-calls/'
     | '/monitoring/'
     | '/notifications/'
     | '/recordings/'
@@ -494,6 +505,7 @@ export interface FileRouteTypes {
     | '/contacts'
     | '/follow-ups'
     | '/integrations'
+    | '/live-calls'
     | '/monitoring'
     | '/notifications'
     | '/recordings'
@@ -538,6 +550,7 @@ export interface FileRouteTypes {
     | '/_authenticated/contacts/'
     | '/_authenticated/follow-ups/'
     | '/_authenticated/integrations/'
+    | '/_authenticated/live-calls/'
     | '/_authenticated/monitoring/'
     | '/_authenticated/notifications/'
     | '/_authenticated/recordings/'
@@ -670,6 +683,13 @@ declare module '@tanstack/react-router' {
       path: '/monitoring'
       fullPath: '/monitoring/'
       preLoaderRoute: typeof AuthenticatedMonitoringIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/live-calls/': {
+      id: '/_authenticated/live-calls/'
+      path: '/live-calls'
+      fullPath: '/live-calls/'
+      preLoaderRoute: typeof AuthenticatedLiveCallsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/integrations/': {
@@ -884,6 +904,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedContactsIndexRoute: typeof AuthenticatedContactsIndexRoute
   AuthenticatedFollowUpsIndexRoute: typeof AuthenticatedFollowUpsIndexRoute
   AuthenticatedIntegrationsIndexRoute: typeof AuthenticatedIntegrationsIndexRoute
+  AuthenticatedLiveCallsIndexRoute: typeof AuthenticatedLiveCallsIndexRoute
   AuthenticatedMonitoringIndexRoute: typeof AuthenticatedMonitoringIndexRoute
   AuthenticatedNotificationsIndexRoute: typeof AuthenticatedNotificationsIndexRoute
   AuthenticatedRecordingsIndexRoute: typeof AuthenticatedRecordingsIndexRoute
@@ -922,6 +943,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedContactsIndexRoute: AuthenticatedContactsIndexRoute,
   AuthenticatedFollowUpsIndexRoute: AuthenticatedFollowUpsIndexRoute,
   AuthenticatedIntegrationsIndexRoute: AuthenticatedIntegrationsIndexRoute,
+  AuthenticatedLiveCallsIndexRoute: AuthenticatedLiveCallsIndexRoute,
   AuthenticatedMonitoringIndexRoute: AuthenticatedMonitoringIndexRoute,
   AuthenticatedNotificationsIndexRoute: AuthenticatedNotificationsIndexRoute,
   AuthenticatedRecordingsIndexRoute: AuthenticatedRecordingsIndexRoute,
