@@ -236,7 +236,70 @@ export const updateTaskStatus = createServerFn({ method: "POST" })
     const { error } = await supabase.from("tasks").update(patch).eq("id", data.id);
     if (error) throw new Response(error.message, { status: 500 });
     await audit(supabase, userId, "task.status_change", "task", data.id, { status: data.status });
-    return { ok: true };
+    // Recurrence rollover: when a recurring task is completed, schedule
+    // the next occurrence so the agent never has to recreate it manually.
+    let nextTaskId: string | null = null;
+    if (data.status === "completed") {
+      const { data: t } = await supabase.from("tasks")
+        .select("title, description, kind, priority, client_id, campaign_id, assigned_to, due_at, recurrence_rule, organization_id")
+        .eq("id", data.id).maybeSingle();
+      const nextDue = computeNextRecurrence(t?.recurrence_rule, t?.due_at);
+      if (t && nextDue) {
+        const { data: inserted } = await supabase.from("tasks").insert({
+          title: t.title, description: t.description, kind: t.kind, priority: t.priority,
+          client_id: t.client_id, campaign_id: t.campaign_id, assigned_to: t.assigned_to,
+          organization_id: t.organization_id, created_by: userId,
+          due_at: nextDue, remind_at: nextDue, recurrence_rule: t.recurrence_rule,
+        }).select("id").single();
+        nextTaskId = inserted?.id ?? null;
+      }
+    }
+    return { ok: true, nextTaskId };
+  });
+
+/** Tiny recurrence parser. Supports daily | weekdays | weekly | monthly | every:Nd|Nw. */
+function computeNextRecurrence(rule: string | null | undefined, dueAt: string | null | undefined): string | null {
+  if (!rule) return null;
+  const base = dueAt ? new Date(dueAt) : new Date();
+  const next = new Date(base);
+  const m = /^every:(\d+)(d|w)$/.exec(rule);
+  if (m) {
+    const n = parseInt(m[1], 10) * (m[2] === "w" ? 7 : 1);
+    next.setDate(next.getDate() + n);
+    return next.toISOString();
+  }
+  switch (rule) {
+    case "daily":    next.setDate(next.getDate() + 1); return next.toISOString();
+    case "weekdays": {
+      do { next.setDate(next.getDate() + 1); } while (next.getDay() === 0 || next.getDay() === 6);
+      return next.toISOString();
+    }
+    case "weekly":   next.setDate(next.getDate() + 7); return next.toISOString();
+    case "monthly":  next.setMonth(next.getMonth() + 1); return next.toISOString();
+    default: return null;
+  }
+}
+
+export const getTaskDetail = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { id: string }) => z.object({ id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { supabase } = context;
+    const [task, comments, attachments] = await Promise.all([
+      supabase.from("tasks")
+        .select("*, client:contacts(id,name,phone), assignee:profiles!tasks_assigned_to_fkey(id,full_name)")
+        .eq("id", data.id).maybeSingle(),
+      supabase.from("task_comments")
+        .select("*, author:profiles!task_comments_author_id_fkey(id,full_name)")
+        .eq("task_id", data.id).order("created_at", { ascending: true }),
+      supabase.from("task_attachments")
+        .select("*").eq("task_id", data.id).order("created_at", { ascending: false }),
+    ]);
+    return {
+      task: task.data,
+      comments: comments.data ?? [],
+      attachments: attachments.data ?? [],
+    };
   });
 
 export const addTaskComment = createServerFn({ method: "POST" })
