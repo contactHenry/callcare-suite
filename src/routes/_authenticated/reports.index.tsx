@@ -4,7 +4,10 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { PageHeader } from "@/components/AppShell";
-import { CCButton, CCWidget, CCField, CCInput, CCSelect, CCFormGrid } from "@/components/cc";
+import {
+  CCButton, CCWidget, CCField, CCInput, CCSelect, CCFormGrid,
+  CCTable, CCThead, CCTh, CCTd, CCTr,
+} from "@/components/cc";
 import { DUMMY_REPORT_RUNS } from "@/lib/dummy-data";
 
 export const Route = createFileRoute("/_authenticated/reports/")({
@@ -33,6 +36,8 @@ function ReportsPage() {
   const [from, setFrom] = useState(new Date(Date.now() - 30 * 86400_000).toISOString().slice(0, 10));
   const [to, setTo] = useState(new Date().toISOString().slice(0, 10));
   const [key, setKey] = useState<ReportKey>("calls");
+  const [preview, setPreview] = useState<{ rows: any[]; columns: string[] } | null>(null);
+  const [loading, setLoading] = useState(false);
 
   const recent = useQuery({
     queryKey: ["report-runs"],
@@ -139,6 +144,41 @@ function ReportsPage() {
     });
   }
 
+  async function runPreview() {
+    setLoading(true);
+    try { setPreview(await fetchRows()); }
+    finally { setLoading(false); }
+  }
+
+  async function exportJson() {
+    const { rows } = preview ?? await fetchRows();
+    const blob = new Blob([JSON.stringify(rows, null, 2)], { type: "application/json" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `${key}-${from}-to-${to}.json`;
+    document.body.appendChild(a); a.click(); a.remove();
+    await supabase.from("report_runs" as any).insert({
+      report_key: key, filters: { from, to }, format: "json",
+      row_count: rows.length, run_by: user!.id,
+    });
+  }
+
+  function exportPdf() {
+    if (!preview) return;
+    const w = window.open("", "_blank", "width=900,height=700");
+    if (!w) return;
+    const { rows, columns } = preview;
+    const esc = (v: any) => String(v ?? "").replace(/[&<>]/g, (c) => ({ "&":"&amp;","<":"&lt;",">":"&gt;" }[c]!));
+    w.document.write(`<!doctype html><html><head><title>${esc(key)} ${esc(from)} to ${esc(to)}</title>
+      <style>body{font:13px system-ui;padding:24px} table{width:100%;border-collapse:collapse} th,td{text-align:left;padding:8px;border-bottom:1px solid #e5e7eb;font-size:12px} th{background:#f9fafb} h1{font-size:18px}</style>
+      </head><body><h1>${esc(report.label)}</h1>
+      <p>${esc(from)} → ${esc(to)} · ${rows.length} rows</p>
+      <table><thead><tr>${columns.map(c=>`<th>${esc(c)}</th>`).join("")}</tr></thead>
+      <tbody>${rows.map(r=>`<tr>${columns.map(c=>`<td>${esc(r[c])}</td>`).join("")}</tr>`).join("")}</tbody></table>
+      <script>window.onload=()=>window.print()</script></body></html>`);
+    w.document.close();
+  }
+
   const report = REPORTS.find(r => r.key === key)!;
 
   return (
@@ -159,10 +199,49 @@ function ReportsPage() {
             <CCField label="To"><CCInput type="date" value={to} onChange={(e) => setTo(e.target.value)} /></CCField>
           </CCFormGrid>
           <p className="text-sm text-[color:var(--cc-ink-500)] mt-2">{report.description}</p>
-          <div className="mt-3 flex justify-end">
+          <div className="mt-3 flex justify-end gap-2">
+            <CCButton variant="secondary" onClick={runPreview} disabled={loading}>
+              {loading ? "Loading…" : "Quick view"}
+            </CCButton>
+            <CCButton variant="secondary" onClick={exportJson}>Export JSON</CCButton>
+            <CCButton variant="secondary" onClick={exportPdf} disabled={!preview}>Export PDF</CCButton>
             <CCButton onClick={exportNow}>Export CSV</CCButton>
           </div>
         </CCWidget>
+
+        {preview && (
+          <CCWidget
+            title={`Preview · ${preview.rows.length} rows`}
+            hint="Showing up to 100 rows. Export to get the full result."
+          >
+            {preview.rows.length === 0 ? (
+              <p className="text-sm text-[color:var(--cc-ink-500)] py-6 text-center">No rows match the filters.</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <CCTable>
+                  <CCThead>
+                    <CCTr>
+                      {preview.columns.map((c) => <CCTh key={c}>{c}</CCTh>)}
+                    </CCTr>
+                  </CCThead>
+                  <tbody>
+                    {preview.rows.slice(0, 100).map((r, i) => (
+                      <CCTr key={i}>
+                        {preview.columns.map((c) => (
+                          <CCTd key={c}>
+                            <span className="text-xs tabular-nums truncate block max-w-[280px]">
+                              {r[c] == null ? "—" : String(r[c])}
+                            </span>
+                          </CCTd>
+                        ))}
+                      </CCTr>
+                    ))}
+                  </tbody>
+                </CCTable>
+              </div>
+            )}
+          </CCWidget>
+        )}
 
         <CCWidget title="Recent exports">
           <ul className="divide-y divide-[color:var(--cc-ink-100)] text-sm">

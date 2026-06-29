@@ -6,10 +6,16 @@ import { useAuth } from "@/lib/auth";
 import { PageHeader } from "@/components/AppShell";
 import {
   qaTrend, addCoachingNote, openDispute, resolveDispute, acknowledgeReview,
+  assignRandomReviews, listScorecards,
 } from "@/lib/qa.functions";
+import { listStaff } from "@/lib/staff.functions";
 import {
   CCButton, CCStatusPill, CCFormSection, CCField, CCTextarea, CCWidget, CCSparkline, CCMetricWidget,
+  CCInput, CCSelect, CCFormGrid,
 } from "@/components/cc";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
+} from "@/components/ui/dialog";
 import { DUMMY_QA_REVIEWS, DUMMY_QA_DISPUTES, DUMMY_QA_POINTS } from "@/lib/dummy-data";
 
 export const Route = createFileRoute("/_authenticated/qa/reviews")({
@@ -20,6 +26,7 @@ function ReviewsPage() {
   const { user, atLeast } = useAuth();
   const qc = useQueryClient();
   const isLeader = atLeast("team_leader");
+  const [assignOpen, setAssignOpen] = useState(false);
 
   const trend = useQuery({
     queryKey: ["qa-trend", user?.id],
@@ -59,6 +66,7 @@ function ReviewsPage() {
       <PageHeader
         title="QA reviews"
         description={isLeader ? "Moderate team scores, coach, and resolve disputes." : "Your scored calls and feedback."}
+        actions={isLeader ? <CCButton onClick={() => setAssignOpen(true)}>Assign random reviews</CCButton> : null}
       />
       <div className="p-6 space-y-6">
         <div className="grid gap-4 sm:grid-cols-3">
@@ -96,8 +104,95 @@ function ReviewsPage() {
             </ul>
           </CCWidget>
         )}
+        {isLeader && (
+          <AssignRandomDialog
+            open={assignOpen}
+            onOpenChange={setAssignOpen}
+            onAssigned={() => qc.invalidateQueries({ queryKey: ["qa-reviews"] })}
+          />
+        )}
       </div>
     </>
+  );
+}
+
+function AssignRandomDialog({
+  open, onOpenChange, onAssigned,
+}: { open: boolean; onOpenChange: (b: boolean) => void; onAssigned: () => void }) {
+  const [reviewerId, setReviewerId] = useState("");
+  const [scorecardId, setScorecardId] = useState("");
+  const [count, setCount] = useState(5);
+  const [sinceDays, setSinceDays] = useState(7);
+  const [dueAt, setDueAt] = useState<string>(() => {
+    const d = new Date(); d.setDate(d.getDate() + 7); return d.toISOString().slice(0, 10);
+  });
+
+  const staff = useQuery({
+    enabled: open,
+    queryKey: ["qa-assign-staff"],
+    queryFn: () => listStaff(),
+  });
+  const cards = useQuery({
+    enabled: open,
+    queryKey: ["qa-assign-cards"],
+    queryFn: () => listScorecards(),
+  });
+
+  const assign = useMutation({
+    mutationFn: () => assignRandomReviews({
+      data: { reviewerId, scorecardId, count, sinceDays, dueAt: new Date(dueAt).toISOString() },
+    }),
+    onSuccess: () => { onAssigned(); onOpenChange(false); },
+  });
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Assign random reviews</DialogTitle>
+          <DialogDescription>Pick a reviewer and a scorecard. We'll sample completed calls at random.</DialogDescription>
+        </DialogHeader>
+        <CCFormGrid>
+        <CCField label="Reviewer">
+          <CCSelect value={reviewerId} onChange={(e) => setReviewerId(e.target.value)}>
+            <option value="">Select reviewer…</option>
+            {((staff.data as any)?.rows ?? []).map((s: any) => (
+              <option key={s.id} value={s.id}>{s.full_name ?? s.staff_id ?? s.id.slice(0, 6)}</option>
+            ))}
+          </CCSelect>
+        </CCField>
+        <CCField label="Scorecard">
+          <CCSelect value={scorecardId} onChange={(e) => setScorecardId(e.target.value)}>
+            <option value="">Select scorecard…</option>
+            {(cards.data ?? []).map((c: any) => (
+              <option key={c.id} value={c.id}>{c.name}</option>
+            ))}
+          </CCSelect>
+        </CCField>
+        <CCField label="How many calls">
+          <CCInput type="number" min={1} max={50} value={count} onChange={(e) => setCount(Number(e.target.value))} />
+        </CCField>
+        <CCField label="Look back (days)">
+          <CCInput type="number" min={1} max={90} value={sinceDays} onChange={(e) => setSinceDays(Number(e.target.value))} />
+        </CCField>
+        <CCField label="Due by">
+          <CCInput type="date" value={dueAt} onChange={(e) => setDueAt(e.target.value)} />
+        </CCField>
+        </CCFormGrid>
+        <div className="mt-4 flex justify-end gap-2">
+        <CCButton variant="ghost" onClick={() => onOpenChange(false)}>Cancel</CCButton>
+        <CCButton
+          onClick={() => assign.mutate()}
+          disabled={!reviewerId || !scorecardId || assign.isPending}
+        >
+          {assign.isPending ? "Assigning…" : "Assign"}
+        </CCButton>
+        </div>
+        {assign.isError && (
+        <p className="mt-2 text-xs text-[color:var(--cc-danger)]">{String((assign.error as any)?.message ?? "Failed to assign")}</p>
+        )}
+      </DialogContent>
+    </Dialog>
   );
 }
 
