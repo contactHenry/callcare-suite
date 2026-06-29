@@ -1243,6 +1243,65 @@ export type Database = {
           },
         ]
       }
+      client_export_requests: {
+        Row: {
+          client_ids: string[]
+          created_at: string
+          delivered_count: number | null
+          filter_snapshot: Json
+          id: string
+          organization_id: string | null
+          reason: string | null
+          requested_by: string
+          review_note: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          scope: string
+          state: string
+          updated_at: string
+        }
+        Insert: {
+          client_ids?: string[]
+          created_at?: string
+          delivered_count?: number | null
+          filter_snapshot?: Json
+          id?: string
+          organization_id?: string | null
+          reason?: string | null
+          requested_by: string
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          scope?: string
+          state?: string
+          updated_at?: string
+        }
+        Update: {
+          client_ids?: string[]
+          created_at?: string
+          delivered_count?: number | null
+          filter_snapshot?: Json
+          id?: string
+          organization_id?: string | null
+          reason?: string | null
+          requested_by?: string
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          scope?: string
+          state?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_export_requests_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       client_merges: {
         Row: {
           at: string
