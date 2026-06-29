@@ -4,7 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
 import {
   listClients, bulkAssign, exportClients, listAssignableAgents,
-  findDuplicates, mergeClients,
+  findDuplicates, mergeClients, requestClientExport,
 } from "@/lib/clients.functions";
 import { PageHeader } from "@/components/AppShell";
 import {
@@ -37,6 +37,7 @@ function ClientsPage() {
   const listFn = useServerFn(listClients);
   const bulkAssignFn = useServerFn(bulkAssign);
   const exportFn = useServerFn(exportClients);
+  const requestExportFn = useServerFn(requestClientExport);
   const agentsFn = useServerFn(listAssignableAgents);
 
   const [search, setSearch] = useState("");
@@ -48,6 +49,8 @@ function ClientsPage() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [showAssign, setShowAssign] = useState(false);
   const [showDupes, setShowDupes] = useState(false);
+  const [showExport, setShowExport] = useState(false);
+  const [exportReason, setExportReason] = useState("");
 
   const query = useQuery({
     queryKey: ["clients", { search, statusFilter, consent, dnc, sort, page }],
@@ -80,7 +83,7 @@ function ClientsPage() {
     setSelected(next);
   }
 
-  async function handleExport() {
+  async function handleDirectExport() {
     try {
       const ids = selected.size ? [...selected] : undefined;
       const res = await exportFn({ data: { ids } });
@@ -95,8 +98,24 @@ function ClientsPage() {
     }
   }
 
+  async function submitExportRequest() {
+    try {
+      const ids = selected.size ? [...selected] : undefined;
+      await requestExportFn({ data: {
+        scope: ids ? "selected" : "filtered",
+        ids,
+        filter: { search, statusFilter, consent, dnc },
+        reason: exportReason || undefined,
+      }});
+      toast.success("Export request submitted for approval");
+      setShowExport(false);
+      setExportReason("");
+    } catch (e: any) { toast.error(e?.message ?? "Request failed"); }
+  }
+
   const canImport = atLeast("team_leader");
   const canApprove = atLeast("supervisor");
+  const canExportDirect = atLeast("supervisor");
 
   return (
     <>
@@ -115,7 +134,11 @@ function ClientsPage() {
                 <CCButton variant="ghost"><Upload className="size-4 mr-1" />Import</CCButton>
               </Link>
             )}
-            <CCButton variant="ghost" onClick={handleExport}><Download className="size-4 mr-1" />Export</CCButton>
+            {canExportDirect ? (
+              <CCButton variant="ghost" onClick={handleDirectExport}><Download className="size-4 mr-1" />Export</CCButton>
+            ) : (
+              <CCButton variant="ghost" onClick={() => setShowExport(true)}><Download className="size-4 mr-1" />Request export</CCButton>
+            )}
             <CCButton variant="ghost" onClick={() => setShowDupes(true)}><GitMerge className="size-4 mr-1" />Duplicates</CCButton>
           </div>
         }
@@ -250,6 +273,26 @@ function ClientsPage() {
         }}
       />
       <DuplicatesDialog open={showDupes} onClose={() => setShowDupes(false)} />
+      <Dialog open={showExport} onOpenChange={(v) => !v && setShowExport(false)}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Request client export</DialogTitle></DialogHeader>
+          <div className="space-y-3">
+            <p className="text-sm text-[color:var(--cc-ink-500)]">
+              Exports must be approved by a supervisor. {selected.size > 0
+                ? `${selected.size} selected client${selected.size === 1 ? "" : "s"} will be included.`
+                : "Your current filters will be saved with the request."}
+            </p>
+            <CCField label="Reason (optional)">
+              <CCInput placeholder="Why is this export needed?" value={exportReason}
+                onChange={(e) => setExportReason(e.target.value)} />
+            </CCField>
+            <div className="flex justify-end gap-2">
+              <CCButton variant="ghost" onClick={() => setShowExport(false)}>Cancel</CCButton>
+              <CCButton onClick={submitExportRequest}>Submit request</CCButton>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
