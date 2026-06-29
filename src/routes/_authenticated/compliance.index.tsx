@@ -150,3 +150,113 @@ function NewDsarDialog({ onClose }: { onClose: () => void }) {
     </div>
   );
 }
+
+function HubLink({ to, label, hint }: { to: string; label: string; hint: string }) {
+  return (
+    <Link
+      to={to}
+      className="block rounded-xl border border-[color:var(--cc-ink-200)] bg-white p-4 hover:border-[color:var(--cc-brand-600)] hover:shadow-sm transition"
+    >
+      <div className="text-sm font-semibold text-[color:var(--cc-ink-900)]">{label}</div>
+      <div className="text-xs text-[color:var(--cc-ink-500)] mt-1">{hint}</div>
+    </Link>
+  );
+}
+
+const DAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+function OrgComplianceCard() {
+  const getFn = useServerFn(getOrgCompliance);
+  const updateFn = useServerFn(updateOrgCompliance);
+  const qc = useQueryClient();
+  const { data } = useQuery({ queryKey: ["org-compliance"], queryFn: () => getFn() });
+  const org = (data as any)?.org;
+
+  const [region, setRegion] = useState("");
+  const [recRet, setRecRet] = useState(365);
+  const [recordRet, setRecordRet] = useState(2555);
+  const [auditRet, setAuditRet] = useState(2555);
+  const [start, setStart] = useState("09:00");
+  const [end, setEnd] = useState("20:00");
+  const [tz, setTz] = useState("UTC");
+  const [days, setDays] = useState<number[]>([1, 2, 3, 4, 5]);
+
+  useEffect(() => {
+    if (!org) return;
+    setRegion(org.region ?? "");
+    setRecRet(org.recording_retention_days ?? 365);
+    setRecordRet(org.record_retention_days ?? 2555);
+    setAuditRet(org.audit_retention_days ?? 2555);
+    setStart((org.contact_hours_start ?? "09:00:00").slice(0, 5));
+    setEnd((org.contact_hours_end ?? "20:00:00").slice(0, 5));
+    setTz(org.contact_hours_timezone ?? "UTC");
+    setDays(org.contact_days ?? [1, 2, 3, 4, 5]);
+  }, [org]);
+
+  const save = useMutation({
+    mutationFn: () => updateFn({ data: {
+      region: region || undefined,
+      recordingRetentionDays: recRet,
+      recordRetentionDays: recordRet,
+      auditRetentionDays: auditRet,
+      contactHoursStart: start,
+      contactHoursEnd: end,
+      contactHoursTimezone: tz,
+      contactDays: days,
+    } }),
+    onSuccess: () => {
+      toast.success("Compliance settings saved");
+      qc.invalidateQueries({ queryKey: ["org-compliance"] });
+    },
+    onError: (e: any) => toast.error(e?.message ?? "Failed to save"),
+  });
+
+  return (
+    <CCWidget title="Organisation compliance settings" hint="Retention windows and contact-hour restrictions apply across this organisation.">
+      <div className="grid gap-4 lg:grid-cols-2">
+        <CCFormGrid>
+          <CCField label="Region / jurisdiction" hint="e.g. EU, UK, US-CA">
+            <CCInput value={region} onChange={(e) => setRegion(e.target.value)} placeholder="EU" />
+          </CCField>
+          <CCField label="Timezone">
+            <CCInput value={tz} onChange={(e) => setTz(e.target.value)} placeholder="Europe/London" />
+          </CCField>
+          <CCField label="Recording retention (days)">
+            <CCInput type="number" min={1} value={recRet} onChange={(e) => setRecRet(Number(e.target.value))} />
+          </CCField>
+          <CCField label="Client record retention (days)">
+            <CCInput type="number" min={1} value={recordRet} onChange={(e) => setRecordRet(Number(e.target.value))} />
+          </CCField>
+          <CCField label="Audit log retention (days)">
+            <CCInput type="number" min={30} value={auditRet} onChange={(e) => setAuditRet(Number(e.target.value))} />
+          </CCField>
+        </CCFormGrid>
+        <div className="space-y-3">
+          <div className="grid grid-cols-2 gap-3">
+            <CCField label="Contact hours start"><CCInput type="time" value={start} onChange={(e) => setStart(e.target.value)} /></CCField>
+            <CCField label="Contact hours end"><CCInput type="time" value={end} onChange={(e) => setEnd(e.target.value)} /></CCField>
+          </div>
+          <CCField label="Allowed contact days">
+            <div className="flex flex-wrap gap-2">
+              {DAY_LABELS.map((d, i) => {
+                const on = days.includes(i);
+                return (
+                  <button
+                    key={d}
+                    type="button"
+                    onClick={() => setDays((prev) => prev.includes(i) ? prev.filter((x) => x !== i) : [...prev, i].sort())}
+                    className={`px-3 py-1.5 rounded-full text-xs border transition ${on ? "bg-[color:var(--cc-brand-600)] text-white border-[color:var(--cc-brand-600)]" : "bg-white text-[color:var(--cc-ink-700)] border-[color:var(--cc-ink-200)]"}`}
+                  >{d}</button>
+                );
+              })}
+            </div>
+          </CCField>
+          <p className="text-xs text-[color:var(--cc-ink-500)]">Outbound calls outside these hours/days are blocked at the dialer and flagged in the audit log.</p>
+        </div>
+      </div>
+      <div className="flex justify-end mt-4">
+        <CCButton onClick={() => save.mutate()} disabled={save.isPending}>{save.isPending ? "Saving…" : "Save settings"}</CCButton>
+      </div>
+    </CCWidget>
+  );
+}
