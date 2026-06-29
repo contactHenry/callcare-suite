@@ -1,9 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { PageHeader } from "@/components/AppShell";
-import { CCButton, CCStatusPill, CCWidget } from "@/components/cc";
+import { CCButton, CCStatusPill, CCWidget, CCCheckbox } from "@/components/cc";
 import { DUMMY_NOTIFICATIONS } from "@/lib/dummy-data";
 
 export const Route = createFileRoute("/_authenticated/notifications/")({
@@ -13,6 +14,7 @@ export const Route = createFileRoute("/_authenticated/notifications/")({
 function NotificationsPage() {
   const { user } = useAuth();
   const qc = useQueryClient();
+  const [showPrefs, setShowPrefs] = useState(false);
 
   const list = useQuery({
     queryKey: ["notifications", user?.id],
@@ -58,14 +60,20 @@ function NotificationsPage() {
         title="Notifications"
         description="Alerts for assignments, complaints, missed follow-ups, compliance flags, and more."
         actions={
-          unreadCount > 0 ? (
-            <CCButton size="sm" variant="secondary" onClick={() => markAll.mutate()}>
-              Mark all read ({unreadCount})
+          <div className="flex gap-2">
+            <CCButton size="sm" variant="ghost" onClick={() => setShowPrefs((v) => !v)}>
+              {showPrefs ? "Hide preferences" : "Channel preferences"}
             </CCButton>
-          ) : null
+            {unreadCount > 0 && (
+              <CCButton size="sm" variant="secondary" onClick={() => markAll.mutate()}>
+                Mark all read ({unreadCount})
+              </CCButton>
+            )}
+          </div>
         }
       />
       <div className="p-6 space-y-4">
+        {showPrefs && <ChannelPreferences />}
         <CCWidget title={`Inbox · ${items.length}`}>
           <ul className="divide-y divide-[color:var(--cc-ink-100)]">
             {items.map((n) => {
