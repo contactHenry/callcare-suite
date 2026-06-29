@@ -21,7 +21,11 @@ const METHOD = z.enum(["phone","email","sms","whatsapp","no_contact"]);
 const CONSENT = z.enum(["unknown","granted","revoked"]);
 
 const SENSITIVE_FIELDS = ["dob","address_line1","address_line2","address_city","address_region","address_postcode","address_country"] as const;
-const APPROVAL_FIELDS  = new Set(["phone","alt_phone","email","dob"]);
+const APPROVAL_FIELDS  = new Set([
+  "phone","alt_phone","email","dob",
+  // Compliance-critical: PRD 5.3 requires approval for consent + DNC toggles.
+  "consent_status","do_not_call",
+]);
 
 function redactSensitive<T extends Record<string, any>>(row: T): T {
   const out: any = { ...row };
