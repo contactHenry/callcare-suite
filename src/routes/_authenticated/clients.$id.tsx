@@ -18,7 +18,8 @@ import {
 } from "@/lib/contact-methods.functions";
 import { listConsents, recordConsent } from "@/lib/consents.functions";
 import { placeOutboundCall } from "@/lib/calls.functions";
-import { CallControlBar, RecordingConsentBanner, type CallSession } from "@/components/CallControlBar";
+import { RecordingConsentBanner, type CallSession } from "@/components/CallControlBar";
+import { setActiveCall, useActiveCall } from "@/lib/call-session";
 import { getTelephonySettings } from "@/lib/calls.functions";
 import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -65,15 +66,16 @@ function ClientDetail() {
   const q = useQuery({ queryKey: ["client", id], queryFn: () => getFn({ data: { id } }) });
   const agents = useQuery({ queryKey: ["assignable-agents"], queryFn: () => agentsFn() });
 
-  // Live call state for click-to-call from this profile
-  const [session, setSession] = useState<CallSession | null>(null);
+  // Click-to-call pushes into the global call-session store so the
+  // persistent in-call bar (rendered in AppShell) survives navigation.
+  const session = useActiveCall();
   const [telSettings, setTelSettings] = useState<any>(null);
   useEffect(() => { (async () => { try { setTelSettings(await getTelephonySettings()); } catch {} })(); }, []);
 
   async function startCall(toNumber: string) {
     try {
       const r = await placeOutboundCall({ data: { contactId: id, toNumber } });
-      setSession({
+      const newSession: CallSession = {
         callId: r.callId,
         toNumber,
         contactName: q.data?.client?.name,
@@ -82,7 +84,8 @@ function ClientDetail() {
         recording: telSettings?.recording_enabled ?? true,
         consentNotice: telSettings?.recording_consent_notice ?? null,
         voicemailDropEnabled: telSettings?.voicemail_drop_enabled ?? false,
-      });
+      };
+      setActiveCall(newSession);
     } catch (e: any) { toast.error(e?.message ?? "Could not place call"); }
   }
 
@@ -112,9 +115,6 @@ function ClientDetail() {
       <div className="px-6 py-6 grid gap-6 lg:grid-cols-[1fr_2fr]">
         {/* LEFT: profile summary + quick actions */}
         <div className="space-y-4">
-          {session && (
-            <CallControlBar session={session} onEnded={() => setSession(null)} />
-          )}
           {!session && telSettings?.recording_consent_required && (
             <RecordingConsentBanner
               notice={telSettings?.recording_consent_notice}
