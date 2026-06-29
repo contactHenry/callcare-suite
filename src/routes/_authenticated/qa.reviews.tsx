@@ -11,8 +11,11 @@ import {
 import { listStaff } from "@/lib/staff.functions";
 import {
   CCButton, CCStatusPill, CCFormSection, CCField, CCTextarea, CCWidget, CCSparkline, CCMetricWidget,
-  CCDialog, CCInput, CCSelect, CCFormGrid,
+  CCInput, CCSelect, CCFormGrid,
 } from "@/components/cc";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
+} from "@/components/ui/dialog";
 import { DUMMY_QA_REVIEWS, DUMMY_QA_DISPUTES, DUMMY_QA_POINTS } from "@/lib/dummy-data";
 
 export const Route = createFileRoute("/_authenticated/qa/reviews")({
@@ -143,12 +146,17 @@ function AssignRandomDialog({
   });
 
   return (
-    <CCDialog open={open} onOpenChange={onOpenChange} title="Assign random reviews" description="Pick a reviewer and a scorecard. We'll sample completed calls at random.">
-      <CCFormGrid>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Assign random reviews</DialogTitle>
+          <DialogDescription>Pick a reviewer and a scorecard. We'll sample completed calls at random.</DialogDescription>
+        </DialogHeader>
+        <CCFormGrid>
         <CCField label="Reviewer">
           <CCSelect value={reviewerId} onChange={(e) => setReviewerId(e.target.value)}>
             <option value="">Select reviewer…</option>
-            {(staff.data ?? []).map((s: any) => (
+            {((staff.data as any)?.rows ?? []).map((s: any) => (
               <option key={s.id} value={s.id}>{s.full_name ?? s.staff_id ?? s.id.slice(0, 6)}</option>
             ))}
           </CCSelect>
@@ -170,8 +178,8 @@ function AssignRandomDialog({
         <CCField label="Due by">
           <CCInput type="date" value={dueAt} onChange={(e) => setDueAt(e.target.value)} />
         </CCField>
-      </CCFormGrid>
-      <div className="mt-4 flex justify-end gap-2">
+        </CCFormGrid>
+        <div className="mt-4 flex justify-end gap-2">
         <CCButton variant="ghost" onClick={() => onOpenChange(false)}>Cancel</CCButton>
         <CCButton
           onClick={() => assign.mutate()}
@@ -179,11 +187,12 @@ function AssignRandomDialog({
         >
           {assign.isPending ? "Assigning…" : "Assign"}
         </CCButton>
-      </div>
-      {assign.isError && (
+        </div>
+        {assign.isError && (
         <p className="mt-2 text-xs text-[color:var(--cc-danger)]">{String((assign.error as any)?.message ?? "Failed to assign")}</p>
-      )}
-    </CCDialog>
+        )}
+      </DialogContent>
+    </Dialog>
   );
 }
 
