@@ -4,14 +4,17 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
   Sparkles, UsersRound, PhoneCall, ClipboardCheck, LayoutDashboard, LogOut,
-  SlidersHorizontal, UserRoundCog, ShieldCheck, ScrollText, ContactRound,
+  UserRoundCog, ShieldCheck, ScrollText, ContactRound,
   AudioLines, Radio, Settings2, ListChecks, BookOpenText, Gauge, LineChart,
-  Bell, AlertOctagon, CalendarClock, Megaphone, FileBarChart2, Plug, FileCheck2, KeyRound,
+  Bell, AlertOctagon, FileBarChart2, Plug, KeyRound,
+  Users as UsersIcon, Target, CalendarCheck2, Cog, ChevronDown,
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
+import { useAvailability, PRESENCE_LABEL, PRESENCE_COLOR, type Presence } from "@/hooks/use-availability";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 const ROLE_LABEL: Record<string, string> = {
   agent: "Agent",
@@ -29,69 +32,67 @@ export function AppShell({ children }: { children: ReactNode }) {
   // Highest-ranked role label (e.g. shows "Super Admin", not "Agent")
   const ROLE_RANK = ["super_admin", "ops_admin", "supervisor", "team_leader", "agent"];
   const topRole = ROLE_RANK.find((r) => roles.includes(r as any)) ?? "agent";
+  void isManager;
 
-  // Grouped, playful icon set — rounded lucide variants + section labels for
-  // a clearer information hierarchy than one long flat list.
-  const sections: { label: string; items: { to: string; label: string; icon: typeof PhoneCall; show: boolean }[] }[] = [
+  // PRD Section 21 navigation — exact item order, grouped into four logical
+  // sections. Items the current role cannot access are hidden (not disabled)
+  // so we never advertise functionality a role shouldn't know exists.
+  const sections: {
+    label: string;
+    items: { to: string; label: string; icon: typeof PhoneCall; show: boolean }[];
+  }[] = [
     {
-      label: "Workspace",
+      label: "Operations",
       items: [
         { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard, show: true },
-        { to: "/tasks", label: "Tasks", icon: ListChecks, show: true },
-        { to: "/announcements", label: "Announcements", icon: Megaphone, show: true },
-        { to: "/attendance", label: "Attendance", icon: CalendarClock, show: true },
-        { to: "/security/mfa", label: "Two-factor auth", icon: ShieldCheck, show: true },
-      ],
-    },
-    {
-      label: "Calling",
-      items: [
+        { to: "/clients", label: "Clients", icon: ContactRound, show: true },
         { to: "/calls", label: "Calls", icon: PhoneCall, show: true },
-        { to: "/recordings", label: "Recordings", icon: AudioLines, show: true },
-        { to: "/monitoring", label: "Live floor", icon: Radio, show: atLeast("team_leader") },
-        { to: "/scripts", label: "Scripts", icon: BookOpenText, show: true },
+        { to: "/monitoring", label: "Live Calls", icon: Radio, show: atLeast("team_leader") },
+        { to: "/recordings", label: "Call Recordings", icon: AudioLines, show: atLeast("team_leader") },
+        { to: "/follow-ups", label: "Follow-Ups", icon: CalendarCheck2, show: true },
+        { to: "/tasks", label: "Tasks", icon: ListChecks, show: true },
+        { to: "/campaigns", label: "Campaigns", icon: Target, show: atLeast("supervisor") },
+        { to: "/scripts", label: "Call Scripts", icon: BookOpenText, show: true },
       ],
     },
     {
       label: "People",
       items: [
-        { to: "/clients", label: "Clients", icon: ContactRound, show: true },
-        { to: "/contacts", label: "Contacts", icon: UsersRound, show: true },
+        { to: "/teams", label: "Teams", icon: UsersIcon, show: atLeast("team_leader") },
+        { to: "/staff", label: "Staff", icon: UserRoundCog, show: atLeast("ops_admin") },
+        { to: "/qa/reviews", label: "Quality Assurance", icon: ClipboardCheck, show: atLeast("team_leader") },
         { to: "/complaints", label: "Complaints", icon: AlertOctagon, show: true },
       ],
     },
     {
-      label: "Quality",
+      label: "Insights",
       items: [
-        { to: "/qa/reviews", label: "QA reviews", icon: ClipboardCheck, show: true },
-        { to: "/qa/scorecards", label: "Scorecards", icon: Gauge, show: atLeast("supervisor") },
-        { to: "/qa/dashboard", label: "QA trends", icon: LineChart, show: isManager },
-        { to: "/qa/criteria", label: "Legacy criteria", icon: SlidersHorizontal, show: isManager },
+        { to: "/reports", label: "Reports", icon: FileBarChart2, show: true },
+        { to: "/notifications", label: "Notifications", icon: Bell, show: true },
       ],
     },
     {
-      label: "Administration",
+      label: "Admin",
       items: [
-        { to: "/reports", label: "Reports", icon: FileBarChart2, show: atLeast("team_leader") },
-        { to: "/compliance", label: "Compliance", icon: FileCheck2, show: atLeast("team_leader") },
-        { to: "/integrations", label: "Integrations", icon: Plug, show: atLeast("supervisor") },
-        { to: "/staff", label: "Staff", icon: UserRoundCog, show: atLeast("ops_admin") },
-        { to: "/telephony/settings", label: "Telephony", icon: Settings2, show: atLeast("ops_admin") },
-        { to: "/security/audit", label: "Audit log", icon: ScrollText, show: atLeast("ops_admin") },
-        { to: "/admin/roles", label: "Roles & access", icon: KeyRound, show: atLeast("ops_admin") },
-        { to: "/admin/permissions", label: "Permissions", icon: ShieldCheck, show: atLeast("super_admin") },
+        { to: "/security/audit", label: "Audit Logs", icon: ScrollText, show: atLeast("ops_admin") },
+        { to: "/integrations", label: "Integrations", icon: Plug, show: atLeast("ops_admin") },
+        { to: "/settings", label: "Settings", icon: Cog, show: true },
       ],
     },
   ].map((s) => ({ ...s, items: s.items.filter((i) => i.show) })).filter((s) => s.items.length > 0);
+  // Keep references to icons used elsewhere in the module so tree-shakers don't
+  // complain in dev builds. (No runtime cost.)
+  void UsersRound; void Settings2; void Gauge; void LineChart; void ShieldCheck; void KeyRound;
 
   return (
     <div className="min-h-screen flex bg-muted/20">
-      <aside className="w-64 border-r bg-background hidden md:flex flex-col">
+      {/* Sidebar — full labels at lg+, icon-only rail at md, hidden on mobile. */}
+      <aside className="border-r bg-background hidden md:flex flex-col md:w-16 lg:w-64 transition-[width]">
         <div className="h-16 flex items-center gap-3 px-5 border-b">
           <div className="size-9 rounded-xl bg-gradient-to-br from-[color:var(--cc-brand-600)] to-[color:var(--cc-brand)] text-white flex items-center justify-center shadow-sm">
             <Sparkles className="size-[18px]" strokeWidth={2.25} />
           </div>
-          <div className="min-w-0">
+          <div className="min-w-0 hidden lg:block">
             <div className="text-sm font-semibold leading-none tracking-tight">Call Centre</div>
             <div className="mt-1 text-[10px] uppercase tracking-[0.12em] text-muted-foreground">Operations</div>
           </div>
@@ -99,9 +100,10 @@ export function AppShell({ children }: { children: ReactNode }) {
         <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-5">
           {sections.map((section) => (
             <div key={section.label} className="space-y-1">
-              <div className="px-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground/80">
+              <div className="px-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground/80 hidden lg:block">
                 {section.label}
               </div>
+              <div className="lg:hidden h-px bg-border mx-2" aria-hidden />
               <div className="space-y-0.5">
                 {section.items.map((n) => {
                   const active = pathname === n.to || pathname.startsWith(n.to + "/");
@@ -110,8 +112,9 @@ export function AppShell({ children }: { children: ReactNode }) {
                     <Link
                       key={n.to}
                       to={n.to}
+                      title={n.label}
                       className={cn(
-                        "group flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors",
+                        "group flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors justify-center lg:justify-start",
                         active
                           ? "bg-[color:var(--cc-brand-600)]/10 text-[color:var(--cc-brand-700,var(--cc-brand-600))] font-medium"
                           : "text-muted-foreground hover:bg-accent/60 hover:text-foreground",
@@ -121,7 +124,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                         className={cn("size-[18px] shrink-0 transition-colors", active ? "text-[color:var(--cc-brand-600)]" : "text-muted-foreground group-hover:text-foreground")}
                         strokeWidth={active ? 2.25 : 1.85}
                       />
-                      <span className="truncate">{n.label}</span>
+                      <span className="truncate hidden lg:inline">{n.label}</span>
                     </Link>
                   );
                 })}
@@ -129,30 +132,75 @@ export function AppShell({ children }: { children: ReactNode }) {
             </div>
           ))}
         </nav>
-        <div className="p-4 border-t space-y-3">
-          <div className="space-y-1">
-            <div className="text-xs font-medium text-foreground truncate">{user?.email}</div>
-            <span className="inline-flex items-center rounded-full bg-[color:var(--cc-brand-600)]/10 text-[color:var(--cc-brand-700,var(--cc-brand-600))] px-2 py-0.5 text-[11px] font-medium">
-              {ROLE_LABEL[topRole] ?? "Agent"}
-            </span>
-          </div>
-          <Button
-            variant="outline"
-            size="sm"
-            className="w-full justify-center"
-            onClick={async () => {
-              await signOut();
-              navigate({ to: "/auth" });
-            }}
-          >
-            <LogOut className="size-4 mr-2" /> Sign out
-          </Button>
-        </div>
+        <ProfileFooter
+          email={user?.email ?? ""}
+          userId={user?.id}
+          roleLabel={ROLE_LABEL[topRole] ?? "Agent"}
+          onSignOut={async () => { await signOut(); navigate({ to: "/auth" }); }}
+        />
       </aside>
       <main className="flex-1 min-w-0">
         <NotificationsBell />
         {children}
       </main>
+    </div>
+  );
+}
+
+function ProfileFooter({ email, userId, roleLabel, onSignOut }: {
+  email: string; userId: string | undefined; roleLabel: string; onSignOut: () => void;
+}) {
+  const { status, update } = useAvailability(userId);
+  const options: Presence[] = ["available", "on_call", "acw", "break", "training", "meeting", "offline"];
+  return (
+    <div className="p-3 border-t space-y-2">
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <button className="w-full flex items-center gap-2 rounded-lg p-2 hover:bg-accent/60 transition-colors text-left">
+            <span className="relative inline-flex">
+              <span className={cn("size-8 rounded-full bg-gradient-to-br from-[color:var(--cc-brand-600)] to-[color:var(--cc-brand)] text-white text-xs font-semibold flex items-center justify-center")}>
+                {(email?.[0] ?? "?").toUpperCase()}
+              </span>
+              <span className={cn("absolute -bottom-0.5 -right-0.5 size-3 rounded-full ring-2 ring-background", PRESENCE_COLOR[status])} aria-hidden />
+            </span>
+            <div className="min-w-0 flex-1 hidden lg:block">
+              <div className="text-xs font-medium truncate">{email}</div>
+              <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                <span className={cn("size-1.5 rounded-full", PRESENCE_COLOR[status])} aria-hidden />
+                <span className="truncate">{PRESENCE_LABEL[status]}</span>
+              </div>
+            </div>
+            <ChevronDown className="size-3.5 text-muted-foreground shrink-0 hidden lg:block" />
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" side="top" className="w-56">
+          <DropdownMenuLabel className="flex items-center justify-between">
+            <span>Availability</span>
+            <span className="text-[10px] uppercase tracking-wider text-muted-foreground">{roleLabel}</span>
+          </DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          {options.map((o) => (
+            <DropdownMenuItem key={o} onSelect={() => update(o)} className="gap-2">
+              <span className={cn("size-2 rounded-full", PRESENCE_COLOR[o])} aria-hidden />
+              <span>{PRESENCE_LABEL[o]}</span>
+              {o === status && <span className="ml-auto text-[10px] text-muted-foreground">current</span>}
+            </DropdownMenuItem>
+          ))}
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onSelect={onSignOut} className="gap-2 text-rose-600 focus:text-rose-700">
+            <LogOut className="size-4" /> Sign out
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+      <Button
+        variant="outline"
+        size="sm"
+        className="w-full justify-center lg:hidden"
+        onClick={onSignOut}
+        aria-label="Sign out"
+      >
+        <LogOut className="size-4" />
+      </Button>
     </div>
   );
 }
