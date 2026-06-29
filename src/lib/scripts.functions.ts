@@ -144,3 +144,40 @@ export const acknowledgeScript = createServerFn({ method: "POST" })
     if (error) throw new Response(error.message, { status: 500 });
     return { ok: true };
   });
+
+/**
+ * Fetches the currently-approved script for a campaign (used by the
+ * in-call live-script panel). Returns null if no approved script exists.
+ */
+export const getActiveCampaignScript = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { campaignId?: string | null } | undefined) =>
+    z.object({ campaignId: z.string().uuid().nullish() }).parse(d ?? {}),
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    let q = supabase.from("call_scripts").select("id, name, current_version_id");
+    if (data.campaignId) q = q.eq("campaign_id", data.campaignId);
+    else q = q.is("campaign_id", null);
+    const { data: scripts } = await q.limit(1);
+    const script = scripts?.[0];
+    if (!script?.current_version_id) return null;
+    const { data: version } = await supabase
+      .from("call_script_versions")
+      .select("id, version, status, tree, approved_at")
+      .eq("id", script.current_version_id)
+      .maybeSingle();
+    if (!version || version.status !== "approved") return null;
+    const { data: ack } = await supabase
+      .from("script_acknowledgements")
+      .select("acknowledged_at")
+      .eq("version_id", version.id)
+      .eq("user_id", userId)
+      .maybeSingle();
+    return {
+      scriptId: script.id,
+      name: script.name,
+      version,
+      acknowledged: !!ack,
+    };
+  });
