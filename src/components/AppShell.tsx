@@ -48,7 +48,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard, show: true },
         { to: "/clients", label: "Clients", icon: ContactRound, show: true },
         { to: "/calls", label: "Calls", icon: PhoneCall, show: true },
-        { to: "/monitoring", label: "Live Calls", icon: Radio, show: atLeast("team_leader") },
+        { to: "/live-calls", label: "Live Calls", icon: Radio, show: atLeast("team_leader") },
         { to: "/recordings", label: "Call Recordings", icon: AudioLines, show: atLeast("team_leader") },
         { to: "/follow-ups", label: "Follow-Ups", icon: CalendarCheck2, show: true },
         { to: "/tasks", label: "Tasks", icon: ListChecks, show: true },
