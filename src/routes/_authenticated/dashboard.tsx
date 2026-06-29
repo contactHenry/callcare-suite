@@ -59,6 +59,13 @@ function AgentDashboard() {
     queryFn: () => upcomingFollowUps({ data: { windowMinutes: 240 } }),
   });
 
+  // Daily task list — the agent's home base between calls.
+  const myTasks = useQuery({
+    enabled: !!userId,
+    queryKey: ["agent-my-tasks", userId],
+    queryFn: () => listTasks({ data: { scope: "mine", overdueOnly: false, limit: 25 } }),
+  });
+
   const points = (trend.data ?? []).map((p: any) => p.score);
   const trendPoints = points.length ? points : DUMMY_QA_POINTS;
   const avg = trendPoints.reduce((a: number, b: number) => a + b, 0) / trendPoints.length;
@@ -98,8 +105,73 @@ function AgentDashboard() {
               ))}
             </ul>
         </CCWidget>
+
+        <CCWidget
+          title="Today's tasks"
+          footer={<Link to="/tasks" className="underline">Open task board</Link>}
+        >
+          <DailyTaskList tasks={(myTasks.data && myTasks.data.length > 0) ? myTasks.data : DUMMY_TASKS} />
+        </CCWidget>
       </div>
     </>
+  );
+}
+
+function DailyTaskList({ tasks }: { tasks: any[] }) {
+  const now = Date.now();
+  const buckets = {
+    overdue: tasks.filter((t) => t.status !== "completed" && t.due_at && new Date(t.due_at).getTime() < now),
+    today: tasks.filter((t) => {
+      if (t.status === "completed" || !t.due_at) return false;
+      const d = new Date(t.due_at); const today = new Date();
+      return d.toDateString() === today.toDateString() && d.getTime() >= now;
+    }),
+    later: tasks.filter((t) => {
+      if (t.status === "completed" || !t.due_at) return false;
+      const d = new Date(t.due_at); const today = new Date();
+      return d.toDateString() !== today.toDateString() && d.getTime() >= now;
+    }),
+  };
+  const Section = ({ label, items, tone }: { label: string; items: any[]; tone: any }) =>
+    items.length === 0 ? null : (
+      <div className="py-2">
+        <div className="flex items-center gap-2 px-1 pb-1">
+          <CCStatusPill tone={tone}>{label}</CCStatusPill>
+          <span className="text-xs text-[color:var(--cc-ink-500)]">{items.length}</span>
+        </div>
+        <ul className="divide-y divide-[color:var(--cc-ink-100)]">
+          {items.slice(0, 6).map((t) => (
+            <li key={t.id} className="py-2.5 flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <div className="text-sm font-medium truncate">{t.title}</div>
+                <div className="text-xs text-[color:var(--cc-ink-500)] truncate">
+                  {t.client?.name ?? t.kind ?? "task"}
+                </div>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <CCStatusPill tone={t.priority === "urgent" || t.priority === "high" ? "danger" : t.priority === "medium" ? "warning" : "neutral"}>
+                  {t.priority ?? "normal"}
+                </CCStatusPill>
+                {t.due_at && (
+                  <span className="text-xs text-[color:var(--cc-ink-700)] tabular-nums">
+                    {new Date(t.due_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                  </span>
+                )}
+              </div>
+            </li>
+          ))}
+        </ul>
+      </div>
+    );
+  if (!tasks.length) {
+    return <div className="text-xs text-[color:var(--cc-ink-500)] py-4 text-center">All clear — no tasks for today.</div>;
+  }
+  return (
+    <div>
+      <Section label="Overdue" items={buckets.overdue} tone="danger" />
+      <Section label="Today" items={buckets.today} tone="info" />
+      <Section label="Later this week" items={buckets.later} tone="neutral" />
+    </div>
   );
 }
 
