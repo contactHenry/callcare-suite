@@ -27,6 +27,8 @@ export type CallSession = {
   recording: boolean;
   consentNotice?: string | null;
   voicemailDropEnabled?: boolean;
+  /** Campaign powering this call — used to load the active script. */
+  campaignId?: string | null;
 };
 
 function fmt(s: number) {

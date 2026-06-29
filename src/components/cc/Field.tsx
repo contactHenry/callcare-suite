@@ -72,8 +72,14 @@ export function CCThead({ children }: { children: React.ReactNode }) {
 export function CCTh({ children, className }: { children?: React.ReactNode; className?: string }) {
   return <th className={cn("px-4 py-3 font-medium", className)}>{children}</th>;
 }
-export function CCTd({ children, className }: { children?: React.ReactNode; className?: string }) {
-  return <td className={cn("px-4 py-3 align-middle", className)}>{children}</td>;
+export function CCTd({
+  children, className, onClick, colSpan,
+}: {
+  children?: React.ReactNode; className?: string;
+  onClick?: React.MouseEventHandler<HTMLTableCellElement>;
+  colSpan?: number;
+}) {
+  return <td onClick={onClick} colSpan={colSpan} className={cn("px-4 py-3 align-middle", className)}>{children}</td>;
 }
 export function CCTr({ children, className, onClick }: { children: React.ReactNode; className?: string; onClick?: () => void }) {
   return (

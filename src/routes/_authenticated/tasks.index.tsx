@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { PageHeader } from "@/components/AppShell";
 import { useAuth } from "@/lib/auth";
 import {
-  listTasks, createTask, updateTaskStatus, addTaskComment,
+  listTasks, createTask, updateTaskStatus, addTaskComment, getTaskDetail,
 } from "@/lib/workflow.functions";
 import {
   CCButton, CCFormSection, CCFormGrid, CCField, CCInput, CCTextarea, CCSelect,
@@ -21,6 +21,7 @@ function TasksPage() {
   const qc = useQueryClient();
   const [scope, setScope] = useState<"mine" | "team" | "all">("mine");
   const [overdueOnly, setOverdueOnly] = useState(false);
+  const [openTaskId, setOpenTaskId] = useState<string | null>(null);
 
   const tasks = useQuery({
     queryKey: ["tasks", scope, overdueOnly],
@@ -78,7 +79,12 @@ function TasksPage() {
             </CCThead>
             <tbody>
               {rows.map((t: any) => (
-                <TaskRow key={t.id} task={t} onChange={() => qc.invalidateQueries({ queryKey: ["tasks"] })} />
+                <TaskRow
+                  key={t.id}
+                  task={t}
+                  onOpen={() => setOpenTaskId(t.id)}
+                  onChange={() => qc.invalidateQueries({ queryKey: ["tasks"] })}
+                />
               ))}
             </tbody>
           </CCTable>
@@ -86,11 +92,12 @@ function TasksPage() {
       </div>
 
       {openNew && <NewTaskDialog onClose={() => setOpenNew(false)} />}
+      {openTaskId && <TaskDetailDialog id={openTaskId} onClose={() => setOpenTaskId(null)} />}
     </>
   );
 }
 
-function TaskRow({ task, onChange }: { task: any; onChange: () => void }) {
+function TaskRow({ task, onChange, onOpen }: { task: any; onChange: () => void; onOpen: () => void }) {
   const overdue = task.due_at && new Date(task.due_at) < new Date() && task.status !== "completed";
   const tone: any = task.priority === "urgent" || task.priority === "high"
     ? "danger" : task.priority === "low" ? "neutral" : "info";
@@ -103,7 +110,7 @@ function TaskRow({ task, onChange }: { task: any; onChange: () => void }) {
     onSuccess: onChange,
   });
   return (
-    <CCTr>
+    <CCTr className="cursor-pointer" onClick={onOpen}>
       <CCTd>
         <div className="font-medium text-[color:var(--cc-ink-900)]">{task.title}</div>
         {task.description && <div className="text-xs text-[color:var(--cc-ink-500)] line-clamp-1">{task.description}</div>}
@@ -118,7 +125,7 @@ function TaskRow({ task, onChange }: { task: any; onChange: () => void }) {
           {overdue && task.status !== "completed" ? "overdue" : task.status.replace("_", " ")}
         </CCStatusPill>
       </CCTd>
-      <CCTd className="text-right">
+      <CCTd className="text-right" onClick={(e) => e.stopPropagation()}>
         {task.status !== "completed" ? (
           <div className="flex justify-end gap-2">
             {task.status === "open" && (
@@ -140,10 +147,14 @@ function NewTaskDialog({ onClose }: { onClose: () => void }) {
   const [description, setDescription] = useState("");
   const [priority, setPriority] = useState("normal");
   const [dueAt, setDueAt] = useState("");
+  const [remindAt, setRemindAt] = useState("");
+  const [recurrence, setRecurrence] = useState("");
   const create = useMutation({
     mutationFn: () => createTask({ data: {
       title, description, priority: priority as any,
       dueAt: dueAt ? new Date(dueAt).toISOString() : null,
+      remindAt: remindAt ? new Date(remindAt).toISOString() : null,
+      recurrenceRule: recurrence || null,
     }}),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["tasks"] }); onClose(); },
   });
@@ -162,12 +173,102 @@ function NewTaskDialog({ onClose }: { onClose: () => void }) {
               </CCSelect>
             </CCField>
             <CCField label="Due"><CCInput type="datetime-local" value={dueAt} onChange={(e) => setDueAt(e.target.value)} /></CCField>
+            <CCField label="Remind at" hint="In-app alert fires at this time">
+              <CCInput type="datetime-local" value={remindAt} onChange={(e) => setRemindAt(e.target.value)} />
+            </CCField>
+            <CCField label="Recurrence">
+              <CCSelect value={recurrence} onChange={(e) => setRecurrence(e.target.value)}>
+                <option value="">One-off</option>
+                <option value="daily">Daily</option>
+                <option value="weekdays">Weekdays</option>
+                <option value="weekly">Weekly</option>
+                <option value="monthly">Monthly</option>
+              </CCSelect>
+            </CCField>
           </CCFormGrid>
           <CCField label="Description"><CCTextarea value={description} onChange={(e) => setDescription(e.target.value)} /></CCField>
           <div className="flex justify-end gap-2">
             <CCButton variant="ghost" onClick={onClose}>Cancel</CCButton>
             <CCButton onClick={() => create.mutate()} disabled={!title || create.isPending}>Create</CCButton>
           </div>
+        </CCFormSection>
+      </div>
+    </div>
+  );
+}
+
+function TaskDetailDialog({ id, onClose }: { id: string; onClose: () => void }) {
+  const qc = useQueryClient();
+  const detail = useQuery({ queryKey: ["task-detail", id], queryFn: () => getTaskDetail({ data: { id } }) });
+  const [comment, setComment] = useState("");
+  const post = useMutation({
+    mutationFn: () => addTaskComment({ data: { taskId: id, body: comment } }),
+    onSuccess: () => { setComment(""); detail.refetch(); },
+  });
+  const update = useMutation({
+    mutationFn: (status: any) => updateTaskStatus({ data: { id, status } }),
+    onSuccess: () => { detail.refetch(); qc.invalidateQueries({ queryKey: ["tasks"] }); },
+  });
+  const t = detail.data?.task;
+  return (
+    <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4" onClick={onClose}>
+      <div className="w-full max-w-2xl max-h-[90vh] overflow-auto" onClick={(e) => e.stopPropagation()}>
+        <CCFormSection
+          title={t?.title ?? "Task"}
+          hint={t?.recurrence_rule ? `Recurs · ${t.recurrence_rule}` : undefined}
+          actions={
+            t && t.status !== "completed" && (
+              <div className="flex gap-2">
+                <CCButton size="sm" variant="secondary" onClick={() => update.mutate("escalated")}>Escalate</CCButton>
+                <CCButton size="sm" variant="success" onClick={() => update.mutate("completed")}>Complete</CCButton>
+              </div>
+            )
+          }
+        >
+          {!t ? <div className="text-sm">Loading…</div> : (
+            <>
+              <div className="grid sm:grid-cols-3 gap-3 text-sm">
+                <div><div className="text-xs text-[color:var(--cc-ink-500)]">Due</div>{t.due_at ? new Date(t.due_at).toLocaleString() : "—"}</div>
+                <div><div className="text-xs text-[color:var(--cc-ink-500)]">Priority</div>{t.priority}</div>
+                <div><div className="text-xs text-[color:var(--cc-ink-500)]">Assignee</div>{t.assignee?.full_name ?? "Unassigned"}</div>
+              </div>
+              {t.description && <p className="text-sm whitespace-pre-wrap">{t.description}</p>}
+
+              <div className="space-y-2">
+                <div className="text-xs font-semibold uppercase tracking-wide text-[color:var(--cc-ink-500)]">Comments</div>
+                <ul className="space-y-2">
+                  {(detail.data?.comments ?? []).map((c: any) => (
+                    <li key={c.id} className="rounded-md border border-[color:var(--cc-ink-200)] p-2 text-sm">
+                      <div className="text-xs text-[color:var(--cc-ink-500)]">
+                        {c.author?.full_name ?? "User"} · {new Date(c.created_at).toLocaleString()}
+                      </div>
+                      <div className="whitespace-pre-wrap">{c.body}</div>
+                    </li>
+                  ))}
+                  {(!detail.data?.comments?.length) && <li className="text-xs text-[color:var(--cc-ink-500)]">No comments yet.</li>}
+                </ul>
+                <div className="flex gap-2">
+                  <CCTextarea rows={2} value={comment} onChange={(e) => setComment(e.target.value)} placeholder="Add a comment…" />
+                  <CCButton onClick={() => post.mutate()} disabled={!comment.trim() || post.isPending}>Post</CCButton>
+                </div>
+              </div>
+
+              {detail.data?.attachments?.length ? (
+                <div className="space-y-1">
+                  <div className="text-xs font-semibold uppercase tracking-wide text-[color:var(--cc-ink-500)]">Attachments</div>
+                  <ul className="text-sm list-disc pl-5">
+                    {detail.data.attachments.map((a: any) => (
+                      <li key={a.id}><a className="underline" href={a.url ?? "#"} target="_blank" rel="noreferrer">{a.filename ?? a.id}</a></li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+
+              <div className="flex justify-end">
+                <CCButton variant="ghost" onClick={onClose}>Close</CCButton>
+              </div>
+            </>
+          )}
         </CCFormSection>
       </div>
     </div>

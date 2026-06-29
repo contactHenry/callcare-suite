@@ -14,6 +14,8 @@ import {
 } from "@/components/cc";
 import { Plus, Trash2 } from "lucide-react";
 import { DUMMY_SCRIPTS } from "@/lib/dummy-data";
+import { LiveScript } from "@/components/LiveScript";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/_authenticated/scripts/")({
   component: ScriptsPage,
@@ -91,6 +93,7 @@ function ScriptEditor({ id, canEdit, canApprove }: { id: string; canEdit: boolea
   const isDraft = latest?.status === "draft";
   const [tree, setTree] = useState<Tree>({ rootId: null, nodes: [] });
   const [changelog, setChangelog] = useState("");
+  const [previewOpen, setPreviewOpen] = useState(false);
 
   useMemo(() => {
     if (latest?.tree) setTree(latest.tree as Tree);
@@ -136,6 +139,7 @@ function ScriptEditor({ id, canEdit, canApprove }: { id: string; canEdit: boolea
         hint={`v${latest?.version} · ${latest?.status}`}
         actions={
           <div className="flex gap-2">
+            <CCButton size="sm" variant="ghost" onClick={() => setPreviewOpen(true)}>Preview as agent</CCButton>
             {canEdit && isDraft && <CCButton size="sm" variant="secondary" onClick={() => save.mutate()}>Save draft</CCButton>}
             {canEdit && isDraft && <CCButton size="sm" onClick={() => submit.mutate()}>Submit for review</CCButton>}
             {canApprove && latest?.status === "in_review" && <CCButton size="sm" variant="success" onClick={() => approve.mutate()}>Approve & publish</CCButton>}
@@ -226,6 +230,17 @@ function ScriptEditor({ id, canEdit, canApprove }: { id: string; canEdit: boolea
           </CCField>
         )}
       </CCFormSection>
+
+      <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
+        <DialogContent className="max-w-md p-0 overflow-hidden">
+          <DialogHeader className="px-4 py-3 border-b">
+            <DialogTitle className="text-sm">Agent preview — {data.script.name}</DialogTitle>
+          </DialogHeader>
+          <div className="h-[480px] flex flex-col">
+            <LiveScript tree={tree} />
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <CCFormSection title="Version history">
         <ul className="text-sm divide-y divide-[color:var(--cc-ink-100)]">
