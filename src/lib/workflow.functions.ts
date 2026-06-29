@@ -190,6 +190,7 @@ export const createTask = createServerFn({ method: "POST" })
     assignedTo?: string | null;
     dueAt?: string | null;
     recurrenceRule?: string | null;
+    remindAt?: string | null;
   }) => z.object({
     title: z.string().min(1).max(200),
     description: z.string().max(2000).optional(),
@@ -200,6 +201,7 @@ export const createTask = createServerFn({ method: "POST" })
     assignedTo: z.string().uuid().nullish(),
     dueAt: z.string().nullish(),
     recurrenceRule: z.string().max(200).nullish(),
+    remindAt: z.string().nullish(),
   }).parse(d))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
@@ -214,6 +216,7 @@ export const createTask = createServerFn({ method: "POST" })
       created_by: userId,
       due_at: data.dueAt ?? null,
       recurrence_rule: data.recurrenceRule ?? null,
+      remind_at: data.remindAt ?? data.dueAt ?? null,
     }).select().single();
     if (error) throw new Response(error.message, { status: 500 });
     await audit(supabase, userId, "task.create", "task", row.id, { title: data.title });
