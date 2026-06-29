@@ -11,8 +11,8 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { listRecordings, getRecordingUrl, tagCallReview, setSupervisorComments } from "@/lib/calls.functions";
-import { Search, Play, Tag, MessageSquare, ShieldAlert, Headphones } from "lucide-react";
+import { listRecordings, getRecordingUrl, tagCallReview, setSupervisorComments, listCampaigns } from "@/lib/calls.functions";
+import { Search, Play, Tag, MessageSquare, ShieldAlert, Headphones, ChevronLeft, ChevronRight, Flag } from "lucide-react";
 import { toast } from "sonner";
 import { DUMMY_RECORDINGS } from "@/lib/dummy-data";
 
@@ -30,13 +30,21 @@ function RecordingsLibrary() {
   const [search, setSearch] = useState("");
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
-  const [active, setActive] = useState<any | null>(null);
+  const [campaignId, setCampaignId] = useState("");
+  const [activeIdx, setActiveIdx] = useState<number | null>(null);
 
   const { data, refetch, isLoading } = useQuery({
-    queryKey: ["recordings", search, from, to],
-    queryFn: () => listRecordings({ data: { search: search || undefined, from: from || undefined, to: to || undefined, limit: 50, offset: 0 } }),
+    queryKey: ["recordings", search, from, to, campaignId],
+    queryFn: () => listRecordings({ data: {
+      search: search || undefined, from: from || undefined, to: to || undefined,
+      campaignId: campaignId || undefined, limit: 50, offset: 0,
+    } }),
   });
   const rows: any[] = (data?.rows && data.rows.length > 0) ? data.rows : DUMMY_RECORDINGS;
+  const { data: campaigns = [] } = useQuery({
+    queryKey: ["campaigns-mini"], queryFn: () => listCampaigns(),
+  });
+  const active = activeIdx != null ? rows[activeIdx] : null;
 
   return (
     <div>
@@ -61,6 +69,19 @@ function RecordingsLibrary() {
             <Label className="text-xs">To</Label>
             <Input type="date" value={to} onChange={(e) => setTo(e.target.value)} />
           </div>
+          <div>
+            <Label className="text-xs">Campaign</Label>
+            <select
+              className="h-9 border rounded-md px-2 text-sm min-w-[160px]"
+              value={campaignId}
+              onChange={(e) => setCampaignId(e.target.value)}
+            >
+              <option value="">All campaigns</option>
+              {(campaigns as any[]).map((c) => (
+                <option key={c.id} value={c.id}>{c.name}</option>
+              ))}
+            </select>
+          </div>
           <Button variant="outline" onClick={() => refetch()}>Apply</Button>
         </div>
 
@@ -82,7 +103,7 @@ function RecordingsLibrary() {
               {isLoading && (
                 <TableRow><TableCell colSpan={8} className="text-sm text-muted-foreground">Loading…</TableCell></TableRow>
               )}
-              {!isLoading && rows.map((r: any) => (
+              {!isLoading && rows.map((r: any, i: number) => (
                 <TableRow key={r.id} className="hover:bg-muted/40">
                   <TableCell className="text-sm">{new Date(r.started_at).toLocaleString()}</TableCell>
                   <TableCell><Badge variant="outline">{r.direction}</Badge></TableCell>
@@ -98,7 +119,7 @@ function RecordingsLibrary() {
                     {r.recording_sensitive && <Badge className="bg-red-100 text-red-800 inline-flex items-center gap-1"><ShieldAlert className="size-3" /> Sensitive</Badge>}
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button size="sm" variant="outline" onClick={() => setActive(r)}><Play className="size-3 mr-1" /> Open</Button>
+                    <Button size="sm" variant="outline" onClick={() => setActiveIdx(i)}><Play className="size-3 mr-1" /> Open</Button>
                   </TableCell>
                 </TableRow>
               ))}
@@ -107,18 +128,37 @@ function RecordingsLibrary() {
         </div>
       </div>
 
-      <RecordingPlaybackDialog call={active} onClose={() => setActive(null)} />
+      <RecordingPlaybackDialog
+        call={active}
+        position={activeIdx != null ? { index: activeIdx, total: rows.length } : null}
+        onPrev={activeIdx != null && activeIdx > 0 ? () => setActiveIdx(activeIdx - 1) : null}
+        onNext={activeIdx != null && activeIdx < rows.length - 1 ? () => setActiveIdx(activeIdx + 1) : null}
+        onClose={() => setActiveIdx(null)}
+      />
     </div>
   );
 }
 
-function RecordingPlaybackDialog({ call, onClose }: { call: any | null; onClose: () => void }) {
+function RecordingPlaybackDialog({
+  call, onClose, onPrev, onNext, position,
+}: {
+  call: any | null;
+  onClose: () => void;
+  onPrev: (() => void) | null;
+  onNext: (() => void) | null;
+  position: { index: number; total: number } | null;
+}) {
   const [url, setUrl] = useState<string | null>(null);
   const [reason, setReason] = useState("");
   const [tag, setTag] = useState("");
   const [markedFor, setMarkedFor] = useState<string>("");
   const [comments, setComments] = useState("");
   const [rate, setRate] = useState(1);
+
+  // Reset transient state when navigating to a different recording
+  useState(() => {});
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // Using effect via Dialog re-mount key (see DialogContent key below)
 
   async function load() {
     try {
@@ -145,8 +185,27 @@ function RecordingPlaybackDialog({ call, onClose }: { call: any | null; onClose:
 
   return (
     <Dialog open={!!call} onOpenChange={(o) => { if (!o) { setUrl(null); onClose(); } }}>
-      <DialogContent className="max-w-2xl">
-        <DialogHeader><DialogTitle>Recording — {call?.contacts?.name ?? "Unknown"}</DialogTitle></DialogHeader>
+      <DialogContent key={call?.id} className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-3">
+            <span>Recording — {call?.contacts?.name ?? "Unknown"}</span>
+            {position && (
+              <span className="text-xs font-normal text-muted-foreground">
+                {position.index + 1} of {position.total}
+              </span>
+            )}
+            <div className="ml-auto flex items-center gap-1">
+              <Button size="sm" variant="outline" disabled={!onPrev}
+                onClick={() => { setUrl(null); onPrev?.(); }}>
+                <ChevronLeft className="size-4" />
+              </Button>
+              <Button size="sm" variant="outline" disabled={!onNext}
+                onClick={() => { setUrl(null); onNext?.(); }}>
+                <ChevronRight className="size-4" />
+              </Button>
+            </div>
+          </DialogTitle>
+        </DialogHeader>
         {!url ? (
           <div className="space-y-3">
             <p className="text-sm text-muted-foreground">
@@ -183,17 +242,37 @@ function RecordingPlaybackDialog({ call, onClose }: { call: any | null; onClose:
                   <Input placeholder="Tag (e.g. tone)" value={tag} onChange={(e) => setTag(e.target.value)} />
                   <Button size="sm" onClick={saveTag}>Add</Button>
                 </div>
+                <div className="flex flex-wrap gap-1 pt-1">
+                  {["Coaching", "Compliance", "Exemplar", "Tone", "Script adherence"].map((t) => (
+                    <button key={t} type="button"
+                      onClick={() => setTag(t)}
+                      className="text-[11px] px-2 py-0.5 rounded-full border bg-muted/40 hover:bg-muted">
+                      {t}
+                    </button>
+                  ))}
+                </div>
               </div>
               <div className="space-y-2">
                 <Label className="text-xs flex items-center gap-1"><MessageSquare className="size-3" /> Supervisor comments</Label>
                 <Textarea rows={4} value={comments} onChange={(e) => setComments(e.target.value)} placeholder="Feedback for the agent…" />
-                <Button size="sm" onClick={saveComments}>Save comments</Button>
+                <div className="flex gap-2">
+                  <Button size="sm" onClick={saveComments}>Save comments</Button>
+                  <Button size="sm" variant="outline"
+                    onClick={() => tagCallReview({ data: { callId: call!.id, tag: "FLAGGED", markedFor: "coaching" } }).then(() => toast.success("Flagged for coaching"))}>
+                    <Flag className="size-3 mr-1" /> Flag for coaching
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
         )}
         <DialogFooter>
-          <Button variant="outline" onClick={onClose}>Close</Button>
+          <div className="flex items-center justify-between w-full">
+            <span className="text-xs text-muted-foreground">
+              Use ←/→ to move through the queue
+            </span>
+            <Button variant="outline" onClick={onClose}>Close</Button>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>
