@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { PageHeader } from "@/components/AppShell";
 import { Input } from "@/components/ui/input";
@@ -155,10 +155,18 @@ function RecordingPlaybackDialog({
   const [comments, setComments] = useState("");
   const [rate, setRate] = useState(1);
 
-  // Reset transient state when navigating to a different recording
-  useState(() => {});
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  // Using effect via Dialog re-mount key (see DialogContent key below)
+  // Keyboard nav across the queue
+  useEffect(() => {
+    if (!call) return;
+    const onKey = (e: KeyboardEvent) => {
+      const tgt = e.target as HTMLElement;
+      if (tgt?.tagName === "INPUT" || tgt?.tagName === "TEXTAREA" || tgt?.isContentEditable) return;
+      if (e.key === "ArrowRight" && onNext) { setUrl(null); onNext(); }
+      if (e.key === "ArrowLeft" && onPrev) { setUrl(null); onPrev(); }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [call, onNext, onPrev]);
 
   async function load() {
     try {
