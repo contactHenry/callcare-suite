@@ -150,7 +150,7 @@ function ChannelPreferences() {
   });
 
   return (
-    <CCWidget title="Channel preferences" description="Pick where each alert reaches you. Email and SMS are off by default.">
+    <CCWidget title="Channel preferences" hint="Pick where each alert reaches you. Email and SMS are off by default.">
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
@@ -169,7 +169,7 @@ function ChannelPreferences() {
                   <td className="py-2 pr-4">{label}</td>
                   {(["in_app", "email", "sms"] as const).map((ch) => (
                     <td key={ch} className="py-2 px-2 text-center">
-                      <CCCheckbox checked={p[ch]} onChange={(v) => save.mutate({ kind, channel: ch, value: v })} />
+                      <CCCheckbox label="" checked={p[ch]} onChange={(v) => save.mutate({ kind, channel: ch, value: v })} />
                     </td>
                   ))}
                 </tr>
