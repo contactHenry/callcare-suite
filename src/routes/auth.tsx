@@ -5,11 +5,10 @@ import { useAuth } from "@/lib/auth";
 import { CCButton } from "@/components/cc";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Headset, ArrowLeft, ArrowRight, TrendingUp, Calendar } from "lucide-react";
 import authDashboard from "@/assets/auth-dashboard.png";
-import { recordFailedLogin, recordLoginEvent } from "@/lib/permissions.functions";
+import { recordFailedLogin, recordLoginEvent, resolveLoginIdentifier } from "@/lib/permissions.functions";
 import { useServerFn } from "@tanstack/react-start";
 
 export const Route = createFileRoute("/auth")({
@@ -21,13 +20,12 @@ export const Route = createFileRoute("/auth")({
 function AuthPage() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
-  const [tab, setTab] = useState("signin");
-  const [email, setEmail] = useState("");
+  const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
-  const [fullName, setFullName] = useState("");
   const [busy, setBusy] = useState(false);
   const recordLogin = useServerFn(recordLoginEvent);
   const recordFail = useServerFn(recordFailedLogin);
+  const resolveId = useServerFn(resolveLoginIdentifier);
 
   useEffect(() => {
     if (!loading && user) navigate({ to: "/dashboard" });
@@ -36,11 +34,28 @@ function AuthPage() {
   async function signIn(e: React.FormEvent) {
     e.preventDefault();
     setBusy(true);
+    // Resolve email / username / staff ID -> email before calling Supabase.
+    let email = identifier.trim();
+    if (!email.includes("@")) {
+      try {
+        const res = await resolveId({ data: { identifier: email } });
+        if (!res?.email) {
+          setBusy(false);
+          return toast.error("No account found for that username or staff ID.");
+        }
+        email = res.email;
+      } catch {
+        setBusy(false);
+        return toast.error("Couldn't look up that identifier. Try your email.");
+      }
+    }
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setBusy(false);
     if (error) {
       // Best-effort lockout monitoring — don't block the UI on it.
-      recordFail({ data: { email } }).catch(() => {});
+      recordFail({ data: { email } })
+        .then((r) => { if (r?.lockedOut) toast.error("Account temporarily locked after repeated failures. Try again in 15 minutes."); })
+        .catch(() => {});
       return toast.error(error.message);
     }
     recordLogin({ data: { device: navigator.userAgent.slice(0, 200) } }).catch(() => {});
@@ -52,23 +67,6 @@ function AuthPage() {
         return navigate({ to: "/auth/2fa" });
       }
     } catch { /* MFA not enabled on project — fall through */ }
-    navigate({ to: "/dashboard" });
-  }
-
-  async function signUp(e: React.FormEvent) {
-    e.preventDefault();
-    setBusy(true);
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: `${window.location.origin}/dashboard`,
-        data: { full_name: fullName },
-      },
-    });
-    setBusy(false);
-    if (error) return toast.error(error.message);
-    toast.success("Account created. You're signed in.");
     navigate({ to: "/dashboard" });
   }
 
@@ -172,59 +170,29 @@ function AuthPage() {
           </div>
 
           <div className="mb-8">
-            <h1 className="text-4xl font-bold tracking-tight">
-              {tab === "signin" ? "Welcome back!" : "Create your account"}
-            </h1>
+            <h1 className="text-4xl font-bold tracking-tight">Welcome back!</h1>
             <p className="text-muted-foreground mt-2">
-              {tab === "signin"
-                ? "Sign in to log calls and manage contacts."
-                : "Start logging calls and tracking quality today."}
+              Sign in with your email, username, or staff ID.
             </p>
           </div>
 
-          <Tabs value={tab} onValueChange={setTab}>
-            <TabsList className="grid grid-cols-2 w-full">
-              <TabsTrigger value="signin">Sign in</TabsTrigger>
-              <TabsTrigger value="signup">Create account</TabsTrigger>
-            </TabsList>
-            <TabsContent value="signin" className="mt-6">
-              <form onSubmit={signIn} className="space-y-4">
-                <div className="space-y-1.5">
-                  <Label htmlFor="email">Email Address</Label>
-                  <Input id="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="password">Password</Label>
-                  <Input id="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} />
-                </div>
-                <CCButton type="submit" size="lg" className="w-full" disabled={busy}>{busy ? "Signing in…" : "Login"}</CCButton>
-                <div className="flex items-center justify-between text-sm">
-                  <Link to="/auth/forgot" className="text-primary font-medium hover:underline">Forgot password?</Link>
-                  <button type="button" onClick={() => setTab("signup")} className="text-primary font-medium hover:underline">
-                    Create account
-                  </button>
-                </div>
-              </form>
-            </TabsContent>
-            <TabsContent value="signup" className="mt-6">
-              <form onSubmit={signUp} className="space-y-4">
-                <div className="space-y-1.5">
-                  <Label htmlFor="name">Full name</Label>
-                  <Input id="name" required value={fullName} onChange={(e) => setFullName(e.target.value)} />
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="email2">Email Address</Label>
-                  <Input id="email2" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="password2">Password</Label>
-                  <Input id="password2" type="password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} />
-                </div>
-                <CCButton type="submit" size="lg" className="w-full" disabled={busy}>{busy ? "Creating…" : "Create account"}</CCButton>
-                <p className="text-xs text-muted-foreground text-center">New users start as <strong>agents</strong>. A manager can promote you later.</p>
-              </form>
-            </TabsContent>
-          </Tabs>
+          <form onSubmit={signIn} className="space-y-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="identifier">Email, username, or staff ID</Label>
+              <Input id="identifier" required value={identifier} onChange={(e) => setIdentifier(e.target.value)} autoComplete="username" />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="password">Password</Label>
+              <Input id="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="current-password" />
+            </div>
+            <CCButton type="submit" size="lg" className="w-full" disabled={busy}>{busy ? "Signing in…" : "Login"}</CCButton>
+            <div className="flex items-center justify-between text-sm">
+              <Link to="/auth/forgot" className="text-primary font-medium hover:underline">Forgot password?</Link>
+            </div>
+            <p className="text-[11px] text-muted-foreground text-center pt-2 border-t">
+              Accounts are provisioned by your administrator. Contact your Operations Admin if you need access.
+            </p>
+          </form>
         </div>
       </main>
     </div>
