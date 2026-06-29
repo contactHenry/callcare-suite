@@ -14,7 +14,7 @@ export type ScriptTree = { rootId: string | null; nodes: ScriptNode[] };
 
 const KIND_META: Record<ScriptNode["kind"], { label: string; tone: any; icon: React.ReactNode }> = {
   say:        { label: "Say",        tone: "info",    icon: <BookOpenText className="size-3.5" /> },
-  question:   { label: "Ask",        tone: "brand",   icon: <HelpCircle className="size-3.5" /> },
+  question:   { label: "Ask",        tone: "info",    icon: <HelpCircle className="size-3.5" /> },
   objection:  { label: "Objection",  tone: "warning", icon: <MessageSquareWarning className="size-3.5" /> },
   compliance: { label: "Compliance", tone: "danger",  icon: <FileCheck2 className="size-3.5" /> },
   faq:        { label: "FAQ",        tone: "neutral", icon: <BookOpenText className="size-3.5" /> },
