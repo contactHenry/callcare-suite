@@ -24,6 +24,7 @@ import { Route as AuthenticatedRecordingsIndexRouteImport } from './routes/_auth
 import { Route as AuthenticatedNotificationsIndexRouteImport } from './routes/_authenticated/notifications.index'
 import { Route as AuthenticatedMonitoringIndexRouteImport } from './routes/_authenticated/monitoring.index'
 import { Route as AuthenticatedIntegrationsIndexRouteImport } from './routes/_authenticated/integrations.index'
+import { Route as AuthenticatedFollowUpsIndexRouteImport } from './routes/_authenticated/follow-ups.index'
 import { Route as AuthenticatedContactsIndexRouteImport } from './routes/_authenticated/contacts.index'
 import { Route as AuthenticatedComplianceIndexRouteImport } from './routes/_authenticated/compliance.index'
 import { Route as AuthenticatedComplaintsIndexRouteImport } from './routes/_authenticated/complaints.index'
@@ -126,6 +127,12 @@ const AuthenticatedIntegrationsIndexRoute =
   AuthenticatedIntegrationsIndexRouteImport.update({
     id: '/integrations/',
     path: '/integrations/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedFollowUpsIndexRoute =
+  AuthenticatedFollowUpsIndexRouteImport.update({
+    id: '/follow-ups/',
+    path: '/follow-ups/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedContactsIndexRoute =
@@ -288,6 +295,7 @@ export interface FileRoutesByFullPath {
   '/complaints/': typeof AuthenticatedComplaintsIndexRoute
   '/compliance/': typeof AuthenticatedComplianceIndexRoute
   '/contacts/': typeof AuthenticatedContactsIndexRoute
+  '/follow-ups/': typeof AuthenticatedFollowUpsIndexRoute
   '/integrations/': typeof AuthenticatedIntegrationsIndexRoute
   '/monitoring/': typeof AuthenticatedMonitoringIndexRoute
   '/notifications/': typeof AuthenticatedNotificationsIndexRoute
@@ -327,6 +335,7 @@ export interface FileRoutesByTo {
   '/complaints': typeof AuthenticatedComplaintsIndexRoute
   '/compliance': typeof AuthenticatedComplianceIndexRoute
   '/contacts': typeof AuthenticatedContactsIndexRoute
+  '/follow-ups': typeof AuthenticatedFollowUpsIndexRoute
   '/integrations': typeof AuthenticatedIntegrationsIndexRoute
   '/monitoring': typeof AuthenticatedMonitoringIndexRoute
   '/notifications': typeof AuthenticatedNotificationsIndexRoute
@@ -368,6 +377,7 @@ export interface FileRoutesById {
   '/_authenticated/complaints/': typeof AuthenticatedComplaintsIndexRoute
   '/_authenticated/compliance/': typeof AuthenticatedComplianceIndexRoute
   '/_authenticated/contacts/': typeof AuthenticatedContactsIndexRoute
+  '/_authenticated/follow-ups/': typeof AuthenticatedFollowUpsIndexRoute
   '/_authenticated/integrations/': typeof AuthenticatedIntegrationsIndexRoute
   '/_authenticated/monitoring/': typeof AuthenticatedMonitoringIndexRoute
   '/_authenticated/notifications/': typeof AuthenticatedNotificationsIndexRoute
@@ -409,6 +419,7 @@ export interface FileRouteTypes {
     | '/complaints/'
     | '/compliance/'
     | '/contacts/'
+    | '/follow-ups/'
     | '/integrations/'
     | '/monitoring/'
     | '/notifications/'
@@ -448,6 +459,7 @@ export interface FileRouteTypes {
     | '/complaints'
     | '/compliance'
     | '/contacts'
+    | '/follow-ups'
     | '/integrations'
     | '/monitoring'
     | '/notifications'
@@ -488,6 +500,7 @@ export interface FileRouteTypes {
     | '/_authenticated/complaints/'
     | '/_authenticated/compliance/'
     | '/_authenticated/contacts/'
+    | '/_authenticated/follow-ups/'
     | '/_authenticated/integrations/'
     | '/_authenticated/monitoring/'
     | '/_authenticated/notifications/'
@@ -612,6 +625,13 @@ declare module '@tanstack/react-router' {
       path: '/integrations'
       fullPath: '/integrations/'
       preLoaderRoute: typeof AuthenticatedIntegrationsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/follow-ups/': {
+      id: '/_authenticated/follow-ups/'
+      path: '/follow-ups'
+      fullPath: '/follow-ups/'
+      preLoaderRoute: typeof AuthenticatedFollowUpsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/contacts/': {
@@ -802,6 +822,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedComplaintsIndexRoute: typeof AuthenticatedComplaintsIndexRoute
   AuthenticatedComplianceIndexRoute: typeof AuthenticatedComplianceIndexRoute
   AuthenticatedContactsIndexRoute: typeof AuthenticatedContactsIndexRoute
+  AuthenticatedFollowUpsIndexRoute: typeof AuthenticatedFollowUpsIndexRoute
   AuthenticatedIntegrationsIndexRoute: typeof AuthenticatedIntegrationsIndexRoute
   AuthenticatedMonitoringIndexRoute: typeof AuthenticatedMonitoringIndexRoute
   AuthenticatedNotificationsIndexRoute: typeof AuthenticatedNotificationsIndexRoute
@@ -836,6 +857,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedComplaintsIndexRoute: AuthenticatedComplaintsIndexRoute,
   AuthenticatedComplianceIndexRoute: AuthenticatedComplianceIndexRoute,
   AuthenticatedContactsIndexRoute: AuthenticatedContactsIndexRoute,
+  AuthenticatedFollowUpsIndexRoute: AuthenticatedFollowUpsIndexRoute,
   AuthenticatedIntegrationsIndexRoute: AuthenticatedIntegrationsIndexRoute,
   AuthenticatedMonitoringIndexRoute: AuthenticatedMonitoringIndexRoute,
   AuthenticatedNotificationsIndexRoute: AuthenticatedNotificationsIndexRoute,
