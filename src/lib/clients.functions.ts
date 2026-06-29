@@ -469,6 +469,105 @@ export const deleteClientDocument = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+/* ------------------------ EXPORT REQUESTS ------------------------- */
+
+/**
+ * Any authenticated user can RAISE an export request. Direct CSV
+ * generation still requires `clients:export` (supervisors+). This keeps
+ * agents from pulling client lists without a paper trail.
+ */
+export const requestClientExport = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { scope?: "all"|"selected"|"filtered"; ids?: string[]; filter?: any; reason?: string }) =>
+    z.object({
+      scope: z.enum(["all","selected","filtered"]).default("selected"),
+      ids: z.array(z.string().uuid()).max(10000).optional(),
+      filter: z.any().optional(),
+      reason: z.string().trim().max(500).optional(),
+    }).parse(data ?? {}))
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context as { supabase: any; userId: string };
+    const { data: profile } = await supabase.from("profiles").select("organization_id").eq("id", userId).maybeSingle();
+    const { data: row, error } = await supabase.from("client_export_requests").insert({
+      organization_id: profile?.organization_id ?? null,
+      requested_by: userId,
+      scope: data.scope,
+      client_ids: data.ids ?? [],
+      filter_snapshot: data.filter ?? {},
+      reason: data.reason ?? null,
+    }).select("id").single();
+    if (error) throw new Response(error.message, { status: 400 });
+    await audit(supabase, userId, "client.export.request", "client_export_request", row.id, {
+      scope: data.scope, count: data.ids?.length ?? null,
+    });
+    return { id: row.id };
+  });
+
+export const listExportRequests = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { state?: "pending"|"approved"|"rejected"|"cancelled" } | undefined) =>
+    z.object({ state: z.enum(["pending","approved","rejected","cancelled"]).default("pending") }).parse(data ?? {}))
+  .handler(async ({ data, context }) => {
+    const { supabase } = context as { supabase: any };
+    const { data: rows, error } = await supabase
+      .from("client_export_requests")
+      .select("*, profiles:requested_by(full_name)")
+      .eq("state", data.state)
+      .order("created_at", { ascending: false })
+      .limit(200);
+    if (error) throw new Response(error.message, { status: 400 });
+    return { rows: rows ?? [] };
+  });
+
+export const decideExportRequest = createServerFn({ method: "POST" })
+  .middleware([requirePermission("clients:export")])
+  .inputValidator((data: { id: string; decision: "approve"|"reject"; note?: string }) =>
+    z.object({
+      id: z.string().uuid(),
+      decision: z.enum(["approve","reject"]),
+      note: z.string().trim().max(500).optional(),
+    }).parse(data))
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context as { supabase: any; userId: string };
+    const { data: req, error: rErr } = await supabase
+      .from("client_export_requests").select("*").eq("id", data.id).maybeSingle();
+    if (rErr || !req) throw new Response("Not found", { status: 404 });
+    if (req.state !== "pending") throw new Response("Already decided", { status: 409 });
+
+    let csv: string | null = null;
+    let delivered = 0;
+    if (data.decision === "approve") {
+      let q = supabase.from("contacts")
+        .select("id,name,phone,email,company,lifecycle_status,assigned_agent_id,consent_status,do_not_call,created_at,last_contacted_at")
+        .is("deleted_at", null).limit(10000);
+      if (req.scope === "selected" && Array.isArray(req.client_ids) && req.client_ids.length) {
+        q = q.in("id", req.client_ids);
+      }
+      const { data: rows, error } = await q;
+      if (error) throw new Response(error.message, { status: 400 });
+      const headers = ["id","name","phone","email","company","status","assigned_agent","consent","do_not_call","created_at","last_contacted_at"];
+      const esc = (v: any) => v == null ? "" : `"${String(v).replace(/"/g, '""')}"`;
+      csv = [headers.join(","), ...(rows ?? []).map((r: any) => [
+        r.id, r.name, r.phone, r.email, r.company, r.lifecycle_status, r.assigned_agent_id,
+        r.consent_status, r.do_not_call, r.created_at, r.last_contacted_at,
+      ].map(esc).join(","))].join("\n");
+      delivered = rows?.length ?? 0;
+    }
+
+    await supabase.from("client_export_requests").update({
+      state: data.decision === "approve" ? "approved" : "rejected",
+      reviewed_by: userId,
+      reviewed_at: new Date().toISOString(),
+      review_note: data.note ?? null,
+      delivered_count: delivered,
+    }).eq("id", data.id);
+
+    await audit(supabase, userId, `client.export.${data.decision}`, "client_export_request", data.id, {
+      delivered,
+    });
+    return { ok: true, csv, count: delivered };
+  });
+
 /* ---------------------------- AGENT LIST -------------------------- */
 
 /** Lightweight agent list for assignment dropdowns. */
