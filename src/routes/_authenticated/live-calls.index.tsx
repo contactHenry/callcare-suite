@@ -339,30 +339,30 @@ function ActiveCallPanel({ call, onClose }: { call: any; onClose: () => void }) 
       </div>
 
       <Dialog open={transferOpen} onOpenChange={setTransferOpen}>
-        <DialogContent className="max-w-xl">
-          <DialogHeader>
-            <DialogTitle>Transfer call</DialogTitle>
-            <DialogDescription>
-              Send {name} ({number}) to another agent, team, or extension.
+        <DialogContent className="max-w-sm gap-3 p-4">
+          <DialogHeader className="space-y-0.5">
+            <DialogTitle className="text-base">Transfer call</DialogTitle>
+            <DialogDescription className="text-xs">
+              Send {name} ({number}) onward.
             </DialogDescription>
           </DialogHeader>
 
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-2 gap-1.5">
             <button
               type="button"
               onClick={() => setTransferMode("warm")}
-              className={`rounded-md border px-3 py-2 text-left text-sm ${transferMode === "warm" ? "border-[color:var(--cc-brand)] bg-[color:var(--cc-brand)]/5" : "hover:bg-muted/40"}`}
+              className={`rounded-md border px-2 py-1.5 text-left text-xs ${transferMode === "warm" ? "border-[color:var(--cc-brand)] bg-[color:var(--cc-brand)]/5" : "hover:bg-muted/40"}`}
             >
-              <div className="font-medium">Warm transfer</div>
-              <div className="text-xs text-muted-foreground">Speak to the receiver first, then connect.</div>
+              <div className="font-medium">Warm</div>
+              <div className="text-[11px] text-muted-foreground">Speak first</div>
             </button>
             <button
               type="button"
               onClick={() => setTransferMode("cold")}
-              className={`rounded-md border px-3 py-2 text-left text-sm ${transferMode === "cold" ? "border-[color:var(--cc-brand)] bg-[color:var(--cc-brand)]/5" : "hover:bg-muted/40"}`}
+              className={`rounded-md border px-2 py-1.5 text-left text-xs ${transferMode === "cold" ? "border-[color:var(--cc-brand)] bg-[color:var(--cc-brand)]/5" : "hover:bg-muted/40"}`}
             >
-              <div className="font-medium">Cold transfer</div>
-              <div className="text-xs text-muted-foreground">Hand off immediately and drop from the call.</div>
+              <div className="font-medium">Cold</div>
+              <div className="text-[11px] text-muted-foreground">Hand off now</div>
             </button>
           </div>
 
@@ -370,12 +370,12 @@ function ActiveCallPanel({ call, onClose }: { call: any; onClose: () => void }) 
             value={transferQuery}
             onChange={(e) => setTransferQuery(e.target.value)}
             placeholder="Search agents, teams, extensions…"
-            className="h-9 w-full rounded-md border bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-[color:var(--cc-brand)]/30"
+            className="h-8 w-full rounded-md border bg-background px-2 text-xs outline-none focus:ring-2 focus:ring-[color:var(--cc-brand)]/30"
           />
 
-          <div className="max-h-64 overflow-y-auto rounded-md border divide-y">
+          <div className="max-h-48 overflow-y-auto rounded-md border divide-y">
             {filtered.length === 0 && (
-              <div className="px-3 py-6 text-center text-sm text-muted-foreground">No matches.</div>
+              <div className="px-3 py-4 text-center text-xs text-muted-foreground">No matches.</div>
             )}
             {filtered.map((t) => {
               const active = transferTarget === t.id;
@@ -384,14 +384,14 @@ function ActiveCallPanel({ call, onClose }: { call: any; onClose: () => void }) 
                   key={t.id}
                   type="button"
                   onClick={() => setTransferTarget(t.id)}
-                  className={`w-full px-3 py-2.5 flex items-center gap-3 text-left text-sm ${active ? "bg-[color:var(--cc-brand)]/5" : "hover:bg-muted/40"}`}
+                  className={`w-full px-2.5 py-1.5 flex items-center gap-2 text-left text-xs ${active ? "bg-[color:var(--cc-brand)]/5" : "hover:bg-muted/40"}`}
                 >
-                  <span className={`size-2 rounded-full ${TONE_DOT[t.tone]}`} />
+                  <span className={`size-2 rounded-full shrink-0 ${TONE_DOT[t.tone]}`} />
                   <div className="min-w-0 flex-1">
                     <div className="font-medium truncate">{t.name}</div>
-                    <div className="text-xs text-muted-foreground truncate">{t.detail}</div>
+                    <div className="text-[11px] text-muted-foreground truncate">{t.detail}</div>
                   </div>
-                  <span className="text-[10px] uppercase tracking-wider text-muted-foreground border rounded px-1.5 py-0.5">
+                  <span className="text-[9px] uppercase tracking-wider text-muted-foreground border rounded px-1 py-0.5">
                     {t.kind}
                   </span>
                 </button>
@@ -402,15 +402,15 @@ function ActiveCallPanel({ call, onClose }: { call: any; onClose: () => void }) 
           <textarea
             value={transferNote}
             onChange={(e) => setTransferNote(e.target.value)}
-            placeholder="Optional note for the receiving agent…"
+            placeholder="Note for receiver (optional)…"
             rows={2}
-            className="w-full rounded-md border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[color:var(--cc-brand)]/30"
+            className="w-full rounded-md border bg-background px-2 py-1.5 text-xs outline-none focus:ring-2 focus:ring-[color:var(--cc-brand)]/30"
           />
 
-          <DialogFooter>
+          <DialogFooter className="gap-2 sm:gap-2">
             <CCButton variant="ghost" onClick={() => setTransferOpen(false)}>Cancel</CCButton>
             <CCButton disabled={!selected} onClick={confirmTransfer}>
-              {transferMode === "warm" ? "Start warm transfer" : "Transfer now"}
+              {transferMode === "warm" ? "Start warm" : "Transfer"}
             </CCButton>
           </DialogFooter>
         </DialogContent>
