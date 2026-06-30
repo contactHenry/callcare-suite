@@ -340,3 +340,36 @@ export const DUMMY_NOTIFICATIONS = [
   { id: u(223), kind: "compliance",      severity: "danger",  title: "DSAR pending review",          body: "Aarav Mehta requested an export of all personal data.",      created_at: daysAgo(1),  read_at: daysAgo(0.5) },
   { id: u(224), kind: "announcement",    severity: "info",    title: "New compliance script live",   body: "Acknowledge the updated disclosure before your next call.",  created_at: daysAgo(1),  read_at: daysAgo(0.5) },
 ];
+
+/* ------------------------ Dashboard extras --------------------------- */
+export const DUMMY_AGENT_LEADERBOARD = [
+  { id: "u-ava",    full_name: "Ava Singh",     calls: 58, aht: 268, qa: 94, conversions: 11 },
+  { id: "u-liam",   full_name: "Liam Carter",   calls: 51, aht: 295, qa: 91, conversions: 9  },
+  { id: "u-olivia", full_name: "Olivia Brown",  calls: 47, aht: 312, qa: 88, conversions: 8  },
+  { id: "u-noah",   full_name: "Noah Patel",    calls: 43, aht: 330, qa: 84, conversions: 6  },
+  { id: "u-emma",   full_name: "Emma Wilson",   calls: 39, aht: 348, qa: 79, conversions: 5  },
+];
+
+export const DUMMY_RECENT_CALLS = [
+  { id: "rc1", at: minsAgo(8),   contact: "Aarav Mehta",     direction: "inbound",  outcome: "resolved",  duration: 312, qa: 92 },
+  { id: "rc2", at: minsAgo(34),  contact: "Priya Shah",      direction: "outbound", outcome: "follow_up", duration: 184, qa: 78 },
+  { id: "rc3", at: minsAgo(72),  contact: "James O'Connor",  direction: "inbound",  outcome: "escalated", duration: 521, qa: 65 },
+  { id: "rc4", at: minsAgo(115), contact: "Sofia Ramirez",   direction: "outbound", outcome: "resolved",  duration: 246, qa: 88 },
+  { id: "rc5", at: minsAgo(168), contact: "Daniel Kim",      direction: "inbound",  outcome: "voicemail", duration: 41,  qa: null },
+  { id: "rc6", at: minsAgo(210), contact: "Fatima Al-Hassan",direction: "outbound", outcome: "resolved",  duration: 398, qa: 95 },
+];
+
+export const DUMMY_SLA = {
+  service_level_pct: 87,   // % calls answered within 20s
+  abandon_rate_pct: 3.2,
+  avg_wait_seconds: 18,
+  longest_wait_seconds: 96,
+};
+
+export const DUMMY_OUTCOME_MIX = [
+  { label: "Resolved",   value: 184, tone: "positive" as const },
+  { label: "Follow-up",  value: 62,  tone: "warning"  as const },
+  { label: "Escalated",  value: 14,  tone: "negative" as const },
+  { label: "No answer",  value: 41,  tone: "neutral"  as const },
+  { label: "Voicemail",  value: 23,  tone: "neutral"  as const },
+];
