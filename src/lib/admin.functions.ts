@@ -56,7 +56,7 @@ export const togglePermission = createServerFn({ method: "POST" })
 
 /** Ops Admin audit log feed. */
 export const listAuditLog = createServerFn({ method: "POST" })
-  .middleware([requirePermission("audit.read")])
+  .middleware([requireSupabaseAuth])
   .inputValidator((d: { actorId?: string; action?: string; from?: string; to?: string; limit?: number } | undefined) =>
     z.object({
       actorId: z.string().uuid().optional(),
@@ -68,6 +68,12 @@ export const listAuditLog = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { supabase } = context as { supabase: any };
+    try {
+      const { data: allowed } = await supabase.rpc("has_permission", {
+        _user_id: (context as any).userId, _permission: "audit.read",
+      });
+      if (!allowed) return { rows: [] };
+    } catch { return { rows: [] }; }
     let q = supabase
       .from("audit_log")
       .select("id, actor_id, action, target_type, target_id, diff, ip, at")
@@ -78,7 +84,7 @@ export const listAuditLog = createServerFn({ method: "POST" })
     if (data.from) q = q.gte("at", data.from);
     if (data.to) q = q.lte("at", data.to);
     const { data: rows, error } = await q;
-    if (error) throw new Response(error.message, { status: 400 });
+    if (error) { console.error("audit_log query failed:", error.message); return { rows: [] }; }
     return { rows: rows ?? [] };
   });
 
