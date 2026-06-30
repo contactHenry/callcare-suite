@@ -221,21 +221,29 @@ function NotificationsBell() {
     if (!user?.id) return;
     let cancelled = false;
     const load = async () => {
-      const { count } = await supabase
-        .from("notifications" as any)
-        .select("id", { count: "exact", head: true })
-        .is("read_at", null)
-        .eq("user_id", user.id);
-      if (!cancelled) setUnread(count ?? 0);
+      try {
+        const { count } = await supabase
+          .from("notifications" as any)
+          .select("id", { count: "exact", head: true })
+          .is("read_at", null)
+          .eq("user_id", user.id);
+        if (!cancelled) setUnread(count ?? 0);
+      } catch {
+        /* notifications table may not exist yet — ignore */
+      }
     };
     load();
-    const channel = supabase
-      .channel(`notifications:${user.id}`)
-      .on("postgres_changes",
+    // Use a per-mount unique channel name so React StrictMode's double-invoke
+    // (or fast remounts) never re-registers callbacks on an already-subscribed channel.
+    const channelName = `notifications:${user.id}:${Math.random().toString(36).slice(2)}`;
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+    try {
+      const c = supabase.channel(channelName);
+      c.on(
+        "postgres_changes" as any,
         { event: "*", schema: "public", table: "notifications", filter: `user_id=eq.${user.id}` },
         (payload: any) => {
           load();
-          // Surface only fresh inserts as a toast — updates (e.g. mark-read) shouldn't notify again.
           if (payload?.eventType === "INSERT") {
             const n = payload.new ?? {};
             toast(n.title ?? "New notification", {
@@ -244,8 +252,18 @@ function NotificationsBell() {
             });
           }
         },
-      ).subscribe();
-    return () => { cancelled = true; supabase.removeChannel(channel); };
+      );
+      c.subscribe();
+      channel = c;
+    } catch {
+      /* realtime unavailable — bell still works without live updates */
+    }
+    return () => {
+      cancelled = true;
+      if (channel) {
+        try { supabase.removeChannel(channel); } catch { /* noop */ }
+      }
+    };
   }, [user?.id]);
 
   return (
