@@ -13,7 +13,7 @@ import {
   CCStatusPill,
 } from "@/components/cc";
 import { Plus, Trash2 } from "lucide-react";
-import { DUMMY_SCRIPTS } from "@/lib/dummy-data";
+import { DUMMY_SCRIPTS, DUMMY_SCRIPT_TREE, DUMMY_SCRIPT_VERSIONS } from "@/lib/dummy-data";
 import { LiveScript } from "@/components/LiveScript";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
@@ -86,8 +86,23 @@ function ScriptsPage() {
 
 function ScriptEditor({ id, canEdit, canApprove }: { id: string; canEdit: boolean; canApprove: boolean }) {
   const qc = useQueryClient();
-  const q = useQuery({ queryKey: ["script", id], queryFn: () => getScript({ data: { id } }) });
-  const data = q.data;
+  const isDummy = id.startsWith("dummy-");
+  const q = useQuery({
+    queryKey: ["script", id],
+    queryFn: () => getScript({ data: { id } }),
+    enabled: !isDummy,
+  });
+  const dummyScript = DUMMY_SCRIPTS.find((s) => s.id === id);
+  const data = isDummy
+    ? {
+        script: { id, name: dummyScript?.name ?? "Sample script" },
+        versions: DUMMY_SCRIPT_VERSIONS.map((v) =>
+          v.version === (dummyScript?.current_version?.version ?? 4)
+            ? { ...v, status: dummyScript?.current_version?.status ?? v.status, tree: DUMMY_SCRIPT_TREE }
+            : v,
+        ),
+      }
+    : q.data;
 
   const latest = data?.versions[0];
   const isDraft = latest?.status === "draft";
