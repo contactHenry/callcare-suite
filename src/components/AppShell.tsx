@@ -10,7 +10,7 @@ import {
   Users as UsersIcon, Target, CalendarCheck2, Cog, ChevronDown,
 } from "lucide-react";
 import type { ReactNode } from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { useAvailability, PRESENCE_LABEL, PRESENCE_COLOR, type Presence } from "@/hooks/use-availability";
@@ -29,6 +29,9 @@ export function AppShell({ children }: { children: ReactNode }) {
   const { user, roles, isManager, atLeast, signOut } = useAuth();
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const canTeamLead = atLeast("team_leader");
+  const canSupervisor = atLeast("supervisor");
+  const canOpsAdmin = atLeast("ops_admin");
 
   // Highest-ranked role label (e.g. shows "Super Admin", not "Agent")
   const ROLE_RANK = ["super_admin", "ops_admin", "supervisor", "team_leader", "agent"];
@@ -41,52 +44,52 @@ export function AppShell({ children }: { children: ReactNode }) {
   const sections: {
     label: string;
     items: { to: string; label: string; icon: typeof PhoneCall; show: boolean }[];
-  }[] = [
-    {
-      label: "Operations",
-      items: [
-        { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard, show: true },
-        { to: "/clients", label: "Clients", icon: ContactRound, show: true },
-        { to: "/calls", label: "Calls", icon: PhoneCall, show: true },
-        { to: "/live-calls", label: "Live Calls", icon: Radio, show: atLeast("team_leader") },
-        { to: "/recordings", label: "Call Recordings", icon: AudioLines, show: atLeast("team_leader") },
-        { to: "/follow-ups", label: "Follow-Ups", icon: CalendarCheck2, show: true },
-        { to: "/tasks", label: "Tasks", icon: ListChecks, show: true },
-        { to: "/campaigns", label: "Campaigns", icon: Target, show: atLeast("supervisor") },
-        { to: "/scripts", label: "Call Scripts", icon: BookOpenText, show: true },
-      ],
-    },
-    {
-      label: "People",
-      items: [
-        { to: "/teams", label: "Teams", icon: UsersIcon, show: atLeast("team_leader") },
-        { to: "/staff", label: "Staff", icon: UserRoundCog, show: atLeast("ops_admin") },
-        { to: "/qa/reviews", label: "Quality Assurance", icon: ClipboardCheck, show: atLeast("team_leader") },
-        { to: "/complaints", label: "Complaints", icon: AlertOctagon, show: true },
-      ],
-    },
-    {
-      label: "Insights",
-      items: [
-        { to: "/reports", label: "Reports", icon: FileBarChart2, show: true },
-        { to: "/notifications", label: "Notifications", icon: Bell, show: true },
-      ],
-    },
-    {
-      label: "Compliance & Audit",
-      items: [
-        { to: "/compliance", label: "Compliance", icon: ShieldAlert, show: atLeast("ops_admin") },
-        { to: "/security/audit", label: "Audit Logs", icon: ScrollText, show: atLeast("ops_admin") },
-        { to: "/integrations", label: "Integrations", icon: Plug, show: atLeast("ops_admin") },
-      ],
-    },
-    {
-      label: "Admin",
-      items: [
-        { to: "/settings", label: "Settings", icon: Cog, show: true },
-      ],
-    },
-  ].map((s) => ({ ...s, items: s.items.filter((i) => i.show) })).filter((s) => s.items.length > 0);
+  }[] = useMemo(() => [
+      {
+        label: "Operations",
+        items: [
+          { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard, show: true },
+          { to: "/clients", label: "Clients", icon: ContactRound, show: true },
+          { to: "/calls", label: "Calls", icon: PhoneCall, show: true },
+          { to: "/live-calls", label: "Live Calls", icon: Radio, show: canTeamLead },
+          { to: "/recordings", label: "Call Recordings", icon: AudioLines, show: canTeamLead },
+          { to: "/follow-ups", label: "Follow-Ups", icon: CalendarCheck2, show: true },
+          { to: "/tasks", label: "Tasks", icon: ListChecks, show: true },
+          { to: "/campaigns", label: "Campaigns", icon: Target, show: canSupervisor },
+          { to: "/scripts", label: "Call Scripts", icon: BookOpenText, show: true },
+        ],
+      },
+      {
+        label: "People",
+        items: [
+          { to: "/teams", label: "Teams", icon: UsersIcon, show: canTeamLead },
+          { to: "/staff", label: "Staff", icon: UserRoundCog, show: canOpsAdmin },
+          { to: "/qa/reviews", label: "Quality Assurance", icon: ClipboardCheck, show: canTeamLead },
+          { to: "/complaints", label: "Complaints", icon: AlertOctagon, show: true },
+        ],
+      },
+      {
+        label: "Insights",
+        items: [
+          { to: "/reports", label: "Reports", icon: FileBarChart2, show: true },
+          { to: "/notifications", label: "Notifications", icon: Bell, show: true },
+        ],
+      },
+      {
+        label: "Compliance & Audit",
+        items: [
+          { to: "/compliance", label: "Compliance", icon: ShieldAlert, show: canOpsAdmin },
+          { to: "/security/audit", label: "Audit Logs", icon: ScrollText, show: canOpsAdmin },
+          { to: "/integrations", label: "Integrations", icon: Plug, show: canOpsAdmin },
+        ],
+      },
+      {
+        label: "Admin",
+        items: [
+          { to: "/settings", label: "Settings", icon: Cog, show: true },
+        ],
+      },
+    ].map((s) => ({ ...s, items: s.items.filter((i) => i.show) })).filter((s) => s.items.length > 0), [canTeamLead, canSupervisor, canOpsAdmin]);
   // Keep references to icons used elsewhere in the module so tree-shakers don't
   // complain in dev builds. (No runtime cost.)
   void UsersRound; void Settings2; void Gauge; void LineChart; void ShieldCheck; void KeyRound;
@@ -119,6 +122,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                     <Link
                       key={n.to}
                       to={n.to}
+                      preload={false}
                       title={n.label}
                       className={cn(
                         "group flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors justify-center lg:justify-start",
@@ -233,42 +237,15 @@ function NotificationsBell() {
       }
     };
     load();
-    // Use a per-mount unique channel name so React StrictMode's double-invoke
-    // (or fast remounts) never re-registers callbacks on an already-subscribed channel.
-    const channelName = `notifications:${user.id}:${Math.random().toString(36).slice(2)}`;
-    let channel: ReturnType<typeof supabase.channel> | null = null;
-    try {
-      const c = supabase.channel(channelName);
-      c.on(
-        "postgres_changes" as any,
-        { event: "*", schema: "public", table: "notifications", filter: `user_id=eq.${user.id}` },
-        (payload: any) => {
-          load();
-          if (payload?.eventType === "INSERT") {
-            const n = payload.new ?? {};
-            toast(n.title ?? "New notification", {
-              description: n.body ?? undefined,
-              action: n.link ? { label: "Open", onClick: () => { window.location.href = n.link; } } : undefined,
-            });
-          }
-        },
-      );
-      c.subscribe();
-      channel = c;
-    } catch {
-      /* realtime unavailable — bell still works without live updates */
-    }
     return () => {
       cancelled = true;
-      if (channel) {
-        try { supabase.removeChannel(channel); } catch { /* noop */ }
-      }
     };
   }, [user?.id]);
 
   return (
     <Link
       to="/notifications"
+      preload={false}
       aria-label={`Notifications (${unread} unread)`}
       className="fixed top-4 right-6 z-40 inline-flex items-center justify-center size-10 rounded-full bg-background border shadow-sm hover:bg-accent transition-colors"
     >

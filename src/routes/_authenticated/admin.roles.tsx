@@ -1,8 +1,7 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import {
   listCustomRoles,
   listPermissionCatalog,
@@ -19,15 +18,6 @@ import { Check, Plus, Trash2, ShieldCheck, Users, KeyRound } from "lucide-react"
 import { DUMMY_CUSTOM_ROLES, DUMMY_PERMISSION_CATALOG, DUMMY_ORG_MEMBERS } from "@/lib/dummy-data";
 
 export const Route = createFileRoute("/_authenticated/admin/roles")({
-  beforeLoad: async () => {
-    const { data } = await supabase.auth.getUser();
-    if (!data.user) throw redirect({ to: "/auth" });
-    const { data: ok } = await supabase.rpc("has_permission", {
-      _user_id: data.user.id,
-      _permission: "roles:assign",
-    });
-    if (!ok) throw redirect({ to: "/dashboard" });
-  },
   component: RolesPage,
 });
 

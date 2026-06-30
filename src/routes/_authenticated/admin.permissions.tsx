@@ -1,7 +1,6 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { supabase } from "@/integrations/supabase/client";
 import { listPermissions, togglePermission } from "@/lib/admin.functions";
 import { PageHeader } from "@/components/AppShell";
 import { CCCard, CCStatusPill } from "@/components/cc";
@@ -11,14 +10,6 @@ import { DUMMY_PERMISSIONS_ROWS } from "@/lib/dummy-data";
 
 /** Super-admin permission matrix editor. */
 export const Route = createFileRoute("/_authenticated/admin/permissions")({
-  beforeLoad: async () => {
-    const { data } = await supabase.auth.getUser();
-    if (!data.user) throw redirect({ to: "/auth" });
-    const { data: roles } = await supabase.from("user_roles").select("role").eq("user_id", data.user.id);
-    if (!(roles ?? []).some((r) => r.role === "super_admin")) {
-      throw redirect({ to: "/dashboard" });
-    }
-  },
   component: PermissionsPage,
 });
 

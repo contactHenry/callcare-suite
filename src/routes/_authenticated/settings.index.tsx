@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { AppShell, PageHeader } from "@/components/AppShell";
+import { PageHeader } from "@/components/AppShell";
 import { CCCard, CCStatusPill, CCWidget } from "@/components/cc";
 import { useAuth } from "@/lib/auth";
 import { Bell, ShieldCheck, Cog, KeyRound, Plug, Settings2, Building2, ScrollText, User, Globe, Palette, Languages, Clock, Headphones } from "lucide-react";
@@ -35,7 +35,7 @@ function SettingsPage() {
   const displayName = profile?.full_name ?? user?.email?.split("@")[0] ?? "Alex Morgan";
   const email = user?.email ?? "alex.morgan@contoso.com";
   return (
-    <AppShell>
+    <>
       <PageHeader
         title="Settings"
         description="Personal preferences are available to everyone. Org-wide settings appear for Operations & Super Admins."
@@ -114,7 +114,7 @@ function SettingsPage() {
           </ul>
         </CCWidget>
       </div>
-    </AppShell>
+    </>
   );
 }
 
