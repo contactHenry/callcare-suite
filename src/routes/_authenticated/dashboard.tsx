@@ -187,6 +187,94 @@ function DailyTaskList({ tasks }: { tasks: any[] }) {
 
 /* ----------------------------- Team Leader --------------------------- */
 function TeamLeaderDashboard() {
+  return TeamLeaderDashboardImpl();
+}
+
+function RecentCallsList({ items }: { items: typeof DUMMY_RECENT_CALLS }) {
+  return (
+    <ul className="divide-y divide-[color:var(--cc-ink-100)]">
+      {items.map((c) => (
+        <li key={c.id} className="py-2.5 flex items-center justify-between gap-3 text-sm">
+          <div className="min-w-0">
+            <div className="font-medium truncate text-[color:var(--cc-ink-900)]">{c.contact}</div>
+            <div className="text-xs text-[color:var(--cc-ink-500)] capitalize">{c.direction} · {Math.floor(c.duration / 60)}m {c.duration % 60}s</div>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <CCStatusPill tone={c.outcome === "resolved" ? "success" : c.outcome === "escalated" ? "danger" : c.outcome === "follow_up" ? "warning" : "neutral"}>
+              {c.outcome.replace("_", " ")}
+            </CCStatusPill>
+            {c.qa != null && (
+              <span className="text-xs tabular-nums font-medium" style={{ color: c.qa >= 85 ? "var(--cc-success)" : c.qa >= 70 ? "oklch(0.65 0.15 70)" : "var(--cc-danger)" }}>
+                {c.qa}%
+              </span>
+            )}
+          </div>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function OutcomeBars({ items }: { items: typeof DUMMY_OUTCOME_MIX }) {
+  const total = items.reduce((s, i) => s + i.value, 0) || 1;
+  return (
+    <ul className="space-y-2.5">
+      {items.map((it) => {
+        const pct = (it.value / total) * 100;
+        const c = it.tone === "positive" ? "var(--cc-success)" : it.tone === "negative" ? "var(--cc-danger)" : it.tone === "warning" ? "oklch(0.7 0.15 70)" : "var(--cc-brand)";
+        return (
+          <li key={it.label}>
+            <div className="flex justify-between text-xs mb-1">
+              <span className="text-[color:var(--cc-ink-700)]">{it.label}</span>
+              <span className="tabular-nums text-[color:var(--cc-ink-500)]">{it.value} · {pct.toFixed(0)}%</span>
+            </div>
+            <div className="h-1.5 w-full rounded-full bg-[color:var(--cc-ink-100)] overflow-hidden">
+              <div className="h-full rounded-full" style={{ width: `${pct}%`, background: c }} />
+            </div>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
+function AgentLeaderboard({ rows }: { rows: typeof DUMMY_AGENT_LEADERBOARD }) {
+  const max = Math.max(...rows.map((r) => r.calls));
+  return (
+    <ul className="divide-y divide-[color:var(--cc-ink-100)]">
+      {rows.map((r, i) => (
+        <li key={r.id} className="py-2.5 flex items-center gap-3">
+          <span className="w-5 text-xs tabular-nums text-[color:var(--cc-ink-500)]">#{i + 1}</span>
+          <div className="flex-1 min-w-0">
+            <div className="text-sm font-medium truncate">{r.full_name}</div>
+            <div className="mt-1 h-1.5 w-full rounded-full bg-[color:var(--cc-ink-100)] overflow-hidden">
+              <div className="h-full rounded-full bg-[color:var(--cc-brand)]" style={{ width: `${(r.calls / max) * 100}%` }} />
+            </div>
+          </div>
+          <div className="flex items-center gap-3 text-xs tabular-nums shrink-0">
+            <span>{r.calls} calls</span>
+            <span className="text-[color:var(--cc-ink-500)]">{r.aht}s AHT</span>
+            <span style={{ color: r.qa >= 85 ? "var(--cc-success)" : r.qa >= 70 ? "oklch(0.65 0.15 70)" : "var(--cc-danger)" }}>{r.qa}% QA</span>
+          </div>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function SLAStrip({ sla }: { sla: typeof DUMMY_SLA }) {
+  const tone = sla.service_level_pct >= 85 ? "success" : sla.service_level_pct >= 70 ? "brand" : "warning";
+  return (
+    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      <div><div className="text-xs text-[color:var(--cc-ink-500)]">Service level</div><div className="text-2xl font-semibold tabular-nums">{sla.service_level_pct}%</div><CCProgressBar value={sla.service_level_pct} tone={tone as any} showLabel={false} /></div>
+      <div><div className="text-xs text-[color:var(--cc-ink-500)]">Abandon rate</div><div className="text-2xl font-semibold tabular-nums">{sla.abandon_rate_pct}%</div></div>
+      <div><div className="text-xs text-[color:var(--cc-ink-500)]">Avg wait</div><div className="text-2xl font-semibold tabular-nums">{sla.avg_wait_seconds}s</div></div>
+      <div><div className="text-xs text-[color:var(--cc-ink-500)]">Longest wait</div><div className="text-2xl font-semibold tabular-nums">{sla.longest_wait_seconds}s</div></div>
+    </div>
+  );
+}
+
+function TeamLeaderDashboardImpl() {
   const teamTasks = useQuery({
     queryKey: ["team-tasks"],
     queryFn: () => listTasks({ data: { scope: "team", overdueOnly: false, limit: 50 } }),
