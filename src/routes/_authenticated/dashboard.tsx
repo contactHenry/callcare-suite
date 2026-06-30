@@ -113,6 +113,15 @@ function AgentDashboard() {
         >
           <DailyTaskList tasks={(myTasks.data && myTasks.data.length > 0) ? myTasks.data : DUMMY_TASKS} />
         </CCWidget>
+
+        <div className="grid gap-4 lg:grid-cols-2">
+          <CCWidget title="My recent calls" footer={<Link to="/calls" className="underline">View all calls</Link>}>
+            <RecentCallsList items={DUMMY_RECENT_CALLS} />
+          </CCWidget>
+          <CCWidget title="QA breakdown (last 30 days)">
+            <OutcomeBars items={DUMMY_OUTCOME_MIX} />
+          </CCWidget>
+        </div>
       </div>
     </>
   );
