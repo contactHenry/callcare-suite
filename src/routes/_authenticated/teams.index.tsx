@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { AppShell, PageHeader } from "@/components/AppShell";
+import { PageHeader } from "@/components/AppShell";
 import { CCButton, CCCard } from "@/components/cc";
 import { Users as UsersIcon } from "lucide-react";
 
@@ -17,7 +17,7 @@ const TEAMS = [
 
 function TeamsPage() {
   return (
-    <AppShell>
+    <>
       <PageHeader
         title="Teams"
         description="Squads of agents grouped by a Team Leader. Used for routing, monitoring, and reporting."
@@ -40,6 +40,6 @@ function TeamsPage() {
           </CCCard>
         ))}
       </div>
-    </AppShell>
+    </>
   );
 }
