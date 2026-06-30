@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { PageHeader } from "@/components/AppShell";
-import { CCButton, CCCard } from "@/components/cc";
+import { CCButton, CCCard, CCStatusPill, CCTable, CCThead, CCTh, CCTr, CCTd } from "@/components/cc";
 import { Target, Phone, Users, TrendingUp } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/campaigns/")({
@@ -30,32 +30,36 @@ function CampaignsPage() {
           <CCCard className="p-5"><div className="flex items-center justify-between"><div><div className="text-xs text-muted-foreground">Contacts</div><div className="text-2xl font-semibold mt-1">1,912</div></div><Users className="size-5 text-muted-foreground" /></div></CCCard>
           <CCCard className="p-5"><div className="flex items-center justify-between"><div><div className="text-xs text-muted-foreground">Avg. conversion</div><div className="text-2xl font-semibold mt-1">24.6%</div></div><TrendingUp className="size-5 text-emerald-500" /></div></CCCard>
         </div>
-        <CCCard className="overflow-hidden">
-          <table className="w-full text-sm">
-            <thead className="text-left text-xs uppercase tracking-wider text-muted-foreground">
-              <tr><th className="px-5 py-3">Campaign</th><th className="px-5 py-3">Status</th><th className="px-5 py-3">Owner</th><th className="px-5 py-3 text-right">Calls</th><th className="px-5 py-3 text-right">Contacts</th><th className="px-5 py-3 text-right">Conv.</th></tr>
-            </thead>
+        <section>
+          <CCTable>
+            <CCThead>
+              <tr>
+                <CCTh>Campaign</CCTh>
+                <CCTh>Status</CCTh>
+                <CCTh>Owner</CCTh>
+                <CCTh className="text-right">Calls</CCTh>
+                <CCTh className="text-right">Contacts</CCTh>
+                <CCTh className="text-right">Conv.</CCTh>
+              </tr>
+            </CCThead>
             <tbody>
               {SAMPLE.map((c) => (
-                <tr key={c.id} className="border-t hover:bg-accent/40">
-                  <td className="px-5 py-3 font-medium">{c.name}</td>
-                  <td className="px-5 py-3">
-                    <span className={
-                      "inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium " +
-                      (c.status === "Active" ? "bg-emerald-100 text-emerald-700"
-                        : c.status === "Paused" ? "bg-amber-100 text-amber-800"
-                        : "bg-slate-100 text-slate-700")
-                    }>{c.status}</span>
-                  </td>
-                  <td className="px-5 py-3 text-muted-foreground">{c.owner}</td>
-                  <td className="px-5 py-3 text-right tabular-nums">{c.calls.toLocaleString()}</td>
-                  <td className="px-5 py-3 text-right tabular-nums">{c.contacts.toLocaleString()}</td>
-                  <td className="px-5 py-3 text-right tabular-nums">{c.conversion}</td>
-                </tr>
+                <CCTr key={c.id}>
+                  <CCTd className="font-medium">{c.name}</CCTd>
+                  <CCTd>
+                    {c.status === "Active" && <CCStatusPill tone="success">{c.status}</CCStatusPill>}
+                    {c.status === "Paused" && <CCStatusPill tone="warning">{c.status}</CCStatusPill>}
+                    {c.status === "Draft" && <CCStatusPill tone="neutral">{c.status}</CCStatusPill>}
+                  </CCTd>
+                  <CCTd className="text-[color:var(--cc-ink-500)]">{c.owner}</CCTd>
+                  <CCTd className="text-right tabular-nums">{c.calls.toLocaleString()}</CCTd>
+                  <CCTd className="text-right tabular-nums">{c.contacts.toLocaleString()}</CCTd>
+                  <CCTd className="text-right tabular-nums">{c.conversion}</CCTd>
+                </CCTr>
               ))}
             </tbody>
-          </table>
-        </CCCard>
+          </CCTable>
+        </section>
       </div>
     </>
   );
