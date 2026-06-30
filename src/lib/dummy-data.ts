@@ -174,6 +174,31 @@ export const DUMMY_SCRIPTS = [
   { id: u(84), name: "Voicemail script (no-answer)",      current_version: { version: 1, status: "draft" } },
 ];
 
+export const DUMMY_SCRIPT_TREE = {
+  rootId: "n1",
+  nodes: [
+    { id: "n1", kind: "say",        text: "Hi, this is {{agent_name}} from Lovable Telecom. Am I speaking with {{client_name}}?", mandatory: true },
+    { id: "n2", kind: "compliance", text: "Before we continue, please note this call is recorded for quality and training. Is that okay?", mandatory: true, branches: [
+        { value: "Yes", nextId: "n3" }, { value: "No",  nextId: "n6" },
+    ]},
+    { id: "n3", kind: "question",   text: "Great. I'm calling about your renewal due on {{renewal_date}}. Do you have 2 minutes?", branches: [
+        { value: "Yes", nextId: "n4" }, { value: "Busy", nextId: "n5" },
+    ]},
+    { id: "n4", kind: "say",        text: "Your current plan auto-renews at £39/mo. I can lock in £32/mo for 12 months today." },
+    { id: "n5", kind: "say",        text: "No problem — when's a better time to call back?" },
+    { id: "n6", kind: "say",        text: "Understood. I'll end the call here and remove this number from the campaign. Thank you." },
+    { id: "n7", kind: "objection",  text: "If they say it's too expensive: highlight loyalty discount and free 3-month add-on." },
+    { id: "n8", kind: "faq",        text: "Cancellation: 30-day notice, no exit fee after 12 months." },
+  ],
+};
+
+export const DUMMY_SCRIPT_VERSIONS = [
+  { id: "v-4", version: 4, status: "approved",  changelog: "Added GDPR consent wording.", tree: DUMMY_SCRIPT_TREE },
+  { id: "v-3", version: 3, status: "approved",  changelog: "Reworded objection handling." },
+  { id: "v-2", version: 2, status: "approved",  changelog: "Initial branching logic."  },
+  { id: "v-1", version: 1, status: "approved",  changelog: "First release."           },
+];
+
 /* ------------------------------ Clients ------------------------------ */
 const CLIENT_STATUSES = ["new","assigned","contacted","follow_up","interested","converted","unreachable","complaint","do_not_call"];
 export const DUMMY_CLIENTS = Array.from({ length: 18 }, (_, i) => {

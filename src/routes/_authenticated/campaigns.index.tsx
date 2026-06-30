@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { AppShell, PageHeader } from "@/components/AppShell";
+import { PageHeader } from "@/components/AppShell";
 import { CCButton, CCCard } from "@/components/cc";
 import { Target, Phone, Users, TrendingUp } from "lucide-react";
 
@@ -17,7 +17,7 @@ const SAMPLE = [
 
 function CampaignsPage() {
   return (
-    <AppShell>
+    <>
       <PageHeader
         title="Campaigns"
         description="Outbound calling campaigns with dispositions, scripts, and contact lists. Supervisor+ only."
@@ -57,6 +57,6 @@ function CampaignsPage() {
           </table>
         </CCCard>
       </div>
-    </AppShell>
+    </>
   );
 }
