@@ -82,7 +82,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     atLeast: (role) => roleLevel >= (ROLE_LEVEL[role] ?? 99),
     loading,
     signOut: async () => {
-      await supabase.auth.signOut();
+      try { await supabase.auth.signOut(); } catch { /* noop */ }
     },
   };
 
