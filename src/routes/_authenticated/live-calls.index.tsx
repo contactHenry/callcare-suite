@@ -18,6 +18,7 @@ import { CCButton, CCStatusPill } from "@/components/cc";
 import { Phone, PhoneIncoming, Radio, Timer, Users as UsersIcon } from "lucide-react";
 import { toast } from "sonner";
 import { setActiveCall } from "@/lib/call-session";
+import { DUMMY_LIVE_CALLS, DUMMY_QUEUE } from "@/lib/dummy-data";
 
 export const Route = createFileRoute("/_authenticated/live-calls/")({ component: LiveCalls });
 
@@ -64,8 +65,11 @@ function LiveCalls() {
     return () => clearInterval(t);
   }, []);
 
-  const activeCalls: any[] = live.data ?? [];
-  const waiting: any[] = queue.data ?? [];
+  const liveRows: any[] = live.data ?? [];
+  const queueRows: any[] = queue.data ?? [];
+  const isSample = liveRows.length === 0 && queueRows.length === 0;
+  const activeCalls: any[] = liveRows.length ? liveRows : (isSample ? DUMMY_LIVE_CALLS : []);
+  const waiting: any[] = queueRows.length ? queueRows : (isSample ? DUMMY_QUEUE : []);
   const longestWait = waiting.reduce((m, q) => Math.max(m, secsSince(q.queued_at)), 0);
   const breaches = waiting.filter((q) => secsSince(q.queued_at) > 60).length;
 
@@ -92,6 +96,11 @@ function LiveCalls() {
         description="Real-time view of every call in progress and waiting to be answered."
         actions={<Link to="/monitoring"><CCButton variant="ghost"><Radio className="size-4 mr-1" />Detailed monitoring</CCButton></Link>}
       />
+      {isSample && (
+        <div className="px-6 -mb-2 text-xs text-muted-foreground">
+          Showing sample wallboard data for preview. Live calls appear here as they happen.
+        </div>
+      )}
 
       {/* Wallboard tiles */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-6">
