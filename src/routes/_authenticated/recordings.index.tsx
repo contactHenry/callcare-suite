@@ -35,14 +35,24 @@ function RecordingsLibrary() {
 
   const { data, refetch, isLoading } = useQuery({
     queryKey: ["recordings", search, from, to, campaignId],
-    queryFn: () => listRecordings({ data: {
-      search: search || undefined, from: from || undefined, to: to || undefined,
-      campaignId: campaignId || undefined, limit: 50, offset: 0,
-    } }),
+    queryFn: async () => {
+      try {
+        return await listRecordings({ data: {
+          search: search || undefined, from: from || undefined, to: to || undefined,
+          campaignId: campaignId || undefined, limit: 50, offset: 0,
+        } });
+      } catch (e) {
+        console.warn("listRecordings failed, falling back to sample data", e);
+        return { rows: [] };
+      }
+    },
+    retry: false,
   });
   const rows: any[] = (data?.rows && data.rows.length > 0) ? data.rows : DUMMY_RECORDINGS;
   const { data: campaigns = [] } = useQuery({
-    queryKey: ["campaigns-mini"], queryFn: () => listCampaigns(),
+    queryKey: ["campaigns-mini"],
+    queryFn: async () => { try { return await listCampaigns(); } catch { return []; } },
+    retry: false,
   });
   const active = activeIdx != null ? rows[activeIdx] : null;
 
