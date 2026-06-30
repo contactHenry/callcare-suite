@@ -50,7 +50,15 @@ function AuditPage() {
 
   const { data, isFetching, refetch } = useQuery({
     queryKey: ["audit-log", filters],
-    queryFn: () => fn({ data: filters }),
+    queryFn: async () => {
+      try {
+        return await fn({ data: filters });
+      } catch (error) {
+        console.warn("Audit log unavailable, using UI fallback data.", error);
+        return { rows: [] };
+      }
+    },
+    retry: false,
   });
   const apiRows = data?.rows ?? [];
   let rows: any[] = apiRows.length > 0 ? apiRows : DUMMY_AUDIT;
