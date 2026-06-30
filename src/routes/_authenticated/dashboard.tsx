@@ -325,6 +325,19 @@ function TeamLeaderDashboardImpl() {
           <CCBarChart data={volumeData} formatX={(l) => `${l}:00`} />
         </CCWidget>
 
+        <CCWidget title="Service level (today)" hint="Target: 85% answered within 20s">
+          <SLAStrip sla={DUMMY_SLA} />
+        </CCWidget>
+
+        <div className="grid gap-4 lg:grid-cols-2">
+          <CCWidget title="Agent leaderboard (today)" footer={<Link to="/staff" className="underline">View staff →</Link>}>
+            <AgentLeaderboard rows={DUMMY_AGENT_LEADERBOARD} />
+          </CCWidget>
+          <CCWidget title="Outcome mix (7d)">
+            <OutcomeBars items={DUMMY_OUTCOME_MIX} />
+          </CCWidget>
+        </div>
+
         <CCWidget title="Live floor" footer={<Link to="/monitoring" className="underline">Open monitoring console →</Link>}>
           <ul className="divide-y divide-[color:var(--cc-ink-100)]">
               {liveData.map((c: any) => (
