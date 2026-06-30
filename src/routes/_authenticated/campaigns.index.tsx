@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { PageHeader } from "@/components/AppShell";
-import { CCButton, CCCard } from "@/components/cc";
+import { CCButton, CCCard, CCStatusPill, CCTable, CCThead, CCTh, CCTr, CCTd } from "@/components/cc";
 import { Target, Phone, Users, TrendingUp } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/campaigns/")({
