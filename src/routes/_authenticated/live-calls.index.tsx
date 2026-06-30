@@ -19,9 +19,6 @@ import { Phone, PhoneIncoming, PhoneOff, Radio, Timer, Users as UsersIcon, Mic, 
 import { toast } from "sonner";
 import { setActiveCall } from "@/lib/call-session";
 import { DUMMY_LIVE_CALLS, DUMMY_QUEUE } from "@/lib/dummy-data";
-import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
-} from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/_authenticated/live-calls/")({ component: LiveCalls });
 
@@ -136,7 +133,7 @@ function LiveCalls() {
         />
       </div>
 
-      <div className="px-6 pb-10 grid gap-6 xl:grid-cols-2">
+      <div className={`px-6 pb-10 grid gap-6 ${activeQueued ? "xl:grid-cols-3" : "xl:grid-cols-2"}`}>
         {/* ACTIVE CALLS */}
         <section>
           <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-3">
@@ -203,12 +200,14 @@ function LiveCalls() {
             })}
           </div>
         </section>
-      </div>
 
-      <ActiveCallDialog
-        call={activeQueued}
-        onClose={() => setActiveQueued(null)}
-      />
+        {activeQueued && (
+          <ActiveCallPanel
+            call={activeQueued}
+            onClose={() => setActiveQueued(null)}
+          />
+        )}
+      </div>
     </>
   );
 }
@@ -241,7 +240,7 @@ function EmptyCard({ text }: { text: string }) {
   );
 }
 
-function ActiveCallDialog({ call, onClose }: { call: any | null; onClose: () => void }) {
+function ActiveCallPanel({ call, onClose }: { call: any; onClose: () => void }) {
   const [muted, setMuted] = useState(false);
   const [held, setHeld] = useState(false);
   const [elapsed, setElapsed] = useState(0);
@@ -254,7 +253,6 @@ function ActiveCallDialog({ call, onClose }: { call: any | null; onClose: () => 
     return () => clearInterval(t);
   }, [call]);
 
-  if (!call) return null;
   const name = call.contacts?.name ?? call.from_number ?? "Unknown caller";
   const number = call.from_number ?? "—";
 
@@ -264,14 +262,15 @@ function ActiveCallDialog({ call, onClose }: { call: any | null; onClose: () => 
   }
 
   return (
-    <Dialog open={!!call} onOpenChange={(o) => { if (!o) endCall(); }}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>In call</DialogTitle>
-          <DialogDescription>Inbound · {held ? "On hold" : "Connected"}</DialogDescription>
-        </DialogHeader>
-
-        <div className="flex flex-col items-center text-center py-4">
+    <section>
+      <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-3 flex items-center justify-between">
+        <span>In call</span>
+        <span className="text-[10px] font-medium normal-case tracking-normal text-muted-foreground">
+          {held ? "On hold" : "Connected · recording"}
+        </span>
+      </h2>
+      <div className="rounded-xl border bg-card p-5 flex flex-col">
+        <div className="flex flex-col items-center text-center py-2">
           <div className="size-20 rounded-full bg-[color:var(--cc-brand)]/10 text-[color:var(--cc-brand)] flex items-center justify-center mb-3">
             <Phone className="size-8" />
           </div>
@@ -280,11 +279,11 @@ function ActiveCallDialog({ call, onClose }: { call: any | null; onClose: () => 
           <div className="mt-4 font-mono text-3xl tabular-nums">{fmt(elapsed)}</div>
           <div className="mt-1 flex items-center gap-1.5 text-xs">
             <span className={`size-2 rounded-full ${held ? "bg-amber-500" : "bg-emerald-500 animate-pulse"}`} />
-            {held ? "Holding" : "Live · recording"}
+            {held ? "Holding" : "Live"}
           </div>
         </div>
 
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-3 gap-2 mt-4">
           <CCButton variant="ghost" onClick={() => setMuted((m) => !m)}>
             {muted ? <MicOff className="size-4 mr-1" /> : <Mic className="size-4 mr-1" />}
             {muted ? "Unmute" : "Mute"}
@@ -298,17 +297,15 @@ function ActiveCallDialog({ call, onClose }: { call: any | null; onClose: () => 
           </CCButton>
         </div>
 
-        <DialogFooter className="sm:justify-center mt-2">
-          <button
-            type="button"
-            onClick={endCall}
-            className="inline-flex items-center gap-2 rounded-full bg-rose-600 hover:bg-rose-700 text-white px-6 py-2.5 text-sm font-semibold"
-          >
-            <PhoneOff className="size-4" /> End call
-          </button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        <button
+          type="button"
+          onClick={endCall}
+          className="mt-4 inline-flex items-center justify-center gap-2 rounded-full bg-rose-600 hover:bg-rose-700 text-white px-6 py-2.5 text-sm font-semibold"
+        >
+          <PhoneOff className="size-4" /> End call
+        </button>
+      </div>
+    </section>
   );
 }
 
