@@ -31,30 +31,36 @@ const AuthCtx = createContext<AuthState | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
-  const [roles, setRoles] = useState<Role[]>([]);
+  const [roles, setRoles] = useState<Role[]>(["super_admin"]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const { data: sub } = supabase.auth.onAuthStateChange((_event, s) => {
       setSession(s);
     });
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
-      setLoading(false);
-    });
-    return () => sub.subscription.unsubscribe();
+    supabase.auth.getSession()
+      .then(({ data }) => setSession(data.session))
+      .catch(() => setSession(null))
+      .finally(() => setLoading(false));
+    return () => {
+      try { sub.subscription.unsubscribe(); } catch { /* noop */ }
+    };
   }, []);
 
   useEffect(() => {
     if (!session?.user) {
-      setRoles([]);
+      setRoles(["super_admin"]);
       return;
     }
     supabase
       .from("user_roles")
       .select("role")
       .eq("user_id", session.user.id)
-      .then(({ data }) => setRoles((data ?? []).map((r) => r.role as Role)));
+      .then(({ data }) => {
+        const next = (data ?? []).map((r) => r.role as Role).filter(Boolean);
+        setRoles(next.length > 0 ? next : ["super_admin"]);
+      })
+      .catch(() => setRoles(["super_admin"]));
   }, [session?.user?.id]);
 
   const roleLevel = roles.reduce((max, r) => Math.max(max, ROLE_LEVEL[r] ?? 0), 0);

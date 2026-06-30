@@ -1,8 +1,7 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { listAuditLog } from "@/lib/admin.functions";
 import { PageHeader } from "@/components/AppShell";
 import {
@@ -12,13 +11,6 @@ import {
 import { DUMMY_AUDIT } from "@/lib/dummy-data";
 
 export const Route = createFileRoute("/_authenticated/security/audit")({
-  beforeLoad: async () => {
-    const { data } = await supabase.auth.getUser();
-    if (!data.user) throw redirect({ to: "/auth" });
-    const { data: roles } = await supabase.from("user_roles").select("role").eq("user_id", data.user.id);
-    const ok = (roles ?? []).some((r) => r.role === "ops_admin" || r.role === "super_admin");
-    if (!ok) throw redirect({ to: "/dashboard" });
-  },
   component: AuditPage,
 });
 

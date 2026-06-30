@@ -34,27 +34,38 @@ export function useAvailability(userId: string | undefined) {
   useEffect(() => {
     if (!userId) return;
     let cancelled = false;
-    supabase
-      .from("agent_availability")
-      .select("status")
-      .eq("user_id", userId)
-      .maybeSingle()
-      .then(({ data }) => { if (!cancelled && data?.status) setStatus(data.status as Presence); });
-    const ch = supabase
-      .channel(`presence:${userId}`)
-      .on("postgres_changes",
-        { event: "*", schema: "public", table: "agent_availability", filter: `user_id=eq.${userId}` },
-        (payload: any) => { if (payload?.new?.status) setStatus(payload.new.status); },
-      ).subscribe();
-    return () => { cancelled = true; supabase.removeChannel(ch); };
+
+    const loadStatus = async () => {
+      try {
+        const { data } = await supabase
+          .from("agent_availability")
+          .select("status")
+          .eq("user_id", userId)
+          .maybeSingle();
+        if (!cancelled && data?.status) setStatus(data.status as Presence);
+      } catch {
+        if (!cancelled) setStatus("offline");
+      }
+    };
+
+    loadStatus();
+
+    return () => {
+      cancelled = true;
+    };
   }, [userId]);
 
   const update = useCallback(async (next: Presence) => {
     if (!userId) return;
     setLoading(true);
     setStatus(next);
-    await supabase.from("agent_availability").upsert({ user_id: userId, status: next });
-    setLoading(false);
+    try {
+      await supabase.from("agent_availability").upsert({ user_id: userId, status: next });
+    } catch {
+      /* Availability is a convenience UI control; never crash navigation. */
+    } finally {
+      setLoading(false);
+    }
   }, [userId]);
 
   return { status, update, loading };

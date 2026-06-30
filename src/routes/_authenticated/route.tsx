@@ -6,8 +6,8 @@ import { useIdleLogout } from "@/hooks/use-idle-logout";
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
   beforeLoad: async () => {
-    const { data, error } = await supabase.auth.getUser();
-    if (error || !data.user) throw redirect({ to: "/auth" });
+    const { data } = await supabase.auth.getSession();
+    if (!data.session?.user) throw redirect({ to: "/auth" });
   },
   component: AuthenticatedLayout,
 });

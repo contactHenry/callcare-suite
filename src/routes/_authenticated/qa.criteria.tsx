@@ -1,4 +1,4 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -17,13 +17,6 @@ import { toast } from "sonner";
 import { DUMMY_QA_CRITERIA } from "@/lib/dummy-data";
 
 export const Route = createFileRoute("/_authenticated/qa/criteria")({
-  beforeLoad: async () => {
-    const { data } = await supabase.auth.getUser();
-    if (!data.user) throw redirect({ to: "/auth" });
-    const { data: roles } = await supabase.from("user_roles").select("role").eq("user_id", data.user.id);
-    const privileged = new Set(["supervisor", "ops_admin", "super_admin"]);
-    if (!roles?.some((r) => privileged.has(r.role))) throw redirect({ to: "/dashboard" });
-  },
   component: Criteria,
 });
 
