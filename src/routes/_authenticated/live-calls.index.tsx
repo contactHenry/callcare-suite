@@ -19,6 +19,7 @@ import { Phone, PhoneIncoming, PhoneOff, Radio, Timer, Users as UsersIcon, Mic, 
 import { toast } from "sonner";
 import { setActiveCall } from "@/lib/call-session";
 import { DUMMY_LIVE_CALLS, DUMMY_QUEUE } from "@/lib/dummy-data";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/_authenticated/live-calls/")({ component: LiveCalls });
 
@@ -244,6 +245,11 @@ function ActiveCallPanel({ call, onClose }: { call: any; onClose: () => void }) 
   const [muted, setMuted] = useState(false);
   const [held, setHeld] = useState(false);
   const [elapsed, setElapsed] = useState(0);
+  const [transferOpen, setTransferOpen] = useState(false);
+  const [transferMode, setTransferMode] = useState<"warm" | "cold">("warm");
+  const [transferTarget, setTransferTarget] = useState<string | null>(null);
+  const [transferNote, setTransferNote] = useState("");
+  const [transferQuery, setTransferQuery] = useState("");
 
   useEffect(() => {
     if (!call) return;
@@ -259,6 +265,32 @@ function ActiveCallPanel({ call, onClose }: { call: any; onClose: () => void }) 
   function endCall() {
     toast.success(`Call with ${name} ended (${fmt(elapsed)})`);
     onClose();
+  }
+
+  const TRANSFER_TARGETS = [
+    { id: "agent-1", kind: "Agent",  name: "Amara Okafor",    detail: "Tier 2 Support · Available",   tone: "ok" as const },
+    { id: "agent-2", kind: "Agent",  name: "Diego Hernández", detail: "Billing · Available",          tone: "ok" as const },
+    { id: "agent-3", kind: "Agent",  name: "Priya Shah",      detail: "Retention · On a call",        tone: "warn" as const },
+    { id: "team-1",  kind: "Team",   name: "Billing queue",   detail: "3 agents available · ~24s wait", tone: "ok" as const },
+    { id: "team-2",  kind: "Team",   name: "Tier 2 Support",  detail: "1 agent available · ~1m 12s",  tone: "warn" as const },
+    { id: "ext-1",   kind: "Ext.",   name: "Supervisor desk", detail: "ext 4501",                     tone: "ok" as const },
+    { id: "ext-2",   kind: "Ext.",   name: "Voicemail",       detail: "ext 9000",                     tone: "ok" as const },
+  ];
+  const filtered = TRANSFER_TARGETS.filter((t) =>
+    !transferQuery || `${t.name} ${t.detail} ${t.kind}`.toLowerCase().includes(transferQuery.toLowerCase()),
+  );
+  const selected = TRANSFER_TARGETS.find((t) => t.id === transferTarget) ?? null;
+
+  function confirmTransfer() {
+    if (!selected) return;
+    toast.success(
+      transferMode === "warm"
+        ? `Warm transfer started to ${selected.name}`
+        : `Call transferred to ${selected.name}`,
+    );
+    setTransferOpen(false);
+    setTransferTarget(null); setTransferNote(""); setTransferQuery("");
+    if (transferMode === "cold") onClose();
   }
 
   return (
@@ -292,7 +324,7 @@ function ActiveCallPanel({ call, onClose }: { call: any; onClose: () => void }) 
             {held ? <Play className="size-4 mr-1" /> : <Pause className="size-4 mr-1" />}
             {held ? "Resume" : "Hold"}
           </CCButton>
-          <CCButton variant="ghost" onClick={() => toast.info("Transfer flow coming soon")}>
+          <CCButton variant="ghost" onClick={() => setTransferOpen(true)}>
             <UserPlus className="size-4 mr-1" />Transfer
           </CCButton>
         </div>
@@ -305,6 +337,84 @@ function ActiveCallPanel({ call, onClose }: { call: any; onClose: () => void }) 
           <PhoneOff className="size-4" /> End call
         </button>
       </div>
+
+      <Dialog open={transferOpen} onOpenChange={setTransferOpen}>
+        <DialogContent className="max-w-xl">
+          <DialogHeader>
+            <DialogTitle>Transfer call</DialogTitle>
+            <DialogDescription>
+              Send {name} ({number}) to another agent, team, or extension.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => setTransferMode("warm")}
+              className={`rounded-md border px-3 py-2 text-left text-sm ${transferMode === "warm" ? "border-[color:var(--cc-brand)] bg-[color:var(--cc-brand)]/5" : "hover:bg-muted/40"}`}
+            >
+              <div className="font-medium">Warm transfer</div>
+              <div className="text-xs text-muted-foreground">Speak to the receiver first, then connect.</div>
+            </button>
+            <button
+              type="button"
+              onClick={() => setTransferMode("cold")}
+              className={`rounded-md border px-3 py-2 text-left text-sm ${transferMode === "cold" ? "border-[color:var(--cc-brand)] bg-[color:var(--cc-brand)]/5" : "hover:bg-muted/40"}`}
+            >
+              <div className="font-medium">Cold transfer</div>
+              <div className="text-xs text-muted-foreground">Hand off immediately and drop from the call.</div>
+            </button>
+          </div>
+
+          <input
+            value={transferQuery}
+            onChange={(e) => setTransferQuery(e.target.value)}
+            placeholder="Search agents, teams, extensions…"
+            className="h-9 w-full rounded-md border bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-[color:var(--cc-brand)]/30"
+          />
+
+          <div className="max-h-64 overflow-y-auto rounded-md border divide-y">
+            {filtered.length === 0 && (
+              <div className="px-3 py-6 text-center text-sm text-muted-foreground">No matches.</div>
+            )}
+            {filtered.map((t) => {
+              const active = transferTarget === t.id;
+              return (
+                <button
+                  key={t.id}
+                  type="button"
+                  onClick={() => setTransferTarget(t.id)}
+                  className={`w-full px-3 py-2.5 flex items-center gap-3 text-left text-sm ${active ? "bg-[color:var(--cc-brand)]/5" : "hover:bg-muted/40"}`}
+                >
+                  <span className={`size-2 rounded-full ${TONE_DOT[t.tone]}`} />
+                  <div className="min-w-0 flex-1">
+                    <div className="font-medium truncate">{t.name}</div>
+                    <div className="text-xs text-muted-foreground truncate">{t.detail}</div>
+                  </div>
+                  <span className="text-[10px] uppercase tracking-wider text-muted-foreground border rounded px-1.5 py-0.5">
+                    {t.kind}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+
+          <textarea
+            value={transferNote}
+            onChange={(e) => setTransferNote(e.target.value)}
+            placeholder="Optional note for the receiving agent…"
+            rows={2}
+            className="w-full rounded-md border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[color:var(--cc-brand)]/30"
+          />
+
+          <DialogFooter>
+            <CCButton variant="ghost" onClick={() => setTransferOpen(false)}>Cancel</CCButton>
+            <CCButton disabled={!selected} onClick={confirmTransfer}>
+              {transferMode === "warm" ? "Start warm transfer" : "Transfer now"}
+            </CCButton>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </section>
   );
 }
