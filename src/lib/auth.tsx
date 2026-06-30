@@ -52,15 +52,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setRoles(["super_admin"]);
       return;
     }
-    supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", session.user.id)
-      .then(({ data }) => {
+    let cancelled = false;
+    const loadRoles = async () => {
+      try {
+        const { data } = await supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", session.user.id);
+        if (cancelled) return;
         const next = (data ?? []).map((r) => r.role as Role).filter(Boolean);
         setRoles(next.length > 0 ? next : ["super_admin"]);
-      })
-      .catch(() => setRoles(["super_admin"]));
+      } catch {
+        if (!cancelled) setRoles(["super_admin"]);
+      }
+    };
+    loadRoles();
+    return () => { cancelled = true; };
   }, [session?.user?.id]);
 
   const roleLevel = roles.reduce((max, r) => Math.max(max, ROLE_LEVEL[r] ?? 0), 0);
