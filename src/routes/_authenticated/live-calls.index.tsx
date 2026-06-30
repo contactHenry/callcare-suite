@@ -15,10 +15,13 @@ import { useEffect, useState } from "react";
 import { listLiveCalls, listQueue, acceptQueuedCall } from "@/lib/calls.functions";
 import { PageHeader } from "@/components/AppShell";
 import { CCButton, CCStatusPill } from "@/components/cc";
-import { Phone, PhoneIncoming, Radio, Timer, Users as UsersIcon } from "lucide-react";
+import { Phone, PhoneIncoming, PhoneOff, Radio, Timer, Users as UsersIcon, Mic, MicOff, Pause, Play, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 import { setActiveCall } from "@/lib/call-session";
 import { DUMMY_LIVE_CALLS, DUMMY_QUEUE } from "@/lib/dummy-data";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
+} from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/_authenticated/live-calls/")({ component: LiveCalls });
 
@@ -48,6 +51,7 @@ function LiveCalls() {
   const liveFn = useServerFn(listLiveCalls);
   const queueFn = useServerFn(listQueue);
   const acceptFn = useServerFn(acceptQueuedCall);
+  const [activeQueued, setActiveQueued] = useState<any | null>(null);
 
   const live = useQuery({
     queryKey: ["live-calls"], queryFn: () => liveFn(),
@@ -74,6 +78,12 @@ function LiveCalls() {
   const breaches = waiting.filter((q) => secsSince(q.queued_at) > 60).length;
 
   async function accept(q: any) {
+    // Sample/dummy rows are not real DB records — open the in-call UI directly.
+    if (typeof q.id === "string" && q.id.startsWith("dummy-")) {
+      setActiveQueued({ ...q, _answeredAt: Date.now() });
+      toast.success(`Connected to ${q.contacts?.name ?? q.from_number ?? "caller"}`);
+      return;
+    }
     try {
       const r: any = await acceptFn({ data: { queueId: q.id } });
       setActiveCall({
@@ -85,6 +95,7 @@ function LiveCalls() {
         direction: "inbound",
         recording: true,
       });
+      setActiveQueued({ ...q, _answeredAt: Date.now(), callId: r.callId });
       toast.success("Call accepted");
     } catch (e: any) { toast.error(e?.message ?? "Could not accept"); }
   }
@@ -193,6 +204,11 @@ function LiveCalls() {
           </div>
         </section>
       </div>
+
+      <ActiveCallDialog
+        call={activeQueued}
+        onClose={() => setActiveQueued(null)}
+      />
     </>
   );
 }
@@ -222,6 +238,77 @@ function EmptyCard({ text }: { text: string }) {
     <div className="rounded-xl border border-dashed bg-muted/30 px-4 py-8 text-center text-sm text-muted-foreground">
       {text}
     </div>
+  );
+}
+
+function ActiveCallDialog({ call, onClose }: { call: any | null; onClose: () => void }) {
+  const [muted, setMuted] = useState(false);
+  const [held, setHeld] = useState(false);
+  const [elapsed, setElapsed] = useState(0);
+
+  useEffect(() => {
+    if (!call) return;
+    setMuted(false); setHeld(false); setElapsed(0);
+    const start = call._answeredAt ?? Date.now();
+    const t = setInterval(() => setElapsed(Math.floor((Date.now() - start) / 1000)), 1000);
+    return () => clearInterval(t);
+  }, [call]);
+
+  if (!call) return null;
+  const name = call.contacts?.name ?? call.from_number ?? "Unknown caller";
+  const number = call.from_number ?? "—";
+
+  function endCall() {
+    toast.success(`Call with ${name} ended (${fmt(elapsed)})`);
+    onClose();
+  }
+
+  return (
+    <Dialog open={!!call} onOpenChange={(o) => { if (!o) endCall(); }}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>In call</DialogTitle>
+          <DialogDescription>Inbound · {held ? "On hold" : "Connected"}</DialogDescription>
+        </DialogHeader>
+
+        <div className="flex flex-col items-center text-center py-4">
+          <div className="size-20 rounded-full bg-[color:var(--cc-brand)]/10 text-[color:var(--cc-brand)] flex items-center justify-center mb-3">
+            <Phone className="size-8" />
+          </div>
+          <div className="text-lg font-semibold">{name}</div>
+          <div className="text-sm text-muted-foreground font-mono">{number}</div>
+          <div className="mt-4 font-mono text-3xl tabular-nums">{fmt(elapsed)}</div>
+          <div className="mt-1 flex items-center gap-1.5 text-xs">
+            <span className={`size-2 rounded-full ${held ? "bg-amber-500" : "bg-emerald-500 animate-pulse"}`} />
+            {held ? "Holding" : "Live · recording"}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-3 gap-2">
+          <CCButton variant="ghost" onClick={() => setMuted((m) => !m)}>
+            {muted ? <MicOff className="size-4 mr-1" /> : <Mic className="size-4 mr-1" />}
+            {muted ? "Unmute" : "Mute"}
+          </CCButton>
+          <CCButton variant="ghost" onClick={() => setHeld((h) => !h)}>
+            {held ? <Play className="size-4 mr-1" /> : <Pause className="size-4 mr-1" />}
+            {held ? "Resume" : "Hold"}
+          </CCButton>
+          <CCButton variant="ghost" onClick={() => toast.info("Transfer flow coming soon")}>
+            <UserPlus className="size-4 mr-1" />Transfer
+          </CCButton>
+        </div>
+
+        <DialogFooter className="sm:justify-center mt-2">
+          <button
+            type="button"
+            onClick={endCall}
+            className="inline-flex items-center gap-2 rounded-full bg-rose-600 hover:bg-rose-700 text-white px-6 py-2.5 text-sm font-semibold"
+          >
+            <PhoneOff className="size-4" /> End call
+          </button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 
