@@ -423,6 +423,23 @@ function ManagementDashboard() {
           </CCWidget>
         </div>
 
+        <CCWidget title="Service level (today)" hint="Target: 85% answered within 20s">
+          <SLAStrip sla={DUMMY_SLA} />
+        </CCWidget>
+
+        <div className="grid gap-4 lg:grid-cols-2">
+          <CCWidget title="Top agents (7d)" footer={<Link to="/reports" className="underline">Open reports →</Link>}>
+            <AgentLeaderboard rows={DUMMY_AGENT_LEADERBOARD} />
+          </CCWidget>
+          <CCWidget title="Outcome mix (7d)">
+            <OutcomeBars items={DUMMY_OUTCOME_MIX} />
+          </CCWidget>
+        </div>
+
+        <CCWidget title="Recent calls" footer={<Link to="/calls" className="underline">View all calls →</Link>}>
+          <RecentCallsList items={DUMMY_RECENT_CALLS} />
+        </CCWidget>
+
         <CCWidget title="Quick links">
           <div className="flex flex-wrap gap-2">
             <Link to="/qa/scorecards"><CCButton size="sm" variant="secondary">Scorecards</CCButton></Link>
