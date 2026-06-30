@@ -106,6 +106,21 @@ export const DUMMY_TASKS = [
 ];
 
 /* --------------------------- Announcements --------------------------- */
+
+/* ----------------------------- Follow-ups ---------------------------- */
+// Callbacks owed back to clients (a filtered slice of Tasks tagged as follow-up).
+export const DUMMY_FOLLOWUPS = [
+  { id: u(300), title: "Renewal callback — Helios Logistics",   reason: "Client requested a callback before renewal lapses on Friday.", client: { name: "Aarav Mehta",      phone: "+44 20 7946 0011" }, owner: { full_name: "Liam Carter" },   priority: "urgent", channel: "phone", status: "open",        due_at: minsAgo(20), created_at: daysAgo(1),  source_call_id: "d-call1" },
+  { id: u(301), title: "Send revised quote",                    reason: "Promised a revised quote within 24h after pricing review.",   client: { name: "Priya Shah",       phone: "+44 161 555 0123" }, owner: { full_name: "Noah Patel" },    priority: "high",   channel: "email", status: "in_progress", due_at: inMin(40),   created_at: daysAgo(0.5),source_call_id: "d-call2" },
+  { id: u(302), title: "Confirm payment plan acceptance",       reason: "Awaiting client confirmation on the 3-month payment plan.",   client: { name: "James O'Connor",   phone: "+353 1 555 0144" },  owner: { full_name: "Olivia Brown" },  priority: "high",   channel: "phone", status: "open",        due_at: inHrs(2),    created_at: daysAgo(2),  source_call_id: "d-call3" },
+  { id: u(303), title: "Follow up on demo no-show",             reason: "Client missed scheduled demo — reschedule.",                  client: { name: "Sofia Ramirez",    phone: "+1 415 555 0190" },  owner: { full_name: "Emma Wilson" },   priority: "normal", channel: "phone", status: "open",        due_at: inHrs(4),    created_at: daysAgo(1),  source_call_id: "d-call4" },
+  { id: u(304), title: "Send onboarding pack",                  reason: "New customer — schedule onboarding kickoff.",                 client: { name: "Daniel Kim",       phone: "+82 2 555 0177" },   owner: { full_name: "Ava Singh" },     priority: "normal", channel: "email", status: "open",        due_at: inHrs(20),   created_at: daysAgo(2),  source_call_id: "d-call5" },
+  { id: u(305), title: "Re-attempt after voicemail",            reason: "Left voicemail yesterday — try again in working hours.",      client: { name: "Fatima Al-Hassan", phone: "+971 4 555 0166" },  owner: { full_name: "Liam Carter" },   priority: "normal", channel: "phone", status: "open",        due_at: inHrs(28),   created_at: daysAgo(1),  source_call_id: "d-call6" },
+  { id: u(306), title: "Verify updated bank details",           reason: "Awaiting verification before next direct-debit run.",         client: { name: "Ethan Walker",     phone: "+44 131 555 0102" }, owner: { full_name: "Noah Patel" },    priority: "low",    channel: "email", status: "in_progress", due_at: inHrs(45),   created_at: daysAgo(3),  source_call_id: "d-call7" },
+  { id: u(307), title: "Satisfaction check-in",                 reason: "30-day post-resolution CSAT call.",                            client: { name: "Mia Johansson",    phone: "+46 8 555 0143" },   owner: { full_name: "Olivia Brown" },  priority: "low",    channel: "phone", status: "completed",   due_at: daysAgo(0.2),created_at: daysAgo(5),  source_call_id: "d-call8" },
+  { id: u(308), title: "Send compliance disclosure copy",       reason: "Client asked for written copy of recorded GDPR disclosure.",  client: { name: "Aarav Mehta",      phone: "+44 20 7946 0011" }, owner: { full_name: "Ava Singh" },     priority: "high",   channel: "email", status: "open",        due_at: minsAgo(180),created_at: daysAgo(1),  source_call_id: "d-call9"  },
+];
+
 export const DUMMY_ANNOUNCEMENTS = [
   { id: u(20), title: "New compliance script live today", body: "All inbound agents must read the updated disclosure between 9am and noon. The new wording covers GDPR and call-recording consent for EU clients.", urgency: "urgent", require_ack: true, created_at: minsAgo(45), author: { full_name: "Olivia Brown" } },
   { id: u(21), title: "Q3 incentive: top-5 conversions",  body: "Top 5 agents on conversions this quarter will receive £250 and a half-day off. Live leaderboard in the Reports tab.", urgency: "high",  require_ack: false, created_at: daysAgo(1), author: { full_name: "Noah Patel" } },
