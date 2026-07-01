@@ -74,26 +74,47 @@ function NotificationsPage() {
       />
       <div className="p-6 space-y-4">
         {showPrefs && <ChannelPreferences />}
-        <CCWidget title={`Inbox · ${items.length}`}>
-          <ul className="divide-y divide-[color:var(--cc-ink-100)]">
+        <div>
+          <div className="flex items-baseline justify-between h-11 border-b border-[color:var(--cc-ink-200)]">
+            <h3 className="text-xs font-semibold uppercase tracking-wide text-[color:var(--cc-ink-500)]">
+              Inbox · {items.length}
+            </h3>
+          </div>
+          <ul>
             {items.map((n) => {
               const tone: any =
                 n.severity === "danger" ? "danger" :
                 n.severity === "warning" ? "warning" :
                 n.severity === "success" ? "success" : "info";
               return (
-                <li key={n.id} className={`py-3 flex items-start gap-3 ${!n.read_at ? "bg-[color:var(--cc-brand-600)]/5 -mx-2 px-2 rounded-md" : ""}`}>
-                  <div className="pt-1">
-                    <CCStatusPill tone={tone} dot>{n.kind?.replace(/_/g, " ")}</CCStatusPill>
+                <li
+                  key={n.id}
+                  className="grid grid-cols-[9rem_1fr_auto] items-center gap-4 py-3 border-b border-[color:var(--cc-ink-100)]"
+                >
+                  <div className="flex items-center">
+                    <CCStatusPill tone={tone} dot>
+                      <span className="whitespace-nowrap capitalize">{n.kind?.replace(/_/g, " ")}</span>
+                    </CCStatusPill>
+                    {!n.read_at && (
+                      <span className="ml-2 h-1.5 w-1.5 rounded-full bg-[color:var(--cc-brand-600)]" aria-label="unread" />
+                    )}
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-sm font-medium text-[color:var(--cc-ink-900)]">{n.title}</div>
-                    {n.body && <div className="text-xs text-[color:var(--cc-ink-500)] mt-0.5 line-clamp-2">{n.body}</div>}
-                    <div className="text-[11px] text-[color:var(--cc-ink-400)] mt-1 tabular-nums">{new Date(n.created_at).toLocaleString()}</div>
+                  <div className="min-w-0">
+                    <div className="text-sm font-medium text-[color:var(--cc-ink-900)] truncate">{n.title}</div>
+                    {n.body && (
+                      <div className="text-xs text-[color:var(--cc-ink-500)] mt-0.5 line-clamp-1">{n.body}</div>
+                    )}
                   </div>
-                  {!n.read_at && (
-                    <CCButton size="sm" variant="ghost" onClick={() => markOne.mutate(n.id)}>Mark read</CCButton>
-                  )}
+                  <div className="flex items-center gap-3 justify-end">
+                    <span className="text-[11px] text-[color:var(--cc-ink-400)] tabular-nums whitespace-nowrap">
+                      {new Date(n.created_at).toLocaleString()}
+                    </span>
+                    {!n.read_at ? (
+                      <CCButton size="sm" variant="ghost" onClick={() => markOne.mutate(n.id)}>Mark read</CCButton>
+                    ) : (
+                      <span className="w-[76px]" />
+                    )}
+                  </div>
                 </li>
               );
             })}
@@ -101,7 +122,7 @@ function NotificationsPage() {
               <li className="py-8 text-sm text-center text-[color:var(--cc-ink-500)]">You're all caught up.</li>
             )}
           </ul>
-        </CCWidget>
+        </div>
       </div>
     </>
   );
