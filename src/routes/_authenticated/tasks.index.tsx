@@ -28,6 +28,7 @@ function TasksPage() {
     queryFn: () => listTasks({ data: { scope, overdueOnly } }),
   });
   const rows: any[] = (tasks.data && tasks.data.length > 0) ? tasks.data : DUMMY_TASKS;
+  const openTask = openTaskId ? rows.find((t) => t.id === openTaskId) : null;
 
   const [openNew, setOpenNew] = useState(false);
 
@@ -90,7 +91,7 @@ function TasksPage() {
       </div>
 
       {openNew && <NewTaskDialog onClose={() => setOpenNew(false)} />}
-      {openTaskId && <TaskDetailDialog id={openTaskId} onClose={() => setOpenTaskId(null)} />}
+      {openTaskId && <TaskDetailDialog id={openTaskId} fallback={openTask} onClose={() => setOpenTaskId(null)} />}
     </>
   );
 }
@@ -195,9 +196,15 @@ function NewTaskDialog({ onClose }: { onClose: () => void }) {
   );
 }
 
-function TaskDetailDialog({ id, onClose }: { id: string; onClose: () => void }) {
+function TaskDetailDialog({ id, fallback, onClose }: { id: string; fallback?: any; onClose: () => void }) {
   const qc = useQueryClient();
-  const detail = useQuery({ queryKey: ["task-detail", id], queryFn: () => getTaskDetail({ data: { id } }) });
+  const detail = useQuery({
+    queryKey: ["task-detail", id],
+    queryFn: async () => {
+      try { return await getTaskDetail({ data: { id } }); } catch { return null; }
+    },
+    retry: false,
+  });
   const [comment, setComment] = useState("");
   const post = useMutation({
     mutationFn: () => addTaskComment({ data: { taskId: id, body: comment } }),
@@ -207,13 +214,22 @@ function TaskDetailDialog({ id, onClose }: { id: string; onClose: () => void }) 
     mutationFn: (status: any) => updateTaskStatus({ data: { id, status } }),
     onSuccess: () => { detail.refetch(); qc.invalidateQueries({ queryKey: ["tasks"] }); },
   });
-  const t = detail.data?.task;
+  const t = detail.data?.task ?? fallback;
+  const comments = detail.data?.comments ?? DUMMY_TASK_COMMENTS;
+  const attachments = detail.data?.attachments ?? [];
+  const activity = DUMMY_TASK_ACTIVITY;
+  const overdue = t?.due_at && new Date(t.due_at) < new Date() && t.status !== "completed";
+  const statusTone: any =
+    t?.status === "completed" ? "success" :
+    t?.status === "escalated" ? "danger" :
+    overdue ? "danger" : t?.status === "in_progress" ? "info" : "neutral";
+  const priorityTone: any = t?.priority === "urgent" || t?.priority === "high" ? "danger" : t?.priority === "low" ? "neutral" : "info";
   return (
     <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4" onClick={onClose}>
       <div className="w-full max-w-2xl max-h-[90vh] overflow-auto" onClick={(e) => e.stopPropagation()}>
         <CCFormSection
           title={t?.title ?? "Task"}
-          hint={t?.recurrence_rule ? `Recurs · ${t.recurrence_rule}` : undefined}
+          hint={t?.recurrence_rule ? `Recurs · ${t.recurrence_rule}` : (t?.client?.name ? `Client · ${t.client.name}` : undefined)}
           actions={
             t && t.status !== "completed" && (
               <div className="flex gap-2">
@@ -223,19 +239,54 @@ function TaskDetailDialog({ id, onClose }: { id: string; onClose: () => void }) 
             )
           }
         >
-          {!t ? <div className="text-sm">Loading…</div> : (
+          {!t ? <div className="text-sm text-muted-foreground">Loading…</div> : (
             <>
-              <div className="grid sm:grid-cols-3 gap-3 text-sm">
-                <div><div className="text-xs text-[color:var(--cc-ink-500)]">Due</div>{t.due_at ? new Date(t.due_at).toLocaleString() : "—"}</div>
-                <div><div className="text-xs text-[color:var(--cc-ink-500)]">Priority</div>{t.priority}</div>
-                <div><div className="text-xs text-[color:var(--cc-ink-500)]">Assignee</div>{t.assignee?.full_name ?? "Unassigned"}</div>
+              <div className="flex flex-wrap items-center gap-2">
+                <CCStatusPill tone={statusTone} dot>
+                  {overdue && t.status !== "completed" ? "overdue" : String(t.status ?? "open").replace("_", " ")}
+                </CCStatusPill>
+                <CCStatusPill tone={priorityTone} dot>{t.priority ?? "normal"}</CCStatusPill>
+                {t.channel && <CCStatusPill tone="neutral">{t.channel}</CCStatusPill>}
+                {t.recurrence_rule && <CCStatusPill tone="info">Recurs · {t.recurrence_rule}</CCStatusPill>}
               </div>
-              {t.description && <p className="text-sm whitespace-pre-wrap">{t.description}</p>}
+
+              <div className="grid sm:grid-cols-3 gap-3 text-sm">
+                <Field label="Due">{t.due_at ? new Date(t.due_at).toLocaleString() : "—"}</Field>
+                <Field label="Created">{t.created_at ? new Date(t.created_at).toLocaleString() : "—"}</Field>
+                <Field label="Assignee">{t.assignee?.full_name ?? t.owner?.full_name ?? "Unassigned"}</Field>
+                <Field label="Client">{t.client?.name ?? "—"}</Field>
+                <Field label="Phone">{t.client?.phone ?? "—"}</Field>
+                <Field label="Source call">{t.source_call_id ?? "—"}</Field>
+              </div>
+              {t.description && (
+                <div>
+                  <div className="text-xs font-semibold uppercase tracking-wide text-[color:var(--cc-ink-500)] mb-1">Description</div>
+                  <p className="text-sm whitespace-pre-wrap">{t.description}</p>
+                </div>
+              )}
+              {t.reason && (
+                <div>
+                  <div className="text-xs font-semibold uppercase tracking-wide text-[color:var(--cc-ink-500)] mb-1">Reason</div>
+                  <p className="text-sm whitespace-pre-wrap">{t.reason}</p>
+                </div>
+              )}
+
+              <div className="space-y-2">
+                <div className="text-xs font-semibold uppercase tracking-wide text-[color:var(--cc-ink-500)]">Activity</div>
+                <ul className="space-y-1.5 text-sm">
+                  {activity.map((a, i) => (
+                    <li key={i} className="flex gap-2">
+                      <span className="text-xs text-[color:var(--cc-ink-500)] w-32 shrink-0 tabular-nums">{new Date(a.at).toLocaleString()}</span>
+                      <span><span className="font-medium">{a.actor}</span> {a.event}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
 
               <div className="space-y-2">
                 <div className="text-xs font-semibold uppercase tracking-wide text-[color:var(--cc-ink-500)]">Comments</div>
                 <ul className="space-y-2">
-                  {(detail.data?.comments ?? []).map((c: any) => (
+                  {comments.map((c: any) => (
                     <li key={c.id} className="rounded-md border border-[color:var(--cc-ink-200)] p-2 text-sm">
                       <div className="text-xs text-[color:var(--cc-ink-500)]">
                         {c.author?.full_name ?? "User"} · {new Date(c.created_at).toLocaleString()}
@@ -243,7 +294,7 @@ function TaskDetailDialog({ id, onClose }: { id: string; onClose: () => void }) 
                       <div className="whitespace-pre-wrap">{c.body}</div>
                     </li>
                   ))}
-                  {(!detail.data?.comments?.length) && <li className="text-xs text-[color:var(--cc-ink-500)]">No comments yet.</li>}
+                  {comments.length === 0 && <li className="text-xs text-[color:var(--cc-ink-500)]">No comments yet.</li>}
                 </ul>
                 <div className="flex gap-2">
                   <CCTextarea rows={2} value={comment} onChange={(e) => setComment(e.target.value)} placeholder="Add a comment…" />
@@ -251,11 +302,11 @@ function TaskDetailDialog({ id, onClose }: { id: string; onClose: () => void }) 
                 </div>
               </div>
 
-              {detail.data?.attachments?.length ? (
+              {attachments.length ? (
                 <div className="space-y-1">
                   <div className="text-xs font-semibold uppercase tracking-wide text-[color:var(--cc-ink-500)]">Attachments</div>
                   <ul className="text-sm list-disc pl-5">
-                    {detail.data.attachments.map((a: any) => (
+                    {attachments.map((a: any) => (
                       <li key={a.id}><a className="underline" href={a.url ?? "#"} target="_blank" rel="noreferrer">{a.filename ?? a.id}</a></li>
                     ))}
                   </ul>
@@ -272,3 +323,22 @@ function TaskDetailDialog({ id, onClose }: { id: string; onClose: () => void }) 
     </div>
   );
 }
+
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <div className="text-xs text-[color:var(--cc-ink-500)]">{label}</div>
+      <div className="text-[color:var(--cc-ink-900)]">{children}</div>
+    </div>
+  );
+}
+
+const DUMMY_TASK_COMMENTS = [
+  { id: "c1", author: { full_name: "Liam Carter" }, created_at: new Date(Date.now() - 1000 * 60 * 90).toISOString(),  body: "Left a voicemail and sent a follow-up SMS with the callback window." },
+  { id: "c2", author: { full_name: "Olivia Brown" }, created_at: new Date(Date.now() - 1000 * 60 * 40).toISOString(), body: "Approved the discount up to 10%. Proceed if it saves the account." },
+];
+const DUMMY_TASK_ACTIVITY = [
+  { at: new Date(Date.now() - 1000 * 60 * 60 * 6).toISOString(),  actor: "Liam Carter",  event: "created this task" },
+  { at: new Date(Date.now() - 1000 * 60 * 60 * 3).toISOString(),  actor: "Liam Carter",  event: "moved status to in progress" },
+  { at: new Date(Date.now() - 1000 * 60 * 40).toISOString(),      actor: "Olivia Brown", event: "left a comment" },
+];
