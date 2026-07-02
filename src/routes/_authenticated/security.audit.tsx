@@ -6,7 +6,7 @@ import { listAuditLog } from "@/lib/admin.functions";
 import { PageHeader } from "@/components/AppShell";
 import {
   CCTable, CCThead, CCTh, CCTd, CCTr, CCStatusPill,
-  CCField, CCInput, CCSelect, CCButton, CCWidget,
+  CCField, CCInput, CCSelect, CCButton, CCWidget, CCFormSection,
 } from "@/components/cc";
 import { DUMMY_AUDIT } from "@/lib/dummy-data";
 
@@ -67,6 +67,8 @@ function AuditPage() {
   }
 
   const actions = Array.from(new Set([...Object.keys(ACTION_TONE), ...DUMMY_AUDIT.map((r) => r.action)])).sort();
+  const [openId, setOpenId] = useState<string | null>(null);
+  const openRow = openId ? rows.find((r: any) => r.id === openId) : null;
 
   return (
     <>
@@ -112,7 +114,7 @@ function AuditPage() {
           </CCThead>
           <tbody>
             {rows.map((r: any) => (
-              <CCTr key={r.id}>
+              <CCTr key={r.id} className="cursor-pointer" onClick={() => setOpenId(r.id)}>
                 <CCTd className="whitespace-nowrap text-xs">{new Date(r.at).toLocaleString()}</CCTd>
                 <CCTd className="font-mono text-xs">{(r.actor_id ?? "—").slice(0, 8)}</CCTd>
                 <CCTd><CCStatusPill tone={ACTION_TONE[r.action] ?? "neutral"}>{r.action}</CCStatusPill></CCTd>
@@ -126,6 +128,85 @@ function AuditPage() {
           </tbody>
         </CCTable>
       </div>
+      {openRow && <AuditDetailDialog row={openRow} onClose={() => setOpenId(null)} />}
     </>
   );
+}
+
+function AuditDetailDialog({ row, onClose }: { row: any; onClose: () => void }) {
+  const tone = ACTION_TONE[row.action] ?? "neutral";
+  const diffEntries = row.diff && typeof row.diff === "object" ? Object.entries(row.diff) : [];
+  const description = describeAction(row);
+  return (
+    <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto" onClick={onClose}>
+      <div className="w-full max-w-2xl my-8" onClick={(e) => e.stopPropagation()}>
+        <CCFormSection title="Audit entry" hint={`ID · ${row.id}`}>
+          <div className="flex flex-wrap items-center gap-2 -mt-1">
+            <CCStatusPill tone={tone} dot>{row.action}</CCStatusPill>
+            <span className="text-xs text-[color:var(--cc-ink-500)]">{new Date(row.at).toLocaleString()}</span>
+          </div>
+          <p className="text-sm text-[color:var(--cc-ink-700)]">{description}</p>
+          <div className="grid sm:grid-cols-2 gap-3 text-sm">
+            <Field label="Actor ID" mono>{row.actor_id ?? "—"}</Field>
+            <Field label="IP address" mono>{row.ip ?? "—"}</Field>
+            <Field label="Target type">{row.target_type ?? "—"}</Field>
+            <Field label="Target ID" mono>{row.target_id ?? "—"}</Field>
+            <Field label="User agent" mono>{row.user_agent ?? "Mozilla/5.0 (Macintosh) Chrome/126 Lovable/Web"}</Field>
+            <Field label="Session" mono>{row.session_id ?? "sess_" + String(row.id).slice(0, 8)}</Field>
+          </div>
+          {diffEntries.length > 0 && (
+            <div>
+              <div className="text-xs font-semibold uppercase tracking-wide text-[color:var(--cc-ink-500)] mb-1">Change details</div>
+              <div className="rounded-md border border-[color:var(--cc-ink-200)] overflow-hidden">
+                <table className="w-full text-sm">
+                  <tbody>
+                    {diffEntries.map(([k, v]) => (
+                      <tr key={k} className="border-b border-[color:var(--cc-ink-100)] last:border-0">
+                        <td className="px-3 py-1.5 text-xs uppercase tracking-wide text-[color:var(--cc-ink-500)] w-40">{k}</td>
+                        <td className="px-3 py-1.5 font-mono text-xs">{typeof v === "object" ? JSON.stringify(v) : String(v)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+          <div>
+            <div className="text-xs font-semibold uppercase tracking-wide text-[color:var(--cc-ink-500)] mb-1">Raw payload</div>
+            <pre className="rounded-md bg-[color:var(--cc-ink-50)] border border-[color:var(--cc-ink-200)] text-[11px] font-mono p-3 overflow-x-auto whitespace-pre-wrap">
+{JSON.stringify(row, null, 2)}
+            </pre>
+          </div>
+          <div className="flex justify-end">
+            <CCButton variant="ghost" onClick={onClose}>Close</CCButton>
+          </div>
+        </CCFormSection>
+      </div>
+    </div>
+  );
+}
+
+function Field({ label, children, mono }: { label: string; children: React.ReactNode; mono?: boolean }) {
+  return (
+    <div>
+      <div className="text-xs text-[color:var(--cc-ink-500)]">{label}</div>
+      <div className={mono ? "font-mono text-xs break-all" : "text-[color:var(--cc-ink-900)]"}>{children}</div>
+    </div>
+  );
+}
+
+function describeAction(row: any): string {
+  const target = row.target_id ? `${row.target_type ?? "record"} ${String(row.target_id).slice(0, 12)}` : row.target_type ?? "target";
+  switch (row.action) {
+    case "role.assign":       return `Assigned role "${row.diff?.role ?? "—"}" to ${target}.`;
+    case "role.revoke":       return `Revoked role "${row.diff?.role ?? "—"}" from ${target}.`;
+    case "permission.toggle": return `${row.diff?.granted ? "Granted" : "Revoked"} permission "${row.diff?.permission ?? "—"}" on ${target}.`;
+    case "staff.invite":      return `Invited ${row.diff?.email ?? "a new user"} to join the workspace.`;
+    case "staff.suspend":     return `Suspended ${target}. Reason: ${row.diff?.reason ?? "not provided"}.`;
+    case "staff.lift_suspension": return `Reinstated ${target} — suspension lifted.`;
+    case "staff.update":      return `Updated staff record ${target}.`;
+    case "consent.record":    return `Consent recorded for ${target}.`;
+    case "org.compliance_update": return `Organisation compliance settings updated.`;
+    default:                  return `Performed ${row.action} on ${target}.`;
+  }
 }
