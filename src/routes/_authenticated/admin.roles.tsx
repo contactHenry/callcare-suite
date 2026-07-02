@@ -89,6 +89,9 @@ function RolesPage() {
     onError: (e: any) => toast.error(e?.message ?? "Failed"),
   });
 
+  const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  const isDemo = (id?: string | null) => !id || !UUID_RE.test(id);
+
   const [name, setName] = useState("");
   const [desc, setDesc] = useState("");
 
@@ -235,7 +238,13 @@ function RolesPage() {
                             >
                               <button
                                 type="button"
-                                onClick={() => toggleMut.mutate({ roleId: selected.id, permission: perm, granted: !has })}
+                                onClick={() => {
+                                  if (isDemo(selected.id)) {
+                                    toast.info("Demo role — create a real role to edit permissions.");
+                                    return;
+                                  }
+                                  toggleMut.mutate({ roleId: selected.id, permission: perm, granted: !has });
+                                }}
                                 className={
                                   "inline-flex size-5 items-center justify-center rounded border transition shrink-0 " +
                                   (has
@@ -277,7 +286,13 @@ function RolesPage() {
                         </div>
                         <CCButton
                           variant={assigned ? "ghost" : "primary"}
-                          onClick={() => assignMut.mutate({ userId: m.id, roleId: selected.id, assign: !assigned })}
+                          onClick={() => {
+                            if (isDemo(selected.id) || isDemo(m.id)) {
+                              toast.info("Demo data — assignments need a real role and member.");
+                              return;
+                            }
+                            assignMut.mutate({ userId: m.id, roleId: selected.id, assign: !assigned });
+                          }}
                         >
                           {assigned ? "Remove" : "Assign"}
                         </CCButton>
