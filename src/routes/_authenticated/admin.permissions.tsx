@@ -22,7 +22,8 @@ function PermissionsPage() {
   const { data } = useQuery({ queryKey: ["permissions"], queryFn: () => listFn() });
 
   const apiRows: any[] = (data?.rows ?? []) as any[];
-  const rows: any[] = apiRows.length > 0 ? apiRows : DUMMY_PERMISSIONS_ROWS;
+  const usingDummy = apiRows.length === 0;
+  const rows: any[] = usingDummy ? DUMMY_PERMISSIONS_ROWS : apiRows;
   const permissions: string[] = Array.from(new Set(rows.map((r) => String(r.permission)))).sort();
   const grants = new Set<string>(rows.map((r) => `${r.role}:${r.permission}`));
 
@@ -64,7 +65,13 @@ function PermissionsPage() {
                     return (
                       <td key={r} className="px-3 py-2 text-center">
                         <button
-                          onClick={() => mut.mutate({ role: r, permission: perm, granted: !has })}
+                          onClick={() => {
+                            if (usingDummy) {
+                              toast.info("Demo matrix — grants sync once real permissions load.");
+                              return;
+                            }
+                            mut.mutate({ role: r, permission: perm, granted: !has });
+                          }}
                           className={
                             "inline-flex size-7 items-center justify-center rounded-md border transition " +
                             (has
