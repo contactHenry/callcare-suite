@@ -89,6 +89,9 @@ function RolesPage() {
     onError: (e: any) => toast.error(e?.message ?? "Failed"),
   });
 
+  const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  const isDemo = (id?: string | null) => !id || !UUID_RE.test(id);
+
   const [name, setName] = useState("");
   const [desc, setDesc] = useState("");
 
