@@ -17,7 +17,7 @@ export const listPermissions = createServerFn({ method: "GET" })
       .from("role_permissions")
       .select("role, permission")
       .order("permission", { ascending: true });
-    if (error) throw new Response(error.message, { status: 400 });
+    if (error) throw new Error(error.message);
     return { rows: data ?? [] };
   });
 
@@ -39,14 +39,14 @@ export const togglePermission = createServerFn({ method: "POST" })
       const { error } = await supabase
         .from("role_permissions")
         .upsert({ role: data.role, permission: data.permission }, { onConflict: "role,permission" });
-      if (error) throw new Response(error.message, { status: 400 });
+      if (error) throw new Error(error.message);
     } else {
       const { error } = await supabase
         .from("role_permissions")
         .delete()
         .eq("role", data.role)
         .eq("permission", data.permission);
-      if (error) throw new Response(error.message, { status: 400 });
+      if (error) throw new Error(error.message);
     }
     await audit(supabase, userId, "permission.toggle", "role_permission", `${data.role}:${data.permission}`, {
       granted: data.granted,
@@ -103,7 +103,7 @@ export const getOrgCompliance = createServerFn({ method: "GET" })
       .select("id, name, region, recording_retention_days, record_retention_days, audit_retention_days, contact_hours_start, contact_hours_end, contact_hours_timezone, contact_days")
       .eq("id", prof.organization_id)
       .maybeSingle();
-    if (error) throw new Response(error.message, { status: 400 });
+    if (error) throw new Error(error.message);
     return { org: data };
   });
 
@@ -133,7 +133,7 @@ export const updateOrgCompliance = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context as { supabase: any; userId: string };
     const { data: prof } = await supabase.from("profiles").select("organization_id").eq("id", userId).maybeSingle();
-    if (!prof?.organization_id) throw new Response("No organisation", { status: 400 });
+    if (!prof?.organization_id) throw new Error("No organisation");
     const patch: Record<string, unknown> = {};
     if (data.region !== undefined) patch.region = data.region;
     if (data.recordingRetentionDays !== undefined) patch.recording_retention_days = data.recordingRetentionDays;
@@ -144,7 +144,7 @@ export const updateOrgCompliance = createServerFn({ method: "POST" })
     if (data.contactHoursTimezone !== undefined) patch.contact_hours_timezone = data.contactHoursTimezone;
     if (data.contactDays !== undefined) patch.contact_days = data.contactDays;
     const { error } = await supabase.from("organizations").update(patch).eq("id", prof.organization_id);
-    if (error) throw new Response(error.message, { status: 400 });
+    if (error) throw new Error(error.message);
     await audit(supabase, userId, "org.compliance_update", "organization", prof.organization_id, patch);
     return { ok: true };
   });

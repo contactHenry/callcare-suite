@@ -20,11 +20,11 @@ export function requirePermission(permission: string) {
         _user_id: userId,
         _permission: permission,
       });
-      if (error) throw new Response(`Permission check failed: ${error.message}`, { status: 500 });
-      if (!data) throw new Response(`Forbidden: requires ${permission}`, { status: 403 });
+      if (error) throw new Error(`Permission check failed: ${error.message}`);
+      if (!data) throw new Error(`Forbidden: requires ${permission}`);
       // Suspension check — block any privileged action by suspended accounts.
       const { data: suspended } = await supabase.rpc("is_account_suspended", { _user_id: userId });
-      if (suspended) throw new Response("Account suspended", { status: 403 });
+      if (suspended) throw new Error("Account suspended");
       return next();
     });
 }
