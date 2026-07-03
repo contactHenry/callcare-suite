@@ -4,8 +4,9 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { PageHeader } from "@/components/AppShell";
 import { useAuth } from "@/lib/auth";
 import {
-  listTasks, createTask, updateTaskStatus, addTaskComment, getTaskDetail,
+  listTasks, createTask, updateTaskStatus, addTaskComment, getTaskDetail, reassignTask,
 } from "@/lib/workflow.functions";
+import { listStaff } from "@/lib/staff.functions";
 import {
   CCButton, CCFormSection, CCFormGrid, CCField, CCInput, CCTextarea, CCSelect,
   CCStatusPill, CCTable, CCThead, CCTh, CCTd, CCTr,
@@ -145,12 +146,21 @@ function NewTaskDialog({ onClose }: { onClose: () => void }) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [priority, setPriority] = useState("normal");
+  const [assigneeId, setAssigneeId] = useState<string>("");
+  const [startAt, setStartAt] = useState("");
   const [dueAt, setDueAt] = useState("");
   const [remindAt, setRemindAt] = useState("");
   const [recurrence, setRecurrence] = useState("");
+  const staff = useQuery({
+    queryKey: ["staff-list"],
+    queryFn: async () => { try { return await listStaff(); } catch { return { rows: [] }; } },
+  });
+  const agents: any[] = staff.data?.rows ?? [];
   const create = useMutation({
     mutationFn: () => createTask({ data: {
       title, description, priority: priority as any,
+      assignedTo: assigneeId || null,
+      startAt: startAt ? new Date(startAt).toISOString() : null,
       dueAt: dueAt ? new Date(dueAt).toISOString() : null,
       remindAt: remindAt ? new Date(remindAt).toISOString() : null,
       recurrenceRule: recurrence || null,
@@ -171,7 +181,20 @@ function NewTaskDialog({ onClose }: { onClose: () => void }) {
                 <option value="urgent">Urgent</option>
               </CCSelect>
             </CCField>
-            <CCField label="Due"><CCInput type="datetime-local" value={dueAt} onChange={(e) => setDueAt(e.target.value)} /></CCField>
+            <CCField label="Assign to">
+              <CCSelect value={assigneeId} onChange={(e) => setAssigneeId(e.target.value)}>
+                <option value="">Me (default)</option>
+                {agents.map((a) => (
+                  <option key={a.id} value={a.id}>{a.full_name ?? a.id}</option>
+                ))}
+              </CCSelect>
+            </CCField>
+            <CCField label="Start" hint="When work should begin">
+              <CCInput type="datetime-local" value={startAt} onChange={(e) => setStartAt(e.target.value)} />
+            </CCField>
+            <CCField label="Due / complete by">
+              <CCInput type="datetime-local" value={dueAt} onChange={(e) => setDueAt(e.target.value)} />
+            </CCField>
             <CCField label="Remind at" hint="In-app alert fires at this time">
               <CCInput type="datetime-local" value={remindAt} onChange={(e) => setRemindAt(e.target.value)} />
             </CCField>
@@ -214,6 +237,15 @@ function TaskDetailDialog({ id, fallback, onClose }: { id: string; fallback?: an
     mutationFn: (status: any) => updateTaskStatus({ data: { id, status } }),
     onSuccess: () => { detail.refetch(); qc.invalidateQueries({ queryKey: ["tasks"] }); },
   });
+  const staff = useQuery({
+    queryKey: ["staff-list"],
+    queryFn: async () => { try { return await listStaff(); } catch { return { rows: [] }; } },
+  });
+  const agents: any[] = staff.data?.rows ?? [];
+  const reassign = useMutation({
+    mutationFn: (assigneeId: string) => reassignTask({ data: { id, assigneeId } }),
+    onSuccess: () => { detail.refetch(); qc.invalidateQueries({ queryKey: ["tasks"] }); },
+  });
   const t = detail.data?.task ?? fallback;
   const comments = detail.data?.comments ?? DUMMY_TASK_COMMENTS;
   const attachments = detail.data?.attachments ?? [];
@@ -251,6 +283,7 @@ function TaskDetailDialog({ id, fallback, onClose }: { id: string; fallback?: an
               </div>
 
               <div className="grid sm:grid-cols-3 gap-3 text-sm">
+                <Field label="Start">{t.start_at ? new Date(t.start_at).toLocaleString() : "—"}</Field>
                 <Field label="Due">{t.due_at ? new Date(t.due_at).toLocaleString() : "—"}</Field>
                 <Field label="Created">{t.created_at ? new Date(t.created_at).toLocaleString() : "—"}</Field>
                 <Field label="Assignee">{t.assignee?.full_name ?? t.owner?.full_name ?? "Unassigned"}</Field>
@@ -258,6 +291,23 @@ function TaskDetailDialog({ id, fallback, onClose }: { id: string; fallback?: an
                 <Field label="Phone">{t.client?.phone ?? "—"}</Field>
                 <Field label="Source call">{t.source_call_id ?? "—"}</Field>
               </div>
+
+              {t.status !== "completed" && (
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-semibold uppercase tracking-wide text-[color:var(--cc-ink-500)]">Reassign</span>
+                  <select
+                    className="h-9 rounded-[var(--cc-radius-md)] border border-[color:var(--cc-ink-200)] bg-[color:var(--cc-ink-0)] px-2 text-sm"
+                    value={t.assigned_to ?? ""}
+                    onChange={(e) => e.target.value && reassign.mutate(e.target.value)}
+                    disabled={reassign.isPending}
+                  >
+                    <option value="">Select agent…</option>
+                    {agents.map((a) => (
+                      <option key={a.id} value={a.id}>{a.full_name ?? a.id}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
               {t.description && (
                 <div>
                   <div className="text-xs font-semibold uppercase tracking-wide text-[color:var(--cc-ink-500)] mb-1">Description</div>
