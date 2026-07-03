@@ -193,6 +193,7 @@ export const createTask = createServerFn({ method: "POST" })
     callId?: string | null;
     assignedTo?: string | null;
     dueAt?: string | null;
+    startAt?: string | null;
     recurrenceRule?: string | null;
     remindAt?: string | null;
   }) => z.object({
@@ -204,6 +205,7 @@ export const createTask = createServerFn({ method: "POST" })
     callId: z.string().uuid().nullish(),
     assignedTo: z.string().uuid().nullish(),
     dueAt: z.string().nullish(),
+    startAt: z.string().nullish(),
     recurrenceRule: z.string().max(200).nullish(),
     remindAt: z.string().nullish(),
   }).parse(d))
@@ -219,12 +221,28 @@ export const createTask = createServerFn({ method: "POST" })
       assigned_to: data.assignedTo ?? userId,
       created_by: userId,
       due_at: data.dueAt ?? null,
+      start_at: data.startAt ?? null,
       recurrence_rule: data.recurrenceRule ?? null,
       remind_at: data.remindAt ?? data.dueAt ?? null,
     }).select().single();
     if (error) throw new Response(error.message, { status: 500 });
     await audit(supabase, userId, "task.create", "task", row.id, { title: data.title });
     return row;
+  });
+
+export const reassignTask = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { id: string; assigneeId: string }) =>
+    z.object({ id: z.string().uuid(), assigneeId: z.string().uuid() }).parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const { error } = await supabase.from("tasks")
+      .update({ assigned_to: data.assigneeId })
+      .eq("id", data.id);
+    if (error) throw new Response(error.message, { status: 500 });
+    await audit(supabase, userId, "task.reassign", "task", data.id, { assignee: data.assigneeId });
+    return { ok: true };
   });
 
 export const updateTaskStatus = createServerFn({ method: "POST" })
