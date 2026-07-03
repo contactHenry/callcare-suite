@@ -19,6 +19,9 @@ function AuthenticatedLayout() {
 
   // Phase 2 hardening: 15-minute idle auto sign-out across the whole app.
   useIdleLogout(15 * 60_000);
+  // Do not mount protected children until we have a confirmed session — otherwise
+  // their queries fire without a bearer and 401 before the redirect lands.
+  if (loading || !user) return null;
   return (
     <AppShell>
       <Outlet />
