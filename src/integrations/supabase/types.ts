@@ -2773,6 +2773,7 @@ export type Database = {
           priority: string
           recurrence_rule: string | null
           remind_at: string | null
+          start_at: string | null
           status: Database["public"]["Enums"]["task_status"]
           title: string
           updated_at: string
@@ -2796,6 +2797,7 @@ export type Database = {
           priority?: string
           recurrence_rule?: string | null
           remind_at?: string | null
+          start_at?: string | null
           status?: Database["public"]["Enums"]["task_status"]
           title: string
           updated_at?: string
@@ -2819,6 +2821,7 @@ export type Database = {
           priority?: string
           recurrence_rule?: string | null
           remind_at?: string | null
+          start_at?: string | null
           status?: Database["public"]["Enums"]["task_status"]
           title?: string
           updated_at?: string
