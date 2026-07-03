@@ -143,3 +143,35 @@
     color: var(--color-foreground);
   }
 }
+
+@layer utilities {
+  /* Custom scrollbar for dense navigation lists */
+  .cc-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: var(--cc-brand-300) transparent;
+    overflow-y: auto;
+  }
+
+  .cc-scrollbar::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  .cc-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .cc-scrollbar::-webkit-scrollbar-thumb {
+    background-color: var(--cc-brand-300);
+    border-radius: 9999px;
+  }
+
+  .cc-scrollbar::-webkit-scrollbar-thumb:hover {
+    background-color: var(--cc-brand-500);
+  }
+
+  .cc-scrollbar::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+}
+

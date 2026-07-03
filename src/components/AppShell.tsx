@@ -107,7 +107,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <div className="mt-1 text-[10px] uppercase tracking-[0.12em] text-muted-foreground">Operations</div>
           </div>
         </div>
-        <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-5">
+        <nav className="flex-1 overflow-y-auto cc-scrollbar px-3 py-4 space-y-5">
           {sections.map((section) => (
             <div key={section.label} className="space-y-1">
               <div className="px-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground/80 hidden lg:block">
