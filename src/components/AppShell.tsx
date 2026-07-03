@@ -32,6 +32,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const canTeamLead = atLeast("team_leader");
   const canSupervisor = atLeast("supervisor");
   const canOpsAdmin = atLeast("ops_admin");
+  const canSuperAdmin = atLeast("super_admin");
 
   // Highest-ranked role label (e.g. shows "Super Admin", not "Agent")
   const ROLE_RANK = ["super_admin", "ops_admin", "supervisor", "team_leader", "agent"];
@@ -86,10 +87,12 @@ export function AppShell({ children }: { children: ReactNode }) {
       {
         label: "Admin",
         items: [
+          { to: "/admin/roles", label: "Roles & Access", icon: ShieldCheck, show: canOpsAdmin },
+          { to: "/admin/permissions", label: "Permission Matrix", icon: KeyRound, show: canSuperAdmin },
           { to: "/settings", label: "Settings", icon: Cog, show: true },
         ],
       },
-    ].map((s) => ({ ...s, items: s.items.filter((i) => i.show) })).filter((s) => s.items.length > 0), [canTeamLead, canSupervisor, canOpsAdmin]);
+    ].map((s) => ({ ...s, items: s.items.filter((i) => i.show) })).filter((s) => s.items.length > 0), [canTeamLead, canSupervisor, canOpsAdmin, canSuperAdmin]);
   // Keep references to icons used elsewhere in the module so tree-shakers don't
   // complain in dev builds. (No runtime cost.)
   void UsersRound; void Settings2; void Gauge; void LineChart; void ShieldCheck; void KeyRound;
