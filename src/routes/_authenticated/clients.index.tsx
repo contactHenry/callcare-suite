@@ -11,7 +11,7 @@ import {
   CCButton, CCStatusPill, CCInput, CCSelect, CCField,
   CCTable, CCThead, CCTh, CCTd, CCTr,
 } from "@/components/cc";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { Phone, Download, Upload, Users, GitMerge, ShieldCheck, X, Delete, PhoneCall, PhoneOff, Mic, MicOff, Pause, PhoneForwarded } from "lucide-react";
 import { useAuth } from "@/lib/auth";
@@ -556,13 +556,36 @@ function InCallPanel({
   const [onHold, setOnHold] = useState(false);
   const [seconds, setSeconds] = useState(0);
   const [transferOpen, setTransferOpen] = useState(false);
-  const agentsFn = useServerFn(listAssignableAgents);
-  const { data: agentsData } = useQuery({
-    queryKey: ["assignable-agents-transfer"],
-    queryFn: () => agentsFn(),
-    enabled: transferOpen,
-  });
-  const agents: any[] = (agentsData as any)?.agents ?? [];
+  const [transferMode, setTransferMode] = useState<"warm" | "cold">("warm");
+  const [transferTarget, setTransferTarget] = useState<string | null>(null);
+  const [transferNote, setTransferNote] = useState("");
+  const [transferQuery, setTransferQuery] = useState("");
+  const TRANSFER_TARGETS = [
+    { id: "agent-1", kind: "Agent", name: "Amara Okafor",    detail: "Tier 2 Support · Available",      tone: "ok"   as const },
+    { id: "agent-2", kind: "Agent", name: "Diego Hernández", detail: "Billing · Available",             tone: "ok"   as const },
+    { id: "agent-3", kind: "Agent", name: "Priya Shah",      detail: "Retention · On a call",           tone: "warn" as const },
+    { id: "team-1",  kind: "Team",  name: "Billing queue",   detail: "3 agents available · ~24s wait",  tone: "ok"   as const },
+    { id: "team-2",  kind: "Team",  name: "Tier 2 Support",  detail: "1 agent available · ~1m 12s",     tone: "warn" as const },
+    { id: "ext-1",   kind: "Ext.",  name: "Supervisor desk", detail: "ext 4501",                        tone: "ok"   as const },
+    { id: "ext-2",   kind: "Ext.",  name: "Voicemail",       detail: "ext 9000",                        tone: "ok"   as const },
+  ];
+  const filteredTargets = TRANSFER_TARGETS.filter((t) =>
+    !transferQuery || `${t.name} ${t.detail} ${t.kind}`.toLowerCase().includes(transferQuery.toLowerCase()),
+  );
+  const selectedTarget = TRANSFER_TARGETS.find((t) => t.id === transferTarget) ?? null;
+  const toneDot: Record<string, string> = { ok: "bg-emerald-500", warn: "bg-amber-500", breach: "bg-rose-500" };
+  function confirmTransfer() {
+    if (!selectedTarget) return;
+    toast.success(
+      transferMode === "warm"
+        ? `Warm transfer started to ${selectedTarget.name}`
+        : `Call transferred to ${selectedTarget.name}`,
+    );
+    setTransferOpen(false);
+    setTransferTarget(null); setTransferNote(""); setTransferQuery("");
+    if (transferMode === "cold") { setOnHold(false); }
+    else { setOnHold(true); }
+  }
 
   useEffect(() => {
     const t = setTimeout(() => setStatus("in-call"), 1800);
@@ -636,39 +659,80 @@ function InCallPanel({
       </div>
 
       <Dialog open={transferOpen} onOpenChange={setTransferOpen}>
-        <DialogContent className="max-w-sm">
-          <DialogHeader>
-            <DialogTitle>Transfer call to agent</DialogTitle>
+        <DialogContent className="max-w-sm gap-3 p-4">
+          <DialogHeader className="space-y-0.5">
+            <DialogTitle className="text-base">Transfer call</DialogTitle>
+            <DialogDescription className="text-xs">
+              Send {name ?? "caller"} ({number}) onward.
+            </DialogDescription>
           </DialogHeader>
-          <div className="max-h-72 overflow-y-auto divide-y">
-            {agents.length === 0 ? (
-              <div className="py-6 text-center text-sm text-[color:var(--cc-ink-500)]">
-                No agents available
-              </div>
-            ) : (
-              agents.map((a: any) => (
-                <button
-                  key={a.id}
-                  type="button"
-                  onClick={() => {
-                    setTransferOpen(false);
-                    setOnHold(true);
-                    toast.success(`Call transferred to ${a.full_name ?? a.email ?? "agent"}`);
-                  }}
-                  className="w-full flex items-center gap-3 py-2.5 px-2 text-left hover:bg-[color:var(--cc-ink-100)] rounded"
-                >
-                  <div className="size-8 rounded-full bg-[color:var(--cc-info)]/10 text-[color:var(--cc-info)] flex items-center justify-center text-xs font-semibold">
-                    {(a.full_name ?? a.email ?? "?").slice(0, 2).toUpperCase()}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-sm font-medium truncate">{a.full_name ?? "—"}</div>
-                    <div className="text-xs text-[color:var(--cc-ink-500)] truncate">{a.email}</div>
-                  </div>
-                  <PhoneForwarded className="size-4 text-[color:var(--cc-ink-500)]" />
-                </button>
-              ))
-            )}
+
+          <div className="grid grid-cols-2 gap-1.5">
+            <button
+              type="button"
+              onClick={() => setTransferMode("warm")}
+              className={`rounded-md border px-2 py-1.5 text-left text-xs ${transferMode === "warm" ? "border-[color:var(--cc-brand)] bg-[color:var(--cc-brand)]/5" : "hover:bg-muted/40"}`}
+            >
+              <div className="font-medium">Warm</div>
+              <div className="text-[11px] text-muted-foreground">Speak first</div>
+            </button>
+            <button
+              type="button"
+              onClick={() => setTransferMode("cold")}
+              className={`rounded-md border px-2 py-1.5 text-left text-xs ${transferMode === "cold" ? "border-[color:var(--cc-brand)] bg-[color:var(--cc-brand)]/5" : "hover:bg-muted/40"}`}
+            >
+              <div className="font-medium">Cold</div>
+              <div className="text-[11px] text-muted-foreground">Hand off now</div>
+            </button>
           </div>
+
+          <input
+            value={transferQuery}
+            onChange={(e) => setTransferQuery(e.target.value)}
+            placeholder="Search agents, teams, extensions…"
+            className="h-8 w-full rounded-md border bg-background px-2 text-xs outline-none focus:ring-2 focus:ring-[color:var(--cc-brand)]/30"
+          />
+
+          <div className="max-h-48 overflow-y-auto rounded-md border divide-y">
+            {filteredTargets.length === 0 && (
+              <div className="px-3 py-4 text-center text-xs text-muted-foreground">No matches.</div>
+            )}
+            {filteredTargets.map((t) => {
+              const active = transferTarget === t.id;
+              return (
+                <button
+                  key={t.id}
+                  type="button"
+                  onClick={() => setTransferTarget(t.id)}
+                  className={`w-full px-2.5 py-1.5 flex items-center gap-2 text-left text-xs ${active ? "bg-[color:var(--cc-brand)]/5" : "hover:bg-muted/40"}`}
+                >
+                  <span className={`size-2 rounded-full shrink-0 ${toneDot[t.tone]}`} />
+                  <div className="min-w-0 flex-1">
+                    <div className="font-medium truncate">{t.name}</div>
+                    <div className="text-[11px] text-muted-foreground truncate">{t.detail}</div>
+                  </div>
+                  <span className="text-[9px] uppercase tracking-wider text-muted-foreground border rounded px-1 py-0.5">
+                    {t.kind}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+
+          <textarea
+            value={transferNote}
+            onChange={(e) => setTransferNote(e.target.value)}
+            placeholder="Note for receiver (optional)…"
+            rows={2}
+            className="w-full rounded-md border bg-background px-2 py-1.5 text-xs outline-none focus:ring-2 focus:ring-[color:var(--cc-brand)]/30"
+          />
+
+          <DialogFooter className="gap-2 sm:gap-2">
+            <CCButton variant="ghost" onClick={() => setTransferOpen(false)}>Cancel</CCButton>
+            <CCButton disabled={!selectedTarget} onClick={confirmTransfer}>
+              {transferMode === "warm" ? "Start warm" : "Transfer"}
+            </CCButton>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
