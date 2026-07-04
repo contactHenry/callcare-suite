@@ -69,13 +69,10 @@ function FollowUpsPage() {
         title="Follow-Ups"
         description="Callbacks and outreach owed back to clients — every entry is a task tagged follow-up."
         actions={
-          <div className="flex items-center gap-2">
-            <CCButton size="sm" onClick={() => setOpenNew(true)}>
-              <Plus className="size-4 mr-1" />
-              Log / schedule follow-up
-            </CCButton>
-            <Link to="/tasks"><CCButton size="sm" variant="ghost">Open in Tasks</CCButton></Link>
-          </div>
+          <CCButton size="sm" onClick={() => setOpenNew(true)}>
+            <Plus className="size-4 mr-1" />
+            Log / schedule follow-up
+          </CCButton>
         }
       />
 
