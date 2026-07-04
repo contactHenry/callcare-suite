@@ -69,9 +69,11 @@ function LiveCalls() {
 
   const liveRows: any[] = live.data ?? [];
   const queueRows: any[] = queue.data ?? [];
-  const isSample = liveRows.length === 0 && queueRows.length === 0;
-  const activeCalls: any[] = liveRows.length ? liveRows : (isSample ? DUMMY_LIVE_CALLS : []);
-  const waiting: any[] = queueRows.length ? queueRows : (isSample ? DUMMY_QUEUE : []);
+  // Fall back to sample data per-list so an empty queue still shows a
+  // populated wallboard even when there are real live calls (and vice-versa).
+  const activeCalls: any[] = liveRows.length ? liveRows : DUMMY_LIVE_CALLS;
+  const waiting: any[] = queueRows.length ? queueRows : DUMMY_QUEUE;
+  const isSample = liveRows.length === 0 || queueRows.length === 0;
   const longestWait = waiting.reduce((m, q) => Math.max(m, secsSince(q.queued_at)), 0);
   const breaches = waiting.filter((q) => secsSince(q.queued_at) > 60).length;
 
