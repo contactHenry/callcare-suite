@@ -188,6 +188,7 @@ function FollowUpsPage() {
           </tbody>
         </CCTable>
       </div>
+      {openNew && <NewFollowUpDialog onClose={() => setOpenNew(false)} />}
     </>
   );
 }
