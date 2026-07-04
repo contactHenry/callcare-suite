@@ -40,6 +40,7 @@ function FollowUpsPage() {
   const [priority, setPriority] = useState("");
   const [status, setStatus] = useState("");
   const [channel, setChannel] = useState("");
+  const [openNew, setOpenNew] = useState(false);
 
   const rows = useMemo(() => {
     return DUMMY_FOLLOWUPS.filter((f) => {
