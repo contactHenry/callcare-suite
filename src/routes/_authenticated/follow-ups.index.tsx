@@ -211,3 +211,97 @@ function Stat({ icon, label, value, tone }: {
     </div>
   );
 }
+
+function NewFollowUpDialog({ onClose }: { onClose: () => void }) {
+  const qc = useQueryClient();
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [clientId, setClientId] = useState<string>("");
+  const [priority, setPriority] = useState("normal");
+  const [channel, setChannel] = useState<string>("phone");
+  const [assigneeId, setAssigneeId] = useState<string>("");
+  const [dueAt, setDueAt] = useState("");
+
+  const clients = useQuery({
+    queryKey: ["clients-followups"],
+    queryFn: async () => { try { return await listClients({ data: { pageSize: 200 } }); } catch { return { rows: [] }; } },
+  });
+  const staff = useQuery({
+    queryKey: ["staff-list"],
+    queryFn: async () => { try { return await listStaff(); } catch { return { rows: [] }; } },
+  });
+  const clientRows: any[] = clients.data?.rows ?? [];
+  const agents: any[] = staff.data?.rows ?? [];
+
+  const create = useMutation({
+    mutationFn: () => createTask({ data: {
+      title,
+      description,
+      kind: "follow_up",
+      priority: priority as any,
+      clientId: clientId || null,
+      assignedTo: assigneeId || null,
+      dueAt: dueAt ? new Date(dueAt).toISOString() : null,
+    }}),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["tasks"] });
+      toast.success("Follow-up scheduled");
+      onClose();
+    },
+    onError: (e: any) => toast.error(e?.message ?? "Could not schedule follow-up"),
+  });
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4" onClick={onClose}>
+      <div className="w-full max-w-lg" onClick={(e) => e.stopPropagation()}>
+        <CCFormSection title="Log / schedule follow-up">
+          <CCFormGrid>
+            <CCField label="Title" className="sm:col-span-2">
+              <CCInput placeholder="e.g. Call back about renewal" value={title} onChange={(e) => setTitle(e.target.value)} />
+            </CCField>
+            <CCField label="Client">
+              <CCSelect value={clientId} onChange={(e) => setClientId(e.target.value)}>
+                <option value="">Select a client…</option>
+                {clientRows.map((c) => (
+                  <option key={c.id} value={c.id}>{c.name} {c.phone ? `· ${c.phone}` : ""}</option>
+                ))}
+              </CCSelect>
+            </CCField>
+            <CCField label="Channel">
+              <CCSelect value={channel} onChange={(e) => setChannel(e.target.value)}>
+                <option value="phone">Phone</option>
+                <option value="email">Email</option>
+              </CCSelect>
+            </CCField>
+            <CCField label="Priority">
+              <CCSelect value={priority} onChange={(e) => setPriority(e.target.value)}>
+                <option value="low">Low</option>
+                <option value="normal">Normal</option>
+                <option value="high">High</option>
+                <option value="urgent">Urgent</option>
+              </CCSelect>
+            </CCField>
+            <CCField label="Due">
+              <CCInput type="datetime-local" value={dueAt} onChange={(e) => setDueAt(e.target.value)} />
+            </CCField>
+            <CCField label="Assign to">
+              <CCSelect value={assigneeId} onChange={(e) => setAssigneeId(e.target.value)}>
+                <option value="">Me (default)</option>
+                {agents.map((a) => (
+                  <option key={a.id} value={a.id}>{a.full_name ?? a.id}</option>
+                ))}
+              </CCSelect>
+            </CCField>
+          </CCFormGrid>
+          <CCField label="Reason / notes">
+            <CCTextarea placeholder="What is the follow-up about?" value={description} onChange={(e) => setDescription(e.target.value)} />
+          </CCField>
+          <div className="flex justify-end gap-2">
+            <CCButton variant="ghost" onClick={onClose}>Cancel</CCButton>
+            <CCButton onClick={() => create.mutate()} disabled={!title || create.isPending}>Schedule follow-up</CCButton>
+          </div>
+        </CCFormSection>
+      </div>
+    </div>
+  );
+}
