@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   listClients, bulkAssign, exportClients, listAssignableAgents,
   findDuplicates, mergeClients, requestClientExport,
@@ -13,9 +13,12 @@ import {
 } from "@/components/cc";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Phone, Download, Upload, Users, GitMerge, ShieldCheck } from "lucide-react";
+import { Phone, Download, Upload, Users, GitMerge, ShieldCheck, X, Delete, PhoneCall } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { DUMMY_CLIENTS } from "@/lib/dummy-data";
+import { placeOutboundCall, getTelephonySettings } from "@/lib/calls.functions";
+import { setActiveCall } from "@/lib/call-session";
+import type { CallSession } from "@/components/CallControlBar";
 
 export const Route = createFileRoute("/_authenticated/clients/")({ component: ClientsPage });
 
