@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { PageHeader } from "@/components/AppShell";
 import { CCButton, CCCard } from "@/components/cc";
 import { Users as UsersIcon, Search, UserCheck, ClipboardList, Megaphone } from "lucide-react";
@@ -102,7 +102,13 @@ function TeamsPage() {
       />
       <div className="px-8 py-6 grid grid-cols-1 md:grid-cols-2 gap-4">
         {TEAMS.map((t) => (
-          <CCCard key={t.id} className="p-5">
+          <Link
+            key={t.id}
+            to="/teams/$id"
+            params={{ id: t.id }}
+            className="block rounded-[var(--cc-radius-lg)] transition hover:shadow-md hover:-translate-y-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--cc-brand-600)]"
+          >
+          <CCCard className="p-5 cursor-pointer">
             <div className="flex items-start justify-between">
               <div>
                 <div className="text-base font-semibold">{t.name}</div>
@@ -115,6 +121,7 @@ function TeamsPage() {
               <div><div className="text-xs text-muted-foreground">Avg. handle time</div><div className="font-semibold tabular-nums mt-0.5">{t.aht}</div></div>
             </div>
           </CCCard>
+          </Link>
         ))}
       </div>
 
