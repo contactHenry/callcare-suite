@@ -234,15 +234,20 @@ function NewFollowUpDialog({ onClose }: { onClose: () => void }) {
   const agents: any[] = staff.data?.rows ?? [];
 
   const create = useMutation({
-    mutationFn: () => createTask({ data: {
-      title,
-      description,
-      kind: "follow_up",
-      priority: priority as any,
-      clientId: clientId || null,
-      assignedTo: assigneeId || null,
-      dueAt: dueAt ? new Date(dueAt).toISOString() : null,
-    }}),
+    mutationFn: () => {
+      const notes = channel
+        ? `Channel: ${channel}${description ? "\n\n" + description : ""}`
+        : description;
+      return createTask({ data: {
+        title,
+        description: notes,
+        kind: "follow_up",
+        priority: priority as any,
+        clientId: clientId || null,
+        assignedTo: assigneeId || null,
+        dueAt: dueAt ? new Date(dueAt).toISOString() : null,
+      }});
+    },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["tasks"] });
       toast.success("Follow-up scheduled");
