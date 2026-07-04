@@ -256,7 +256,7 @@ function NewFollowUpDialog({ onClose }: { onClose: () => void }) {
       <div className="w-full max-w-lg" onClick={(e) => e.stopPropagation()}>
         <CCFormSection title="Log / schedule follow-up">
           <CCFormGrid>
-            <CCField label="Title" className="sm:col-span-2">
+            <CCField label="Title">
               <CCInput placeholder="e.g. Call back about renewal" value={title} onChange={(e) => setTitle(e.target.value)} />
             </CCField>
             <CCField label="Client">
