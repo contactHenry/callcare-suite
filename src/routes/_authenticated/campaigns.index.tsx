@@ -176,6 +176,37 @@ function CampaignsPage() {
               <Label htmlFor="cnotes">Notes</Label>
               <Textarea id="cnotes" rows={3} placeholder="Briefing for agents…" value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
             </div>
+            <div className="space-y-3 rounded-lg border p-3">
+              <div className="flex items-center gap-2">
+                <UserCheck className="size-4 text-muted-foreground" />
+                <Label className="text-sm font-medium">Assigned agents</Label>
+                <span className="ml-auto text-xs text-muted-foreground">{form.assignedAgentIds.length} selected</span>
+              </div>
+              <div className="relative">
+                <Search className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
+                <CCInput
+                  className="pl-9"
+                  placeholder="Search agents…"
+                  value={agentQuery}
+                  onChange={(e) => setAgentQuery(e.target.value)}
+                />
+              </div>
+              <div className="max-h-[180px] overflow-y-auto space-y-1">
+                {filteredAgents.length === 0 && (
+                  <div className="text-sm text-muted-foreground py-2">No agents found.</div>
+                )}
+                {filteredAgents.map((a) => (
+                  <label key={a.id} className="flex items-center gap-2 rounded-md px-2 py-1.5 hover:bg-accent cursor-pointer">
+                    <Checkbox
+                      checked={form.assignedAgentIds.includes(a.id)}
+                      onCheckedChange={() => toggleAgent(a.id)}
+                    />
+                    <span className="text-sm">{a.full_name ?? a.id}</span>
+                    <span className="text-xs text-muted-foreground ml-auto">{a.email ?? ""}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
             <DialogFooter>
               <CCButton type="button" variant="ghost" onClick={() => setOpen(false)}>Cancel</CCButton>
               <CCButton type="submit">Create draft</CCButton>
