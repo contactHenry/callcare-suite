@@ -1,14 +1,17 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { PageHeader } from "@/components/AppShell";
-import { CCButton, CCCard, CCStatusPill, CCTable, CCThead, CCTh, CCTr, CCTd } from "@/components/cc";
-import { Target, Phone, Users, TrendingUp } from "lucide-react";
+import { CCButton, CCCard, CCStatusPill, CCTable, CCThead, CCTh, CCTr, CCTd, CCInput } from "@/components/cc";
+import { Target, Phone, Users, TrendingUp, UserCheck, Search } from "lucide-react";
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
+import { listStaff } from "@/lib/staff.functions";
 
 export const Route = createFileRoute("/_authenticated/campaigns/")({
   head: () => ({ meta: [{ title: "Campaigns" }] }),
