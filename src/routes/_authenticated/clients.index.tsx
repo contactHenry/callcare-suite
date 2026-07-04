@@ -447,12 +447,16 @@ function DialerPanel({
   onNumberChange,
   onClose,
   onCall,
+  inCall,
+  onEndCall,
 }: {
   number: string;
   name: string | null;
   onNumberChange: (n: string) => void;
   onClose: () => void;
   onCall: () => void;
+  inCall: boolean;
+  onEndCall: () => void;
 }) {
   function dial(digit: string) {
     onNumberChange((number + digit).replace(/[^+\d*#]/g, "").slice(0, 18));
@@ -470,6 +474,10 @@ function DialerPanel({
     ["7", "PQRS"], ["8", "TUV"], ["9", "WXYZ"],
     ["*", ""], ["0", "+"], ["#", ""],
   ] as const;
+
+  if (inCall) {
+    return <InCallPanel number={number} name={name} onClose={onClose} onEndCall={onEndCall} />;
+  }
 
   return (
     <div className="w-[320px] shrink-0 rounded-[var(--cc-radius-lg)] border border-[color:var(--cc-ink-200)] bg-[color:var(--cc-ink-0)] p-4 shadow-[var(--cc-shadow-md)]">
