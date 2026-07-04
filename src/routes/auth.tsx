@@ -58,7 +58,13 @@ function AuthPage() {
         .catch(() => {});
       return toast.error(error.message);
     }
-    recordLogin({ data: { device: navigator.userAgent.slice(0, 200) } }).catch(() => {});
+    // Ensure the session is available before firing the authenticated
+    // recorder — otherwise the bearer attacher sends no token and the
+    // server function 401s.
+    const { data: sess } = await supabase.auth.getSession();
+    if (sess.session?.access_token) {
+      recordLogin({ data: { device: navigator.userAgent.slice(0, 200) } }).catch(() => {});
+    }
     // If the user has a verified TOTP factor, Supabase will report
     // nextLevel = 'aal2'. Route them to the challenge before the app.
     try {
