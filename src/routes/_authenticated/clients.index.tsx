@@ -134,12 +134,23 @@ function ClientsPage() {
 
   async function startCall() {
     if (!dialerNumber) return;
+    // Normalize to E.164: strip everything but digits and a leading +.
+    const digits = dialerNumber.replace(/[^\d+]/g, "");
+    const toNumber = digits.startsWith("+") ? digits : `+${digits.replace(/^\+/, "")}`;
+    if (!/^\+[1-9]\d{7,14}$/.test(toNumber)) {
+      toast.error("Enter a valid phone number in international format (e.g. +15551234567)");
+      return;
+    }
+    const contactId =
+      dialerContactId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(dialerContactId)
+        ? dialerContactId
+        : null;
     setInCall(true);
     try {
-      const r = await placeOutboundCall({ data: { contactId: dialerContactId, toNumber: dialerNumber } });
+      const r = await placeOutboundCall({ data: { contactId, toNumber } });
       const newSession: CallSession = {
         callId: r.callId,
-        toNumber: dialerNumber,
+        toNumber,
         contactName: dialerName,
         startedAt: new Date().toISOString(),
         direction: "outbound",
