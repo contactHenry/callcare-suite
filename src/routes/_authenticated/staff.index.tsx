@@ -18,7 +18,7 @@ import {
 } from "@/components/cc";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { UserPlus, ShieldOff, ShieldCheck } from "lucide-react";
+import { UserPlus, ShieldOff, ShieldCheck, Mail, Phone, IdCard, Users, Clock, Shield } from "lucide-react";
 import { DUMMY_STAFF } from "@/lib/dummy-data";
 
 /** Ops Admin (or higher) only — gated client-side AND by every server fn. */
@@ -34,6 +34,7 @@ function StaffPage() {
   const { data } = useQuery({ queryKey: ["staff"], queryFn: () => listFn() });
   const apiRows = data?.rows ?? [];
   const rows: any[] = apiRows.length > 0 ? apiRows : (DUMMY_STAFF as any);
+  const [detailStaff, setDetailStaff] = useState<any | null>(null);
 
   return (
     <>
@@ -57,7 +58,11 @@ function StaffPage() {
             </CCThead>
             <tbody>
               {rows.map((s: any) => (
-                <CCTr key={s.id}>
+                <CCTr
+                  key={s.id}
+                  className="cursor-pointer hover:bg-[color:var(--cc-surface-alt,#f8fafc)] transition-colors"
+                  onClick={() => setDetailStaff(s)}
+                >
                   <CCTd>
                     <div className="font-medium">{s.full_name ?? "—"}</div>
                     <div className="text-xs text-[color:var(--cc-ink-500)]">{s.phone ?? ""}</div>
@@ -84,7 +89,7 @@ function StaffPage() {
                       ? <CCStatusPill tone="danger">Suspended</CCStatusPill>
                       : <CCStatusPill tone="success">Active</CCStatusPill>}
                   </CCTd>
-                  <CCTd className="text-right">
+                  <CCTd className="text-right" onClick={(e) => e.stopPropagation()}>
                     <ManageDialog staff={s} onDone={() => qc.invalidateQueries({ queryKey: ["staff"] })} />
                   </CCTd>
                 </CCTr>
@@ -93,7 +98,101 @@ function StaffPage() {
           </CCTable>
         </div>
       </div>
+      <StaffDetailDialog
+        staff={detailStaff}
+        onClose={() => setDetailStaff(null)}
+        onManage={() => { /* keep detail open; user can use row's Manage */ }}
+      />
     </>
+  );
+}
+
+function StaffDetailDialog({ staff, onClose }: { staff: any | null; onClose: () => void; onManage?: () => void }) {
+  const open = !!staff;
+  return (
+    <Dialog open={open} onOpenChange={(o) => { if (!o) onClose(); }}>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>{staff?.full_name ?? "Staff member"}</DialogTitle>
+        </DialogHeader>
+        {staff && (
+          <div className="space-y-4">
+            <div className="flex items-center gap-4">
+              <div className="size-16 rounded-full bg-[color:var(--cc-brand-100,#e0e7ff)] text-[color:var(--cc-brand-700,#4338ca)] flex items-center justify-center text-xl font-semibold">
+                {(staff.full_name ?? "?").split(" ").map((n: string) => n[0]).slice(0,2).join("")}
+              </div>
+              <div className="flex-1">
+                <div className="text-lg font-semibold">{staff.full_name}</div>
+                <div className="flex flex-wrap gap-2 mt-1">
+                  {staff.suspended
+                    ? <CCStatusPill tone="danger">Suspended</CCStatusPill>
+                    : <CCStatusPill tone="success">Active</CCStatusPill>}
+                  <CCStatusPill
+                    tone={staff.availability?.status === "available" ? "success" : staff.availability?.status === "on_call" ? "danger" : "neutral"}
+                    dot
+                  >
+                    {staff.availability?.status ?? "offline"}
+                  </CCStatusPill>
+                </div>
+              </div>
+            </div>
+
+            <CCCard>
+              <h4 className="text-sm font-semibold mb-3 flex items-center gap-2"><IdCard className="size-4" /> Contact & identity</h4>
+              <dl className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
+                <div>
+                  <dt className="text-xs uppercase tracking-wide text-[color:var(--cc-ink-500)]">Staff ID</dt>
+                  <dd className="mt-0.5 font-medium">{staff.staff_id ?? "—"}</dd>
+                </div>
+                <div>
+                  <dt className="text-xs uppercase tracking-wide text-[color:var(--cc-ink-500)] flex items-center gap-1"><Phone className="size-3" /> Phone</dt>
+                  <dd className="mt-0.5 font-medium">{staff.phone ?? "—"}</dd>
+                </div>
+                <div>
+                  <dt className="text-xs uppercase tracking-wide text-[color:var(--cc-ink-500)] flex items-center gap-1"><Mail className="size-3" /> Email</dt>
+                  <dd className="mt-0.5 font-medium">{staff.email ?? "—"}</dd>
+                </div>
+                <div>
+                  <dt className="text-xs uppercase tracking-wide text-[color:var(--cc-ink-500)] flex items-center gap-1"><Users className="size-3" /> Team</dt>
+                  <dd className="mt-0.5 font-medium">{staff.team_id ?? "—"}</dd>
+                </div>
+                <div>
+                  <dt className="text-xs uppercase tracking-wide text-[color:var(--cc-ink-500)] flex items-center gap-1"><Clock className="size-3" /> Timezone</dt>
+                  <dd className="mt-0.5 font-medium">{staff.timezone ?? "—"}</dd>
+                </div>
+              </dl>
+            </CCCard>
+
+            <CCCard>
+              <h4 className="text-sm font-semibold mb-3 flex items-center gap-2"><Shield className="size-4" /> Roles</h4>
+              <div className="flex flex-wrap gap-2">
+                {(staff.roles ?? []).length === 0
+                  ? <span className="text-sm text-[color:var(--cc-ink-500)]">No roles assigned</span>
+                  : staff.roles.map((r: string) => (
+                    <CCStatusPill key={r} tone={r === "super_admin" ? "danger" : r === "ops_admin" ? "warning" : r === "agent" ? "neutral" : "info"}>
+                      {r.replace("_", " ")}
+                    </CCStatusPill>
+                  ))}
+              </div>
+            </CCCard>
+
+            <CCCard>
+              <h4 className="text-sm font-semibold mb-3">Availability</h4>
+              <div className="text-sm text-[color:var(--cc-ink-700)]">
+                Current status: <span className="font-medium">{staff.availability?.status ?? "offline"}</span>
+                {staff.availability?.updated_at && (
+                  <span className="text-[color:var(--cc-ink-500)]"> · updated {new Date(staff.availability.updated_at).toLocaleString()}</span>
+                )}
+              </div>
+            </CCCard>
+
+            <div className="flex justify-end">
+              <CCButton variant="ghost" onClick={onClose}>Close</CCButton>
+            </div>
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
   );
 }
 
