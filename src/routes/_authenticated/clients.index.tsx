@@ -13,7 +13,7 @@ import {
 } from "@/components/cc";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Phone, Download, Upload, Users, GitMerge, ShieldCheck, X, Delete, PhoneCall } from "lucide-react";
+import { Phone, Download, Upload, Users, GitMerge, ShieldCheck, X, Delete, PhoneCall, PhoneOff, Mic, MicOff, Pause, Volume2 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { DUMMY_CLIENTS } from "@/lib/dummy-data";
 import { cn } from "@/lib/utils";
@@ -60,6 +60,7 @@ function ClientsPage() {
   const [dialerName, setDialerName] = useState<string | null>(null);
   const [dialerContactId, setDialerContactId] = useState<string | null>(null);
   const [telSettings, setTelSettings] = useState<any>(null);
+  const [inCall, setInCall] = useState(false);
   useEffect(() => { (async () => { try { setTelSettings(await getTelephonySettings()); } catch {} })(); }, []);
 
   const query = useQuery({
@@ -128,10 +129,12 @@ function ClientsPage() {
     setDialerName(name ?? null);
     setDialerContactId(contactId ?? null);
     setDialerOpen(true);
+    setInCall(false);
   }
 
   async function startCall() {
     if (!dialerNumber) return;
+    setInCall(true);
     try {
       const r = await placeOutboundCall({ data: { contactId: dialerContactId, toNumber: dialerNumber } });
       const newSession: CallSession = {
@@ -146,7 +149,14 @@ function ClientsPage() {
       };
       setActiveCall(newSession);
       toast.success("Calling…");
-    } catch (e: any) { toast.error(e?.message ?? "Could not place call"); }
+    } catch (e: any) {
+      toast.error(e?.message ?? "Could not place call");
+    }
+  }
+
+  function endCall() {
+    setInCall(false);
+    setActiveCall(null);
   }
 
   const canImport = atLeast("team_leader");
@@ -305,8 +315,10 @@ function ClientsPage() {
             number={dialerNumber}
             name={dialerName}
             onNumberChange={setDialerNumber}
-            onClose={() => setDialerOpen(false)}
+            onClose={() => { setDialerOpen(false); setInCall(false); setActiveCall(null); }}
             onCall={startCall}
+            inCall={inCall}
+            onEndCall={endCall}
           />
         )}
       </div>
