@@ -1,8 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { PageHeader } from "@/components/AppShell";
 import { CCButton, CCCard } from "@/components/cc";
-import { Users as UsersIcon } from "lucide-react";
+import { Users as UsersIcon, Search, UserCheck, ClipboardList, Megaphone } from "lucide-react";
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { listStaff } from "@/lib/staff.functions";
+import { listCampaigns } from "@/lib/calls.functions";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -42,9 +46,29 @@ function TeamsPage() {
   const [type, setType] = useState("inbound");
   const [sla, setSla] = useState("95");
   const [notes, setNotes] = useState("");
+  const [memberIds, setMemberIds] = useState<string[]>([]);
+  const [memberQuery, setMemberQuery] = useState("");
+  const [campaignId, setCampaignId] = useState<string>("none");
+  const [taskTitle, setTaskTitle] = useState("");
+  const [taskDue, setTaskDue] = useState("");
+
+  const staffQ = useQuery({ queryKey: ["staff"], queryFn: () => listStaff(), enabled: open });
+  const campaignsQ = useQuery({ queryKey: ["campaigns"], queryFn: () => listCampaigns(), enabled: open });
+
+  const staff = staffQ.data?.rows ?? [];
+  const filteredStaff = staff.filter((s) =>
+    !memberQuery.trim() ||
+    (s.full_name ?? "").toLowerCase().includes(memberQuery.toLowerCase()) ||
+    (s.staff_id ?? "").toLowerCase().includes(memberQuery.toLowerCase()),
+  );
+
+  function toggleMember(id: string) {
+    setMemberIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+  }
 
   function reset() {
     setName(""); setLead(""); setType("inbound"); setSla("95"); setNotes("");
+    setMemberIds([]); setMemberQuery(""); setCampaignId("none"); setTaskTitle(""); setTaskDue("");
   }
 
   function handleCreate(e: React.FormEvent) {
@@ -53,7 +77,14 @@ function TeamsPage() {
       toast.error("Team name and lead are required");
       return;
     }
-    toast.success(`Team "${name}" created`);
+    const parts: string[] = [`Team "${name}" created`];
+    if (memberIds.length) parts.push(`${memberIds.length} member${memberIds.length === 1 ? "" : "s"} added`);
+    if (campaignId !== "none") {
+      const c = campaignsQ.data?.find((x: any) => x.id === campaignId);
+      if (c) parts.push(`assigned to campaign "${c.name}"`);
+    }
+    if (taskTitle.trim()) parts.push(`task "${taskTitle.trim()}" assigned`);
+    toast.success(parts.join(" · "));
     reset();
     setOpen(false);
   }
@@ -88,7 +119,7 @@ function TeamsPage() {
       </div>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Create a new team</DialogTitle>
             <DialogDescription>
@@ -122,6 +153,88 @@ function TeamsPage() {
                 <Input id="t-sla" type="number" min={0} max={100} value={sla} onChange={(e) => setSla(e.target.value)} />
               </div>
             </div>
+
+            {/* Team members */}
+            <div className="space-y-2 rounded-md border border-[color:var(--cc-ink-200)] p-3">
+              <div className="flex items-center justify-between">
+                <Label className="flex items-center gap-1.5 text-sm">
+                  <UserCheck className="size-4" /> Team members
+                </Label>
+                <span className="text-xs text-muted-foreground">
+                  {memberIds.length} selected
+                </span>
+              </div>
+              <div className="relative">
+                <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  className="pl-9"
+                  placeholder="Search staff to add…"
+                  value={memberQuery}
+                  onChange={(e) => setMemberQuery(e.target.value)}
+                />
+              </div>
+              <div className="max-h-[160px] overflow-y-auto rounded border border-[color:var(--cc-ink-100)]">
+                {staffQ.isLoading ? (
+                  <div className="p-3 text-xs text-muted-foreground">Loading staff…</div>
+                ) : filteredStaff.length === 0 ? (
+                  <div className="p-3 text-xs text-muted-foreground">No matching staff.</div>
+                ) : (
+                  filteredStaff.map((s) => {
+                    const checked = memberIds.includes(s.id);
+                    return (
+                      <label
+                        key={s.id}
+                        className="flex cursor-pointer items-center gap-2 px-3 py-2 text-sm hover:bg-[color:var(--cc-ink-50)] border-b border-[color:var(--cc-ink-100)] last:border-b-0"
+                      >
+                        <Checkbox checked={checked} onCheckedChange={() => toggleMember(s.id)} />
+                        <span className="flex-1 truncate">{s.full_name ?? "Unnamed"}</span>
+                        {s.staff_id ? (
+                          <span className="text-[11px] text-muted-foreground">{s.staff_id}</span>
+                        ) : null}
+                      </label>
+                    );
+                  })
+                )}
+              </div>
+            </div>
+
+            {/* Optional campaign */}
+            <div className="space-y-1.5">
+              <Label className="flex items-center gap-1.5">
+                <Megaphone className="size-4" /> Assign campaign <span className="text-xs text-muted-foreground font-normal">(optional)</span>
+              </Label>
+              <Select value={campaignId} onValueChange={setCampaignId}>
+                <SelectTrigger><SelectValue placeholder="No campaign" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">No campaign</SelectItem>
+                  {(campaignsQ.data ?? []).map((c: any) => (
+                    <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Optional task */}
+            <div className="space-y-1.5 rounded-md border border-[color:var(--cc-ink-200)] p-3">
+              <Label className="flex items-center gap-1.5">
+                <ClipboardList className="size-4" /> Assign a task <span className="text-xs text-muted-foreground font-normal">(optional)</span>
+              </Label>
+              <Input
+                placeholder="Task title, e.g. Kickoff briefing"
+                value={taskTitle}
+                onChange={(e) => setTaskTitle(e.target.value)}
+              />
+              <Input
+                type="datetime-local"
+                value={taskDue}
+                onChange={(e) => setTaskDue(e.target.value)}
+                disabled={!taskTitle.trim()}
+              />
+              <p className="text-[11px] text-muted-foreground">
+                Task will be assigned to all selected team members.
+              </p>
+            </div>
+
             <div className="space-y-1.5">
               <Label htmlFor="t-notes">Notes</Label>
               <Textarea id="t-notes" rows={3} placeholder="Optional charter or notes" value={notes} onChange={(e) => setNotes(e.target.value)} />
