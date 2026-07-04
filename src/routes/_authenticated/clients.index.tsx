@@ -13,7 +13,7 @@ import {
 } from "@/components/cc";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Phone, Download, Upload, Users, GitMerge, ShieldCheck, X, Delete, PhoneCall, PhoneOff, Mic, MicOff, Pause, Volume2 } from "lucide-react";
+import { Phone, Download, Upload, Users, GitMerge, ShieldCheck, X, Delete, PhoneCall, PhoneOff, Mic, MicOff, Pause, Volume2, PhoneForwarded } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { DUMMY_CLIENTS } from "@/lib/dummy-data";
 import { cn } from "@/lib/utils";
@@ -545,6 +545,14 @@ function InCallPanel({
   const [onHold, setOnHold] = useState(false);
   const [speaker, setSpeaker] = useState(false);
   const [seconds, setSeconds] = useState(0);
+  const [transferOpen, setTransferOpen] = useState(false);
+  const agentsFn = useServerFn(listAssignableAgents);
+  const { data: agentsData } = useQuery({
+    queryKey: ["assignable-agents-transfer"],
+    queryFn: () => agentsFn(),
+    enabled: transferOpen,
+  });
+  const agents: any[] = (agentsData as any)?.agents ?? [];
 
   useEffect(() => {
     const t = setTimeout(() => setStatus("in-call"), 1800);
@@ -616,7 +624,50 @@ function InCallPanel({
           disabled={status === "ended"}
           onClick={() => setSpeaker((s) => !s)}
         />
+        <CallBtn
+          icon={<PhoneForwarded className="size-5" />}
+          label="Transfer"
+          disabled={status === "ended"}
+          onClick={() => setTransferOpen(true)}
+        />
       </div>
+
+      <Dialog open={transferOpen} onOpenChange={setTransferOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Transfer call to agent</DialogTitle>
+          </DialogHeader>
+          <div className="max-h-72 overflow-y-auto divide-y">
+            {agents.length === 0 ? (
+              <div className="py-6 text-center text-sm text-[color:var(--cc-ink-500)]">
+                No agents available
+              </div>
+            ) : (
+              agents.map((a: any) => (
+                <button
+                  key={a.id}
+                  type="button"
+                  onClick={() => {
+                    setTransferOpen(false);
+                    setOnHold(true);
+                    toast.success(`Call transferred to ${a.full_name ?? a.email ?? "agent"}`);
+                  }}
+                  className="w-full flex items-center gap-3 py-2.5 px-2 text-left hover:bg-[color:var(--cc-ink-100)] rounded"
+                >
+                  <div className="size-8 rounded-full bg-[color:var(--cc-info)]/10 text-[color:var(--cc-info)] flex items-center justify-center text-xs font-semibold">
+                    {(a.full_name ?? a.email ?? "?").slice(0, 2).toUpperCase()}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-medium truncate">{a.full_name ?? "—"}</div>
+                    <div className="text-xs text-[color:var(--cc-ink-500)] truncate">{a.email}</div>
+                  </div>
+                  <PhoneForwarded className="size-4 text-[color:var(--cc-ink-500)]" />
+                </button>
+              ))
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <div className="mt-6 w-full">
         {status !== "ended" ? (
