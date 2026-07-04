@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { Phone, Download, Upload, Users, GitMerge, ShieldCheck, X, Delete, PhoneCall } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { DUMMY_CLIENTS } from "@/lib/dummy-data";
+import { cn } from "@/lib/utils";
 import { placeOutboundCall, getTelephonySettings } from "@/lib/calls.functions";
 import { setActiveCall } from "@/lib/call-session";
 import type { CallSession } from "@/components/CallControlBar";
