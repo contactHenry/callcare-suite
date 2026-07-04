@@ -167,11 +167,11 @@ export const DUMMY_QUEUE = [
 
 /* ------------------------------ Scripts ------------------------------ */
 export const DUMMY_SCRIPTS = [
-  { id: u(80), name: "Inbound — sales discovery",         current_version: { version: 4, status: "approved" } },
-  { id: u(81), name: "Outbound — renewal save",           current_version: { version: 2, status: "approved" } },
-  { id: u(82), name: "Complaint handling — first contact",current_version: { version: 7, status: "in_review" } },
-  { id: u(83), name: "GDPR consent disclosure",           current_version: { version: 3, status: "approved" } },
-  { id: u(84), name: "Voicemail script (no-answer)",      current_version: { version: 1, status: "draft" } },
+  { id: u(80), name: "Inbound — sales discovery",         category: "Sales",       use_case: "Qualify inbound leads, discover needs, and book a demo.",         current_version: { version: 4, status: "approved" } },
+  { id: u(81), name: "Outbound — renewal save",           category: "Retention",   use_case: "Persuade at-risk customers to renew before their contract lapses.", current_version: { version: 2, status: "approved" } },
+  { id: u(82), name: "Complaint handling — first contact",category: "Support",     use_case: "Acknowledge a complaint, capture facts, set expectations for resolution.", current_version: { version: 7, status: "in_review" } },
+  { id: u(83), name: "GDPR consent disclosure",           category: "Compliance",  use_case: "Confirm recording consent and lawful basis for processing personal data.", current_version: { version: 3, status: "approved" } },
+  { id: u(84), name: "Voicemail script (no-answer)",      category: "Outbound",    use_case: "Leave a short, structured voicemail when a prospect doesn't pick up.", current_version: { version: 1, status: "draft" } },
 ];
 
 export const DUMMY_SCRIPT_TREE = {
