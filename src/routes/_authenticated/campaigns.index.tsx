@@ -27,7 +27,29 @@ const SAMPLE = [
 
 function CampaignsPage() {
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState({ name: "", owner: "", type: "outbound", priority: "normal", goal: "", script: "none", notes: "" });
+  const [form, setForm] = useState({
+    name: "", owner: "", type: "outbound", priority: "normal", goal: "", script: "none", notes: "",
+    assignedAgentIds: [] as string[],
+  });
+  const [agentQuery, setAgentQuery] = useState("");
+
+  const staff = useQuery({
+    queryKey: ["staff-list"],
+    queryFn: async () => { try { return await listStaff(); } catch { return { rows: [] }; } },
+  });
+  const agents: any[] = staff.data?.rows ?? [];
+  const filteredAgents = agents.filter((a) =>
+    `${a.full_name ?? ""} ${a.email ?? ""}`.toLowerCase().includes(agentQuery.toLowerCase())
+  );
+
+  const toggleAgent = (id: string) => {
+    setForm((f) => ({
+      ...f,
+      assignedAgentIds: f.assignedAgentIds.includes(id)
+        ? f.assignedAgentIds.filter((x) => x !== id)
+        : [...f.assignedAgentIds, id],
+    }));
+  };
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,9 +57,16 @@ function CampaignsPage() {
       toast.error("Campaign name is required");
       return;
     }
-    toast.success(`Campaign "${form.name}" created as draft`);
+    const assignedNames = agents
+      .filter((a) => form.assignedAgentIds.includes(a.id))
+      .map((a) => a.full_name ?? a.id)
+      .join(", ");
+    toast.success(
+      `Campaign "${form.name}" created as draft${assignedNames ? ` and assigned to ${assignedNames}` : ""}`
+    );
     setOpen(false);
-    setForm({ name: "", owner: "", type: "outbound", priority: "normal", goal: "", script: "none", notes: "" });
+    setForm({ name: "", owner: "", type: "outbound", priority: "normal", goal: "", script: "none", notes: "", assignedAgentIds: [] });
+    setAgentQuery("");
   };
 
   return (
