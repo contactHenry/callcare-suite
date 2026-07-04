@@ -114,7 +114,7 @@ function taskIcon(status: TeamTask["status"]) {
 }
 
 function TeamDetailPage() {
-  const team = Route.useLoaderData();
+  const team = Route.useLoaderData() as TeamDetail;
   const doneTasks = team.tasks.filter((t) => t.status === "done").length;
   const taskCompletion = team.tasks.length ? Math.round((doneTasks / team.tasks.length) * 100) : 0;
 
