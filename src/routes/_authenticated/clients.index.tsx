@@ -54,6 +54,12 @@ function ClientsPage() {
   const [showDupes, setShowDupes] = useState(false);
   const [showExport, setShowExport] = useState(false);
   const [exportReason, setExportReason] = useState("");
+  const [dialerOpen, setDialerOpen] = useState(false);
+  const [dialerNumber, setDialerNumber] = useState("");
+  const [dialerName, setDialerName] = useState<string | null>(null);
+  const [dialerContactId, setDialerContactId] = useState<string | null>(null);
+  const [telSettings, setTelSettings] = useState<any>(null);
+  useEffect(() => { (async () => { try { setTelSettings(await getTelephonySettings()); } catch {} })(); }, []);
 
   const query = useQuery({
     queryKey: ["clients", { search, statusFilter, consent, dnc, sort, page }],
