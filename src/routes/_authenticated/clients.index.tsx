@@ -227,72 +227,88 @@ function ClientsPage() {
         </div>
       )}
 
-      <div className="px-6 pb-6 bg-white">
-        <CCTable>
-          <CCThead>
-            <tr>
-              <CCTh className="w-8">
-                <input type="checkbox"
-                  checked={rows.length > 0 && rows.every((r: any) => selected.has(r.id))}
-                  onChange={toggleAll} />
-              </CCTh>
-              <CCTh>Name</CCTh>
-              <CCTh>Phone</CCTh>
-              <CCTh>Status</CCTh>
-              <CCTh>Last contact</CCTh>
-              <CCTh>Next follow-up</CCTh>
-              <CCTh className="text-right">Quick</CCTh>
-            </tr>
-          </CCThead>
-          <tbody>
-            {rows.length === 0 && (
-              <tr><CCTd className="text-[color:var(--cc-ink-500)]">No clients match.</CCTd></tr>
-            )}
-            {rows.map((c: any) => (
-              <CCTr key={c.id}>
-                <CCTd>
-                  <input type="checkbox" checked={selected.has(c.id)} onChange={() => toggle(c.id)}
-                    onClick={(e) => e.stopPropagation()} />
-                </CCTd>
-                <CCTd>
-                  <Link to="/clients/$id" params={{ id: c.id }} className="font-medium hover:underline">
-                    {c.name}
-                  </Link>
-                  <div className="text-xs text-[color:var(--cc-ink-500)]">{c.email ?? "—"} {c.company ? `· ${c.company}` : ""}</div>
-                </CCTd>
-                <CCTd>
-                  {c.phone ? (
-                    <a href={`tel:${c.phone}`} className="inline-flex items-center gap-1.5 text-[color:var(--cc-info)] hover:underline">
-                      <Phone className="size-3.5" />{c.phone}
-                    </a>
-                  ) : "—"}
-                </CCTd>
-                <CCTd>
-                  <CCStatusPill tone={STATUS_TONE[c.lifecycle_status] ?? "neutral"} dot>
-                    {(c.lifecycle_status ?? "new").replace("_"," ")}
-                  </CCStatusPill>
-                  {c.do_not_call && <CCStatusPill tone="danger" className="ml-1">DNC</CCStatusPill>}
-                </CCTd>
-                <CCTd className="text-xs text-[color:var(--cc-ink-500)]">{fmt(c.last_contacted_at)}</CCTd>
-                <CCTd className="text-xs text-[color:var(--cc-ink-500)]">{fmt(c.next_follow_up_at)}</CCTd>
-                <CCTd className="text-right">
-                  {c.phone && (
-                    <a href={`tel:${c.phone}`} onClick={(e) => e.stopPropagation()}>
-                      <CCButton variant="ghost" size="sm"><Phone className="size-4" /></CCButton>
-                    </a>
-                  )}
-                </CCTd>
-              </CCTr>
-            ))}
-          </tbody>
-        </CCTable>
-        <div className="mt-3 flex items-center justify-between text-xs text-[color:var(--cc-ink-500)]">
-          <span>Page {page} · {rows.length} of {total}</span>
-          <div className="flex gap-2">
-            <CCButton size="sm" variant="ghost" disabled={page === 1} onClick={() => setPage((p) => Math.max(1, p - 1))}>Prev</CCButton>
-            <CCButton size="sm" variant="ghost" disabled={rows.length < 50} onClick={() => setPage((p) => p + 1)}>Next</CCButton>
+      <div className={cn("px-6 pb-6 gap-4 flex", dialerOpen ? "flex-row" : "flex-col")}>
+        <div className={cn("bg-white transition-all", dialerOpen ? "flex-1 min-w-0" : "w-full")}>
+          <CCTable>
+            <CCThead>
+              <tr>
+                <CCTh className="w-8">
+                  <input type="checkbox"
+                    checked={rows.length > 0 && rows.every((r: any) => selected.has(r.id))}
+                    onChange={toggleAll} />
+                </CCTh>
+                <CCTh>Name</CCTh>
+                <CCTh>Phone</CCTh>
+                <CCTh>Status</CCTh>
+                <CCTh>Last contact</CCTh>
+                <CCTh>Next follow-up</CCTh>
+                <CCTh className="text-right">Quick</CCTh>
+              </tr>
+            </CCThead>
+            <tbody>
+              {rows.length === 0 && (
+                <tr><CCTd className="text-[color:var(--cc-ink-500)]">No clients match.</CCTd></tr>
+              )}
+              {rows.map((c: any) => (
+                <CCTr key={c.id}>
+                  <CCTd>
+                    <input type="checkbox" checked={selected.has(c.id)} onChange={() => toggle(c.id)}
+                      onClick={(e) => e.stopPropagation()} />
+                  </CCTd>
+                  <CCTd>
+                    <Link to="/clients/$id" params={{ id: c.id }} className="font-medium hover:underline">
+                      {c.name}
+                    </Link>
+                    <div className="text-xs text-[color:var(--cc-ink-500)]">{c.email ?? "—"} {c.company ? `· ${c.company}` : ""}</div>
+                  </CCTd>
+                  <CCTd>
+                    {c.phone ? (
+                      <button
+                        type="button"
+                        onClick={() => openDialer(c.phone, c.name, c.id)}
+                        className="inline-flex items-center gap-1.5 text-[color:var(--cc-info)] hover:underline"
+                      >
+                        <Phone className="size-3.5" />{c.phone}
+                      </button>
+                    ) : "—"}
+                  </CCTd>
+                  <CCTd>
+                    <CCStatusPill tone={STATUS_TONE[c.lifecycle_status] ?? "neutral"} dot>
+                      {(c.lifecycle_status ?? "new").replace("_"," ")}
+                    </CCStatusPill>
+                    {c.do_not_call && <CCStatusPill tone="danger" className="ml-1">DNC</CCStatusPill>}
+                  </CCTd>
+                  <CCTd className="text-xs text-[color:var(--cc-ink-500)]">{fmt(c.last_contacted_at)}</CCTd>
+                  <CCTd className="text-xs text-[color:var(--cc-ink-500)]">{fmt(c.next_follow_up_at)}</CCTd>
+                  <CCTd className="text-right">
+                    {c.phone && (
+                      <CCButton variant="ghost" size="sm" onClick={() => openDialer(c.phone, c.name, c.id)}>
+                        <Phone className="size-4" />
+                      </CCButton>
+                    )}
+                  </CCTd>
+                </CCTr>
+              ))}
+            </tbody>
+          </CCTable>
+          <div className="mt-3 flex items-center justify-between text-xs text-[color:var(--cc-ink-500)]">
+            <span>Page {page} · {rows.length} of {total}</span>
+            <div className="flex gap-2">
+              <CCButton size="sm" variant="ghost" disabled={page === 1} onClick={() => setPage((p) => Math.max(1, p - 1))}>Prev</CCButton>
+              <CCButton size="sm" variant="ghost" disabled={rows.length < 50} onClick={() => setPage((p) => p + 1)}>Next</CCButton>
+            </div>
           </div>
         </div>
+
+        {dialerOpen && (
+          <DialerPanel
+            number={dialerNumber}
+            name={dialerName}
+            onNumberChange={setDialerNumber}
+            onClose={() => setDialerOpen(false)}
+            onCall={startCall}
+          />
+        )}
       </div>
 
       <AssignDialog
