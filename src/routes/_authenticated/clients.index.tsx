@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   listClients, bulkAssign, exportClients, listAssignableAgents,
   findDuplicates, mergeClients, requestClientExport,
@@ -13,9 +13,13 @@ import {
 } from "@/components/cc";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Phone, Download, Upload, Users, GitMerge, ShieldCheck } from "lucide-react";
+import { Phone, Download, Upload, Users, GitMerge, ShieldCheck, X, Delete, PhoneCall } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { DUMMY_CLIENTS } from "@/lib/dummy-data";
+import { cn } from "@/lib/utils";
+import { placeOutboundCall, getTelephonySettings } from "@/lib/calls.functions";
+import { setActiveCall } from "@/lib/call-session";
+import type { CallSession } from "@/components/CallControlBar";
 
 export const Route = createFileRoute("/_authenticated/clients/")({ component: ClientsPage });
 
@@ -51,6 +55,12 @@ function ClientsPage() {
   const [showDupes, setShowDupes] = useState(false);
   const [showExport, setShowExport] = useState(false);
   const [exportReason, setExportReason] = useState("");
+  const [dialerOpen, setDialerOpen] = useState(false);
+  const [dialerNumber, setDialerNumber] = useState("");
+  const [dialerName, setDialerName] = useState<string | null>(null);
+  const [dialerContactId, setDialerContactId] = useState<string | null>(null);
+  const [telSettings, setTelSettings] = useState<any>(null);
+  useEffect(() => { (async () => { try { setTelSettings(await getTelephonySettings()); } catch {} })(); }, []);
 
   const query = useQuery({
     queryKey: ["clients", { search, statusFilter, consent, dnc, sort, page }],
@@ -111,6 +121,32 @@ function ClientsPage() {
       setShowExport(false);
       setExportReason("");
     } catch (e: any) { toast.error(e?.message ?? "Request failed"); }
+  }
+
+  function openDialer(number: string, name?: string | null, contactId?: string | null) {
+    setDialerNumber(number);
+    setDialerName(name ?? null);
+    setDialerContactId(contactId ?? null);
+    setDialerOpen(true);
+  }
+
+  async function startCall() {
+    if (!dialerNumber) return;
+    try {
+      const r = await placeOutboundCall({ data: { contactId: dialerContactId, toNumber: dialerNumber } });
+      const newSession: CallSession = {
+        callId: r.callId,
+        toNumber: dialerNumber,
+        contactName: dialerName,
+        startedAt: new Date().toISOString(),
+        direction: "outbound",
+        recording: telSettings?.recording_enabled ?? true,
+        consentNotice: telSettings?.recording_consent_notice ?? null,
+        voicemailDropEnabled: telSettings?.voicemail_drop_enabled ?? false,
+      };
+      setActiveCall(newSession);
+      toast.success("Calling…");
+    } catch (e: any) { toast.error(e?.message ?? "Could not place call"); }
   }
 
   const canImport = atLeast("team_leader");
@@ -191,72 +227,88 @@ function ClientsPage() {
         </div>
       )}
 
-      <div className="px-6 pb-6 bg-white">
-        <CCTable>
-          <CCThead>
-            <tr>
-              <CCTh className="w-8">
-                <input type="checkbox"
-                  checked={rows.length > 0 && rows.every((r: any) => selected.has(r.id))}
-                  onChange={toggleAll} />
-              </CCTh>
-              <CCTh>Name</CCTh>
-              <CCTh>Phone</CCTh>
-              <CCTh>Status</CCTh>
-              <CCTh>Last contact</CCTh>
-              <CCTh>Next follow-up</CCTh>
-              <CCTh className="text-right">Quick</CCTh>
-            </tr>
-          </CCThead>
-          <tbody>
-            {rows.length === 0 && (
-              <tr><CCTd className="text-[color:var(--cc-ink-500)]">No clients match.</CCTd></tr>
-            )}
-            {rows.map((c: any) => (
-              <CCTr key={c.id}>
-                <CCTd>
-                  <input type="checkbox" checked={selected.has(c.id)} onChange={() => toggle(c.id)}
-                    onClick={(e) => e.stopPropagation()} />
-                </CCTd>
-                <CCTd>
-                  <Link to="/clients/$id" params={{ id: c.id }} className="font-medium hover:underline">
-                    {c.name}
-                  </Link>
-                  <div className="text-xs text-[color:var(--cc-ink-500)]">{c.email ?? "—"} {c.company ? `· ${c.company}` : ""}</div>
-                </CCTd>
-                <CCTd>
-                  {c.phone ? (
-                    <a href={`tel:${c.phone}`} className="inline-flex items-center gap-1.5 text-[color:var(--cc-info)] hover:underline">
-                      <Phone className="size-3.5" />{c.phone}
-                    </a>
-                  ) : "—"}
-                </CCTd>
-                <CCTd>
-                  <CCStatusPill tone={STATUS_TONE[c.lifecycle_status] ?? "neutral"} dot>
-                    {(c.lifecycle_status ?? "new").replace("_"," ")}
-                  </CCStatusPill>
-                  {c.do_not_call && <CCStatusPill tone="danger" className="ml-1">DNC</CCStatusPill>}
-                </CCTd>
-                <CCTd className="text-xs text-[color:var(--cc-ink-500)]">{fmt(c.last_contacted_at)}</CCTd>
-                <CCTd className="text-xs text-[color:var(--cc-ink-500)]">{fmt(c.next_follow_up_at)}</CCTd>
-                <CCTd className="text-right">
-                  {c.phone && (
-                    <a href={`tel:${c.phone}`} onClick={(e) => e.stopPropagation()}>
-                      <CCButton variant="ghost" size="sm"><Phone className="size-4" /></CCButton>
-                    </a>
-                  )}
-                </CCTd>
-              </CCTr>
-            ))}
-          </tbody>
-        </CCTable>
-        <div className="mt-3 flex items-center justify-between text-xs text-[color:var(--cc-ink-500)]">
-          <span>Page {page} · {rows.length} of {total}</span>
-          <div className="flex gap-2">
-            <CCButton size="sm" variant="ghost" disabled={page === 1} onClick={() => setPage((p) => Math.max(1, p - 1))}>Prev</CCButton>
-            <CCButton size="sm" variant="ghost" disabled={rows.length < 50} onClick={() => setPage((p) => p + 1)}>Next</CCButton>
+      <div className={cn("px-6 pb-6 gap-4 flex", dialerOpen ? "flex-row" : "flex-col")}>
+        <div className={cn("bg-white transition-all", dialerOpen ? "flex-1 min-w-0" : "w-full")}>
+          <CCTable>
+            <CCThead>
+              <tr>
+                <CCTh className="w-8">
+                  <input type="checkbox"
+                    checked={rows.length > 0 && rows.every((r: any) => selected.has(r.id))}
+                    onChange={toggleAll} />
+                </CCTh>
+                <CCTh>Name</CCTh>
+                <CCTh>Phone</CCTh>
+                <CCTh>Status</CCTh>
+                <CCTh>Last contact</CCTh>
+                <CCTh>Next follow-up</CCTh>
+                <CCTh className="text-right">Quick</CCTh>
+              </tr>
+            </CCThead>
+            <tbody>
+              {rows.length === 0 && (
+                <tr><CCTd className="text-[color:var(--cc-ink-500)]">No clients match.</CCTd></tr>
+              )}
+              {rows.map((c: any) => (
+                <CCTr key={c.id}>
+                  <CCTd>
+                    <input type="checkbox" checked={selected.has(c.id)} onChange={() => toggle(c.id)}
+                      onClick={(e) => e.stopPropagation()} />
+                  </CCTd>
+                  <CCTd>
+                    <Link to="/clients/$id" params={{ id: c.id }} className="font-medium hover:underline">
+                      {c.name}
+                    </Link>
+                    <div className="text-xs text-[color:var(--cc-ink-500)]">{c.email ?? "—"} {c.company ? `· ${c.company}` : ""}</div>
+                  </CCTd>
+                  <CCTd>
+                    {c.phone ? (
+                      <button
+                        type="button"
+                        onClick={() => openDialer(c.phone, c.name, c.id)}
+                        className="inline-flex items-center gap-1.5 text-[color:var(--cc-info)] hover:underline"
+                      >
+                        <Phone className="size-3.5" />{c.phone}
+                      </button>
+                    ) : "—"}
+                  </CCTd>
+                  <CCTd>
+                    <CCStatusPill tone={STATUS_TONE[c.lifecycle_status] ?? "neutral"} dot>
+                      {(c.lifecycle_status ?? "new").replace("_"," ")}
+                    </CCStatusPill>
+                    {c.do_not_call && <CCStatusPill tone="danger" className="ml-1">DNC</CCStatusPill>}
+                  </CCTd>
+                  <CCTd className="text-xs text-[color:var(--cc-ink-500)]">{fmt(c.last_contacted_at)}</CCTd>
+                  <CCTd className="text-xs text-[color:var(--cc-ink-500)]">{fmt(c.next_follow_up_at)}</CCTd>
+                  <CCTd className="text-right">
+                    {c.phone && (
+                      <CCButton variant="ghost" size="sm" onClick={() => openDialer(c.phone, c.name, c.id)}>
+                        <Phone className="size-4" />
+                      </CCButton>
+                    )}
+                  </CCTd>
+                </CCTr>
+              ))}
+            </tbody>
+          </CCTable>
+          <div className="mt-3 flex items-center justify-between text-xs text-[color:var(--cc-ink-500)]">
+            <span>Page {page} · {rows.length} of {total}</span>
+            <div className="flex gap-2">
+              <CCButton size="sm" variant="ghost" disabled={page === 1} onClick={() => setPage((p) => Math.max(1, p - 1))}>Prev</CCButton>
+              <CCButton size="sm" variant="ghost" disabled={rows.length < 50} onClick={() => setPage((p) => p + 1)}>Next</CCButton>
+            </div>
           </div>
         </div>
+
+        {dialerOpen && (
+          <DialerPanel
+            number={dialerNumber}
+            name={dialerName}
+            onNumberChange={setDialerNumber}
+            onClose={() => setDialerOpen(false)}
+            onCall={startCall}
+          />
+        )}
       </div>
 
       <AssignDialog
@@ -374,5 +426,85 @@ function DuplicatesDialog({ open, onClose }: { open: boolean; onClose: () => voi
         </div>
       </DialogContent>
     </Dialog>
+  );
+}
+
+function DialerPanel({
+  number,
+  name,
+  onNumberChange,
+  onClose,
+  onCall,
+}: {
+  number: string;
+  name: string | null;
+  onNumberChange: (n: string) => void;
+  onClose: () => void;
+  onCall: () => void;
+}) {
+  function dial(digit: string) {
+    onNumberChange((number + digit).replace(/[^+\d*#]/g, "").slice(0, 18));
+  }
+  function backspace() {
+    onNumberChange(number.slice(0, -1));
+  }
+  function clear() {
+    onNumberChange("");
+  }
+
+  const digits = [
+    ["1", ""], ["2", "ABC"], ["3", "DEF"],
+    ["4", "GHI"], ["5", "JKL"], ["6", "MNO"],
+    ["7", "PQRS"], ["8", "TUV"], ["9", "WXYZ"],
+    ["*", ""], ["0", "+"], ["#", ""],
+  ] as const;
+
+  return (
+    <div className="w-[320px] shrink-0 rounded-[var(--cc-radius-lg)] border border-[color:var(--cc-ink-200)] bg-[color:var(--cc-ink-0)] p-4 shadow-[var(--cc-shadow-md)]">
+      <div className="mb-3 flex items-center justify-between">
+        <div className="min-w-0">
+          <div className="text-sm font-medium truncate">{name ?? "Manual dial"}</div>
+          <div className="text-xs text-[color:var(--cc-ink-500)] truncate">{number || "Enter a number"}</div>
+        </div>
+        <CCButton variant="ghost" size="sm" onClick={onClose} aria-label="Close dialer"><X className="size-4" /></CCButton>
+      </div>
+
+      <CCInput
+        value={number}
+        onChange={(e) => onNumberChange(e.target.value.replace(/[^+\d*#]/g, "").slice(0, 18))}
+        placeholder="Phone number"
+        className="mb-3 text-center text-lg font-mono"
+      />
+
+      <div className="grid grid-cols-3 gap-2 mb-3">
+        {digits.map(([d, letters]) => (
+          <button
+            key={d}
+            type="button"
+            onClick={() => dial(d)}
+            className="flex flex-col items-center justify-center rounded-[var(--cc-radius-md)] border border-[color:var(--cc-ink-200)] bg-[color:var(--cc-ink-50)] py-2 hover:bg-[color:var(--cc-ink-100)] active:bg-[color:var(--cc-ink-200)] transition-colors"
+          >
+            <span className="text-lg font-medium leading-none">{d}</span>
+            {letters && <span className="text-[10px] text-[color:var(--cc-ink-500)] tracking-wider">{letters}</span>}
+          </button>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-3 gap-2 mb-4">
+        <CCButton variant="ghost" size="sm" onClick={clear} aria-label="Clear">Clear</CCButton>
+        <CCButton variant="success" onClick={onCall} disabled={!number} aria-label="Call">
+          <PhoneCall className="size-4 mr-1" />Call
+        </CCButton>
+        <CCButton variant="ghost" size="sm" onClick={backspace} aria-label="Backspace">
+          <Delete className="size-4" />
+        </CCButton>
+      </div>
+
+      {name && (
+        <div className="rounded-[var(--cc-radius-md)] border border-[color:var(--cc-ink-200)] bg-[color:var(--cc-ink-50)] p-2 text-xs text-[color:var(--cc-ink-500)]">
+          Calling {name}
+        </div>
+      )}
+    </div>
   );
 }
