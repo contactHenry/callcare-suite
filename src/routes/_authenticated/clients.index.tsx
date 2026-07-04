@@ -13,7 +13,7 @@ import {
 } from "@/components/cc";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Phone, Download, Upload, Users, GitMerge, ShieldCheck, X, Delete, PhoneCall } from "lucide-react";
+import { Phone, Download, Upload, Users, GitMerge, ShieldCheck, X, Delete, PhoneCall, PhoneOff, Mic, MicOff, Pause, Volume2 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { DUMMY_CLIENTS } from "@/lib/dummy-data";
 import { cn } from "@/lib/utils";
@@ -60,6 +60,7 @@ function ClientsPage() {
   const [dialerName, setDialerName] = useState<string | null>(null);
   const [dialerContactId, setDialerContactId] = useState<string | null>(null);
   const [telSettings, setTelSettings] = useState<any>(null);
+  const [inCall, setInCall] = useState(false);
   useEffect(() => { (async () => { try { setTelSettings(await getTelephonySettings()); } catch {} })(); }, []);
 
   const query = useQuery({
@@ -128,10 +129,12 @@ function ClientsPage() {
     setDialerName(name ?? null);
     setDialerContactId(contactId ?? null);
     setDialerOpen(true);
+    setInCall(false);
   }
 
   async function startCall() {
     if (!dialerNumber) return;
+    setInCall(true);
     try {
       const r = await placeOutboundCall({ data: { contactId: dialerContactId, toNumber: dialerNumber } });
       const newSession: CallSession = {
@@ -146,7 +149,14 @@ function ClientsPage() {
       };
       setActiveCall(newSession);
       toast.success("Calling…");
-    } catch (e: any) { toast.error(e?.message ?? "Could not place call"); }
+    } catch (e: any) {
+      toast.error(e?.message ?? "Could not place call");
+    }
+  }
+
+  function endCall() {
+    setInCall(false);
+    setActiveCall(null);
   }
 
   const canImport = atLeast("team_leader");
@@ -305,8 +315,10 @@ function ClientsPage() {
             number={dialerNumber}
             name={dialerName}
             onNumberChange={setDialerNumber}
-            onClose={() => setDialerOpen(false)}
+            onClose={() => { setDialerOpen(false); setInCall(false); setActiveCall(null); }}
             onCall={startCall}
+            inCall={inCall}
+            onEndCall={endCall}
           />
         )}
       </div>
@@ -435,12 +447,16 @@ function DialerPanel({
   onNumberChange,
   onClose,
   onCall,
+  inCall,
+  onEndCall,
 }: {
   number: string;
   name: string | null;
   onNumberChange: (n: string) => void;
   onClose: () => void;
   onCall: () => void;
+  inCall: boolean;
+  onEndCall: () => void;
 }) {
   function dial(digit: string) {
     onNumberChange((number + digit).replace(/[^+\d*#]/g, "").slice(0, 18));
@@ -458,6 +474,10 @@ function DialerPanel({
     ["7", "PQRS"], ["8", "TUV"], ["9", "WXYZ"],
     ["*", ""], ["0", "+"], ["#", ""],
   ] as const;
+
+  if (inCall) {
+    return <InCallPanel number={number} name={name} onClose={onClose} onEndCall={onEndCall} />;
+  }
 
   return (
     <div className="w-[320px] shrink-0 rounded-[var(--cc-radius-lg)] border border-[color:var(--cc-ink-200)] bg-[color:var(--cc-ink-0)] p-4 shadow-[var(--cc-shadow-md)]">
@@ -506,5 +526,131 @@ function DialerPanel({
         </div>
       )}
     </div>
+  );
+}
+
+function InCallPanel({
+  number,
+  name,
+  onClose,
+  onEndCall,
+}: {
+  number: string;
+  name: string | null;
+  onClose: () => void;
+  onEndCall: () => void;
+}) {
+  const [status, setStatus] = useState<"dialing" | "in-call" | "ended">("dialing");
+  const [muted, setMuted] = useState(false);
+  const [onHold, setOnHold] = useState(false);
+  const [speaker, setSpeaker] = useState(false);
+  const [seconds, setSeconds] = useState(0);
+
+  useEffect(() => {
+    const t = setTimeout(() => setStatus("in-call"), 1800);
+    return () => clearTimeout(t);
+  }, []);
+  useEffect(() => {
+    if (status !== "in-call") return;
+    const i = setInterval(() => setSeconds((s) => s + 1), 1000);
+    return () => clearInterval(i);
+  }, [status]);
+
+  const mm = String(Math.floor(seconds / 60)).padStart(2, "0");
+  const ss = String(seconds % 60).padStart(2, "0");
+  const initials = (name ?? number ?? "?")
+    .split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase();
+
+  function end() {
+    setStatus("ended");
+    onEndCall();
+  }
+
+  return (
+    <div className="w-[320px] shrink-0 rounded-[var(--cc-radius-lg)] border border-[color:var(--cc-ink-200)] bg-[color:var(--cc-ink-0)] p-6 shadow-[var(--cc-shadow-md)] flex flex-col items-center text-center">
+      <div className="w-full flex justify-end -mt-2 -mr-2">
+        <CCButton variant="ghost" size="sm" onClick={onClose} aria-label="Close"><X className="size-4" /></CCButton>
+      </div>
+      <div className="size-24 rounded-full bg-[color:var(--cc-info)]/10 text-[color:var(--cc-info)] flex items-center justify-center text-2xl font-semibold mb-4">
+        {initials}
+      </div>
+      <div className="text-lg font-semibold">{name ?? "Unknown"}</div>
+      <div className="text-sm text-[color:var(--cc-ink-500)] font-mono mt-1">{number}</div>
+      <div className="mt-3 text-sm text-[color:var(--cc-ink-500)]">
+        {status === "dialing" && (
+          <span className="inline-flex items-center gap-2">
+            <span className="size-2 rounded-full bg-yellow-500 animate-pulse" /> Dialing…
+          </span>
+        )}
+        {status === "in-call" && (
+          <span className="inline-flex items-center gap-2">
+            <span className="size-2 rounded-full bg-green-500" /> In call · {mm}:{ss}
+          </span>
+        )}
+        {status === "ended" && (
+          <span className="inline-flex items-center gap-2">
+            <span className="size-2 rounded-full bg-red-500" /> Call ended
+          </span>
+        )}
+      </div>
+
+      <div className="grid grid-cols-3 gap-3 mt-6 w-full">
+        <CallBtn
+          icon={muted ? <MicOff className="size-5" /> : <Mic className="size-5" />}
+          label={muted ? "Unmute" : "Mute"}
+          active={muted}
+          disabled={status === "ended"}
+          onClick={() => setMuted((m) => !m)}
+        />
+        <CallBtn
+          icon={<Pause className="size-5" />}
+          label={onHold ? "Resume" : "Hold"}
+          active={onHold}
+          disabled={status === "ended"}
+          onClick={() => setOnHold((h) => !h)}
+        />
+        <CallBtn
+          icon={<Volume2 className="size-5" />}
+          label="Speaker"
+          active={speaker}
+          disabled={status === "ended"}
+          onClick={() => setSpeaker((s) => !s)}
+        />
+      </div>
+
+      <div className="mt-6 w-full">
+        {status !== "ended" ? (
+          <button
+            onClick={end}
+            className="w-full inline-flex items-center justify-center gap-2 rounded-[var(--cc-radius-md)] bg-red-600 hover:bg-red-700 text-white py-2.5 font-medium transition-colors"
+          >
+            <PhoneOff className="size-4" /> End call
+          </button>
+        ) : (
+          <CCButton className="w-full" onClick={onClose}>Close</CCButton>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function CallBtn({
+  icon, label, onClick, active, disabled,
+}: { icon: React.ReactNode; label: string; onClick: () => void; active?: boolean; disabled?: boolean }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      className={cn(
+        "flex flex-col items-center gap-1 rounded-[var(--cc-radius-md)] border py-3 text-xs transition-colors disabled:opacity-50 disabled:cursor-not-allowed",
+        active
+          ? "bg-[color:var(--cc-info)] text-white border-[color:var(--cc-info)]"
+          : "bg-[color:var(--cc-ink-0)] border-[color:var(--cc-ink-200)] hover:bg-[color:var(--cc-ink-100)]",
+      )}
+    >
+      {icon}
+      <span>{label}</span>
+    </button>
   );
 }
