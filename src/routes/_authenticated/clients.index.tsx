@@ -123,6 +123,32 @@ function ClientsPage() {
     } catch (e: any) { toast.error(e?.message ?? "Request failed"); }
   }
 
+  function openDialer(number: string, name?: string | null, contactId?: string | null) {
+    setDialerNumber(number);
+    setDialerName(name ?? null);
+    setDialerContactId(contactId ?? null);
+    setDialerOpen(true);
+  }
+
+  async function startCall() {
+    if (!dialerNumber) return;
+    try {
+      const r = await placeOutboundCall({ data: { contactId: dialerContactId, toNumber: dialerNumber } });
+      const newSession: CallSession = {
+        callId: r.callId,
+        toNumber: dialerNumber,
+        contactName: dialerName,
+        startedAt: new Date().toISOString(),
+        direction: "outbound",
+        recording: telSettings?.recording_enabled ?? true,
+        consentNotice: telSettings?.recording_consent_notice ?? null,
+        voicemailDropEnabled: telSettings?.voicemail_drop_enabled ?? false,
+      };
+      setActiveCall(newSession);
+      toast.success("Calling…");
+    } catch (e: any) { toast.error(e?.message ?? "Could not place call"); }
+  }
+
   const canImport = atLeast("team_leader");
   const canApprove = atLeast("supervisor");
   const canExportDirect = atLeast("supervisor");
