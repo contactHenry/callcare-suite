@@ -1,12 +1,18 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { PageHeader } from "@/components/AppShell";
 import {
   CCButton, CCStatusPill, CCInput, CCSelect, CCField,
   CCTable, CCThead, CCTh, CCTd, CCTr,
+  CCFormSection, CCFormGrid, CCTextarea,
 } from "@/components/cc";
-import { Phone, Mail, CalendarCheck2, AlertTriangle, CheckCircle2, Clock } from "lucide-react";
+import { Phone, Mail, CalendarCheck2, AlertTriangle, CheckCircle2, Clock, Plus } from "lucide-react";
 import { DUMMY_FOLLOWUPS } from "@/lib/dummy-data";
+import { createTask } from "@/lib/workflow.functions";
+import { listStaff } from "@/lib/staff.functions";
+import { listClients } from "@/lib/clients.functions";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/follow-ups/")({
   head: () => ({ meta: [{ title: "Follow-Ups" }] }),
