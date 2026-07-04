@@ -554,7 +554,6 @@ function InCallPanel({
   const [status, setStatus] = useState<"dialing" | "in-call" | "ended">("dialing");
   const [muted, setMuted] = useState(false);
   const [onHold, setOnHold] = useState(false);
-  const [speaker, setSpeaker] = useState(false);
   const [seconds, setSeconds] = useState(0);
   const [transferOpen, setTransferOpen] = useState(false);
   const agentsFn = useServerFn(listAssignableAgents);
@@ -627,13 +626,6 @@ function InCallPanel({
           active={onHold}
           disabled={status === "ended"}
           onClick={() => setOnHold((h) => !h)}
-        />
-        <CallBtn
-          icon={<Volume2 className="size-5" />}
-          label="Speaker"
-          active={speaker}
-          disabled={status === "ended"}
-          onClick={() => setSpeaker((s) => !s)}
         />
         <CallBtn
           icon={<PhoneForwarded className="size-5" />}
