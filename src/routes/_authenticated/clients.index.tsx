@@ -14,7 +14,6 @@ import {
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { Phone, Download, Upload, Users, GitMerge, ShieldCheck, X, Delete, PhoneCall, PhoneOff, Mic, MicOff, Pause, Volume2, PhoneForwarded } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth";
 import { DUMMY_CLIENTS } from "@/lib/dummy-data";
 import { cn } from "@/lib/utils";
@@ -548,11 +547,12 @@ function InCallPanel({
   const [seconds, setSeconds] = useState(0);
   const [transferOpen, setTransferOpen] = useState(false);
   const agentsFn = useServerFn(listAssignableAgents);
-  const { data: agents = [] } = useQuery({
+  const { data: agentsData } = useQuery({
     queryKey: ["assignable-agents-transfer"],
-    queryFn: () => agentsFn({ data: {} }),
+    queryFn: () => agentsFn(),
     enabled: transferOpen,
   });
+  const agents: any[] = (agentsData as any)?.agents ?? [];
 
   useEffect(() => {
     const t = setTimeout(() => setStatus("in-call"), 1800);
