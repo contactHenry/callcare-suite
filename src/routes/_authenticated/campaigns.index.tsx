@@ -1,14 +1,17 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { PageHeader } from "@/components/AppShell";
-import { CCButton, CCCard, CCStatusPill, CCTable, CCThead, CCTh, CCTr, CCTd } from "@/components/cc";
-import { Target, Phone, Users, TrendingUp } from "lucide-react";
+import { CCButton, CCCard, CCStatusPill, CCTable, CCThead, CCTh, CCTr, CCTd, CCInput } from "@/components/cc";
+import { Target, Phone, Users, TrendingUp, UserCheck, Search } from "lucide-react";
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
+import { listStaff } from "@/lib/staff.functions";
 
 export const Route = createFileRoute("/_authenticated/campaigns/")({
   head: () => ({ meta: [{ title: "Campaigns" }] }),
@@ -24,7 +27,29 @@ const SAMPLE = [
 
 function CampaignsPage() {
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState({ name: "", owner: "", type: "outbound", priority: "normal", goal: "", script: "none", notes: "" });
+  const [form, setForm] = useState({
+    name: "", owner: "", type: "outbound", priority: "normal", goal: "", script: "none", notes: "",
+    assignedAgentIds: [] as string[],
+  });
+  const [agentQuery, setAgentQuery] = useState("");
+
+  const staff = useQuery({
+    queryKey: ["staff-list"],
+    queryFn: async () => { try { return await listStaff(); } catch { return { rows: [] }; } },
+  });
+  const agents: any[] = staff.data?.rows ?? [];
+  const filteredAgents = agents.filter((a) =>
+    `${a.full_name ?? ""} ${a.email ?? ""}`.toLowerCase().includes(agentQuery.toLowerCase())
+  );
+
+  const toggleAgent = (id: string) => {
+    setForm((f) => ({
+      ...f,
+      assignedAgentIds: f.assignedAgentIds.includes(id)
+        ? f.assignedAgentIds.filter((x) => x !== id)
+        : [...f.assignedAgentIds, id],
+    }));
+  };
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,9 +57,16 @@ function CampaignsPage() {
       toast.error("Campaign name is required");
       return;
     }
-    toast.success(`Campaign "${form.name}" created as draft`);
+    const assignedNames = agents
+      .filter((a) => form.assignedAgentIds.includes(a.id))
+      .map((a) => a.full_name ?? a.id)
+      .join(", ");
+    toast.success(
+      `Campaign "${form.name}" created as draft${assignedNames ? ` and assigned to ${assignedNames}` : ""}`
+    );
     setOpen(false);
-    setForm({ name: "", owner: "", type: "outbound", priority: "normal", goal: "", script: "none", notes: "" });
+    setForm({ name: "", owner: "", type: "outbound", priority: "normal", goal: "", script: "none", notes: "", assignedAgentIds: [] });
+    setAgentQuery("");
   };
 
   return (
@@ -143,6 +175,37 @@ function CampaignsPage() {
             <div className="space-y-1.5">
               <Label htmlFor="cnotes">Notes</Label>
               <Textarea id="cnotes" rows={3} placeholder="Briefing for agents…" value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
+            </div>
+            <div className="space-y-3 rounded-lg border p-3">
+              <div className="flex items-center gap-2">
+                <UserCheck className="size-4 text-muted-foreground" />
+                <Label className="text-sm font-medium">Assigned agents</Label>
+                <span className="ml-auto text-xs text-muted-foreground">{form.assignedAgentIds.length} selected</span>
+              </div>
+              <div className="relative">
+                <Search className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
+                <CCInput
+                  className="pl-9"
+                  placeholder="Search agents…"
+                  value={agentQuery}
+                  onChange={(e) => setAgentQuery(e.target.value)}
+                />
+              </div>
+              <div className="max-h-[180px] overflow-y-auto space-y-1">
+                {filteredAgents.length === 0 && (
+                  <div className="text-sm text-muted-foreground py-2">No agents found.</div>
+                )}
+                {filteredAgents.map((a) => (
+                  <label key={a.id} className="flex items-center gap-2 rounded-md px-2 py-1.5 hover:bg-accent cursor-pointer">
+                    <Checkbox
+                      checked={form.assignedAgentIds.includes(a.id)}
+                      onCheckedChange={() => toggleAgent(a.id)}
+                    />
+                    <span className="text-sm">{a.full_name ?? a.id}</span>
+                    <span className="text-xs text-muted-foreground ml-auto">{a.email ?? ""}</span>
+                  </label>
+                ))}
+              </div>
             </div>
             <DialogFooter>
               <CCButton type="button" variant="ghost" onClick={() => setOpen(false)}>Cancel</CCButton>
