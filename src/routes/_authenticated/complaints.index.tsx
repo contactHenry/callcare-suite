@@ -146,7 +146,10 @@ function NewComplaintDialog({ onClose }: { onClose: () => void }) {
     queryKey: ["staff-for-complaints"],
     queryFn: () => listStaff(),
   });
-  const agents = (staff.data ?? []).filter((s: any) =>
+  const staffRows: any[] = Array.isArray(staff.data)
+    ? (staff.data as any[])
+    : ((staff.data as any)?.rows ?? []);
+  const agents = staffRows.filter((s: any) =>
     (s.roles ?? []).some((r: string) => ["agent","team_leader","supervisor"].includes(r))
   );
 
