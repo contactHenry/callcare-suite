@@ -10,6 +10,7 @@ import {
   CCTextarea, CCSelect, CCTable, CCThead, CCTh, CCTd, CCTr,
 } from "@/components/cc";
 import { DUMMY_COMPLAINTS } from "@/lib/dummy-data";
+import { listStaff } from "@/lib/staff.functions";
 
 export const Route = createFileRoute("/_authenticated/complaints/")({
   component: ComplaintsPage,
@@ -20,6 +21,7 @@ function ComplaintsPage() {
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
   const [detailId, setDetailId] = useState<string | null>(null);
+  const [assignFilter, setAssignFilter] = useState<"all" | "assigned" | "unassigned">("all");
   const isLeader = atLeast("team_leader");
 
   const list = useQuery({
@@ -42,6 +44,21 @@ function ComplaintsPage() {
         actions={<CCButton onClick={() => setOpen(true)}>Log complaint</CCButton>}
       />
       <div className="p-6">
+        <div className="mb-4 flex items-center gap-2">
+          {(["all","assigned","unassigned"] as const).map((k) => (
+            <button
+              key={k}
+              onClick={() => setAssignFilter(k)}
+              className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
+                assignFilter === k
+                  ? "bg-[color:var(--cc-ink-900)] text-white border-[color:var(--cc-ink-900)]"
+                  : "border-[color:var(--cc-ink-200)] text-[color:var(--cc-ink-700)] hover:bg-[color:var(--cc-ink-50)]"
+              }`}
+            >
+              {k === "all" ? "All" : k === "assigned" ? "Assigned" : "Unassigned"}
+            </button>
+          ))}
+        </div>
         <CCTable>
             <CCThead>
               <tr>
@@ -54,13 +71,20 @@ function ComplaintsPage() {
               </tr>
             </CCThead>
             <tbody>
-              {(((list.data && list.data.length > 0) ? list.data : DUMMY_COMPLAINTS) as any[]).map((c) => {
+              {(((list.data && list.data.length > 0) ? list.data : DUMMY_COMPLAINTS) as any[])
+                .filter((c) => assignFilter === "all"
+                  ? true
+                  : assignFilter === "assigned"
+                    ? !!c.owner?.full_name
+                    : !c.owner?.full_name)
+                .map((c) => {
                 const statusTone: any = c.status === "resolved" || c.status === "closed"
                   ? "success" : c.status === "escalated" ? "danger"
                   : c.status === "investigating" ? "info" : "warning";
                 const prTone: any = c.priority === "urgent" || c.priority === "high" ? "danger"
                   : c.priority === "low" ? "neutral" : "info";
                 const overdue = c.due_at && !c.resolved_at && new Date(c.due_at) < new Date();
+                const assigned = !!c.owner?.full_name;
                 return (
                   <CCTr key={c.id} onClick={() => setDetailId(c.id)} className="cursor-pointer">
                     <CCTd>
@@ -78,7 +102,16 @@ function ComplaintsPage() {
                         <Link to="/clients/$id" params={{ id: c.client.id }} onClick={(e) => e.stopPropagation()} className="hover:underline">{c.client.name}</Link>
                       ) : (c.client?.name ?? "—")}
                     </CCTd>
-                    <CCTd className="text-[color:var(--cc-ink-700)]">{c.owner?.full_name ?? "Unassigned"}</CCTd>
+                    <CCTd>
+                      {assigned ? (
+                        <div className="flex items-center gap-2">
+                          <span className="text-[color:var(--cc-ink-700)]">{c.owner.full_name}</span>
+                          <CCStatusPill tone="success" dot>assigned</CCStatusPill>
+                        </div>
+                      ) : (
+                        <CCStatusPill tone="warning" dot>unassigned</CCStatusPill>
+                      )}
+                    </CCTd>
                     <CCTd><CCStatusPill tone={prTone} dot>{c.priority}</CCStatusPill></CCTd>
                     <CCTd><CCStatusPill tone={statusTone} dot>{c.status}</CCStatusPill></CCTd>
                     <CCTd className="tabular-nums text-[color:var(--cc-ink-700)]">{new Date(c.created_at).toLocaleDateString()}</CCTd>
@@ -107,11 +140,21 @@ function NewComplaintDialog({ onClose }: { onClose: () => void }) {
   const [category, setCategory] = useState("service");
   const [priority, setPriority] = useState("normal");
   const [description, setDescription] = useState("");
+  const [ownerId, setOwnerId] = useState<string>("");
+
+  const staff = useQuery({
+    queryKey: ["staff-for-complaints"],
+    queryFn: () => listStaff(),
+  });
+  const agents = (staff.data ?? []).filter((s: any) =>
+    (s.roles ?? []).some((r: string) => ["agent","team_leader","supervisor"].includes(r))
+  );
 
   const create = useMutation({
     mutationFn: async () => {
       const { error } = await supabase.from("complaints" as any).insert({
         subject, category, priority, description, raised_by: user!.id,
+        owner_id: ownerId || null,
       });
       if (error) throw error;
     },
@@ -139,6 +182,16 @@ function NewComplaintDialog({ onClose }: { onClose: () => void }) {
                 <option value="normal">Normal</option>
                 <option value="high">High</option>
                 <option value="urgent">Urgent</option>
+              </CCSelect>
+            </CCField>
+            <CCField label="Assign to agent" hint="Optional — leave empty to triage later">
+              <CCSelect value={ownerId} onChange={(e) => setOwnerId(e.target.value)}>
+                <option value="">— Unassigned —</option>
+                {agents.map((a: any) => (
+                  <option key={a.id} value={a.id}>
+                    {a.full_name ?? "Unnamed"}{a.roles?.[0] ? ` · ${a.roles[0]}` : ""}
+                  </option>
+                ))}
               </CCSelect>
             </CCField>
           </CCFormGrid>
