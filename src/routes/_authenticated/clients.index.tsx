@@ -4,7 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useState } from "react";
 import {
   listClients, bulkAssign, exportClients, listAssignableAgents,
-  findDuplicates, mergeClients, requestClientExport,
+  requestClientExport, createClient, getClient,
 } from "@/lib/clients.functions";
 import { PageHeader } from "@/components/AppShell";
 import {
@@ -13,7 +13,7 @@ import {
 } from "@/components/cc";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Phone, Download, Upload, Users, GitMerge, ShieldCheck, X, Delete, PhoneCall, PhoneOff, Mic, MicOff, Pause, PhoneForwarded } from "lucide-react";
+import { Phone, Download, Upload, Users, ShieldCheck, X, Delete, PhoneCall, PhoneOff, Mic, MicOff, Pause, PhoneForwarded, Plus, Mail, MapPin, Tag } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { DUMMY_CLIENTS } from "@/lib/dummy-data";
 import { cn } from "@/lib/utils";
@@ -43,6 +43,7 @@ function ClientsPage() {
   const exportFn = useServerFn(exportClients);
   const requestExportFn = useServerFn(requestClientExport);
   const agentsFn = useServerFn(listAssignableAgents);
+  const createClientFn = useServerFn(createClient);
 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("");
@@ -52,9 +53,10 @@ function ClientsPage() {
   const [page, setPage] = useState(1);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [showAssign, setShowAssign] = useState(false);
-  const [showDupes, setShowDupes] = useState(false);
   const [showExport, setShowExport] = useState(false);
   const [exportReason, setExportReason] = useState("");
+  const [showCreate, setShowCreate] = useState(false);
+  const [detailsId, setDetailsId] = useState<string | null>(null);
   const [dialerOpen, setDialerOpen] = useState(false);
   const [dialerNumber, setDialerNumber] = useState("");
   const [dialerName, setDialerName] = useState<string | null>(null);
@@ -196,7 +198,7 @@ function ClientsPage() {
             ) : (
               <CCButton variant="ghost" onClick={() => setShowExport(true)}><Download className="size-4 mr-1" />Request export</CCButton>
             )}
-            <CCButton variant="ghost" onClick={() => setShowDupes(true)}><GitMerge className="size-4 mr-1" />Duplicates</CCButton>
+            <CCButton onClick={() => setShowCreate(true)}><Plus className="size-4 mr-1" />Add client</CCButton>
           </div>
         }
       />
@@ -271,22 +273,20 @@ function ClientsPage() {
                 <tr><CCTd className="text-[color:var(--cc-ink-500)]">No clients match.</CCTd></tr>
               )}
               {rows.map((c: any) => (
-                <CCTr key={c.id}>
+                <CCTr key={c.id} onClick={() => setDetailsId(c.id)} className="cursor-pointer">
                   <CCTd>
                     <input type="checkbox" checked={selected.has(c.id)} onChange={() => toggle(c.id)}
                       onClick={(e) => e.stopPropagation()} />
                   </CCTd>
                   <CCTd>
-                    <Link to="/clients/$id" params={{ id: c.id }} className="font-medium hover:underline">
-                      {c.name}
-                    </Link>
+                    <span className="font-medium">{c.name}</span>
                     <div className="text-xs text-[color:var(--cc-ink-500)]">{c.email ?? "—"} {c.company ? `· ${c.company}` : ""}</div>
                   </CCTd>
                   <CCTd>
                     {c.phone ? (
                       <button
                         type="button"
-                        onClick={() => openDialer(c.phone, c.name, c.id)}
+                        onClick={(e) => { e.stopPropagation(); openDialer(c.phone, c.name, c.id); }}
                         className="inline-flex items-center gap-1.5 text-[color:var(--cc-info)] hover:underline"
                       >
                         <Phone className="size-3.5" />{c.phone}
@@ -303,7 +303,7 @@ function ClientsPage() {
                   <CCTd className="text-xs text-[color:var(--cc-ink-500)]">{fmt(c.next_follow_up_at)}</CCTd>
                   <CCTd className="text-right">
                     {c.phone && (
-                      <CCButton variant="ghost" size="sm" onClick={() => openDialer(c.phone, c.name, c.id)}>
+                      <CCButton variant="ghost" size="sm" onClick={(e: any) => { e.stopPropagation(); openDialer(c.phone, c.name, c.id); }}>
                         <Phone className="size-4" />
                       </CCButton>
                     )}
@@ -347,7 +347,19 @@ function ClientsPage() {
           } catch (e: any) { toast.error(e?.message ?? "Assign failed"); }
         }}
       />
-      <DuplicatesDialog open={showDupes} onClose={() => setShowDupes(false)} />
+      <AddClientDialog
+        open={showCreate}
+        onClose={() => setShowCreate(false)}
+        onCreate={async (payload) => {
+          try {
+            await createClientFn({ data: payload });
+            toast.success("Client created");
+            setShowCreate(false);
+            qc.invalidateQueries({ queryKey: ["clients"] });
+          } catch (e: any) { toast.error(e?.message ?? "Create failed"); }
+        }}
+      />
+      <ClientDetailsDialog id={detailsId} onClose={() => setDetailsId(null)} />
       <Dialog open={showExport} onOpenChange={(v) => !v && setShowExport(false)}>
         <DialogContent>
           <DialogHeader><DialogTitle>Request client export</DialogTitle></DialogHeader>
