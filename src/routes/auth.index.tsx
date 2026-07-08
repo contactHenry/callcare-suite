@@ -11,7 +11,7 @@ import authDashboard from "@/assets/auth-dashboard.png";
 import { recordFailedLogin, recordLoginEvent, resolveLoginIdentifier } from "@/lib/permissions.functions";
 import { useServerFn } from "@tanstack/react-start";
 
-export const Route = createFileRoute("/auth")({
+export const Route = createFileRoute("/auth/")({
   ssr: false,
   head: () => ({ meta: [{ title: "Sign in — Call Centre" }] }),
   component: AuthPage,
