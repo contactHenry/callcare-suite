@@ -542,11 +542,6 @@ function ClientDetailsDialog({ id, onClose }: { id: string | null; onClose: () =
         )}
         <DialogFooter className="gap-2">
           <CCButton variant="ghost" onClick={onClose}>Close</CCButton>
-          {id && (
-            <Link to="/clients/$id" params={{ id }}>
-              <CCButton>Open full profile</CCButton>
-            </Link>
-          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>
