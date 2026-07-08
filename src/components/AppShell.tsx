@@ -8,9 +8,10 @@ import {
   AudioLines, Radio, Settings2, ListChecks, BookOpenText, Gauge, LineChart,
   Bell, AlertOctagon, FileBarChart2, Plug, KeyRound, ShieldAlert,
   Users as UsersIcon, Target, CalendarCheck2, Cog, ChevronDown,
+  MailOpen, Check,
 } from "lucide-react";
 import type { ReactNode } from "react";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { useAvailability, PRESENCE_LABEL, PRESENCE_COLOR, type Presence } from "@/hooks/use-availability";
@@ -25,6 +26,8 @@ import {
   AlertDialogCancel,
   AlertDialogAction,
 } from "@/components/ui/alert-dialog";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { PersistentCallBar } from "@/components/PersistentCallBar";
 
 const ROLE_LABEL: Record<string, string> = {
@@ -250,43 +253,156 @@ function ProfileFooter({ email, userId, roleLabel, onSignOut }: {
 
 function NotificationsBell() {
   const { user } = useAuth();
-  const [unread, setUnread] = useState(0);
+  const qc = useQueryClient();
+  const [open, setOpen] = useState(false);
 
-  useEffect(() => {
-    if (!user?.id) return;
-    let cancelled = false;
-    const load = async () => {
-      try {
-        const { count } = await supabase
-          .from("notifications" as any)
-          .select("id", { count: "exact", head: true })
-          .is("read_at", null)
-          .eq("user_id", user.id);
-        if (!cancelled) setUnread(count ?? 0);
-      } catch {
-        /* notifications table may not exist yet — ignore */
-      }
-    };
-    load();
-    return () => {
-      cancelled = true;
-    };
-  }, [user?.id]);
+  const list = useQuery({
+    queryKey: ["notifications", user?.id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("notifications" as any)
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(7);
+      return (data ?? []) as any[];
+    },
+    enabled: !!user?.id,
+  });
+
+  const markAll = useMutation({
+    mutationFn: async () => {
+      await supabase
+        .from("notifications" as any)
+        .update({ read_at: new Date().toISOString() })
+        .is("read_at", null)
+        .eq("user_id", user!.id);
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["notifications"] });
+      toast.success("All notifications marked as read");
+    },
+  });
+
+  const markOne = useMutation({
+    mutationFn: async (id: string) => {
+      await supabase
+        .from("notifications" as any)
+        .update({ read_at: new Date().toISOString() })
+        .eq("id", id);
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["notifications"] }),
+  });
+
+  const items = list.data ?? [];
+  const unreadCount = items.filter((n) => !n.read_at).length;
 
   return (
-    <Link
-      to="/notifications"
-      preload={false}
-      aria-label={`Notifications (${unread} unread)`}
-      className="fixed top-4 right-6 z-40 inline-flex items-center justify-center size-10 rounded-full bg-background border shadow-sm hover:bg-accent transition-colors"
-    >
-      <Bell className="size-[18px]" strokeWidth={2} />
-      {unread > 0 && (
-        <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-[color:var(--cc-danger)] text-white text-[10px] font-semibold flex items-center justify-center">
-          {unread > 99 ? "99+" : unread}
-        </span>
-      )}
-    </Link>
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <button
+          aria-label={`Notifications (${unreadCount} unread)`}
+          className="fixed top-4 right-6 z-40 inline-flex items-center justify-center size-10 rounded-full bg-background border shadow-sm hover:bg-accent transition-colors"
+        >
+          <Bell className="size-[18px]" strokeWidth={2} />
+          {unreadCount > 0 && (
+            <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-[color:var(--cc-danger)] text-white text-[10px] font-semibold flex items-center justify-center">
+              {unreadCount > 99 ? "99+" : unreadCount}
+            </span>
+          )}
+        </button>
+      </PopoverTrigger>
+      <PopoverContent align="end" className="w-[360px] p-0 mr-6 mt-2" sideOffset={8}>
+        <div className="flex items-center justify-between px-4 py-3 border-b">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-semibold">Notifications</span>
+            {unreadCount > 0 && (
+              <span className="inline-flex items-center justify-center px-1.5 min-w-[1.25rem] h-5 rounded-full bg-primary text-[10px] font-medium text-primary-foreground">
+                {unreadCount}
+              </span>
+            )}
+          </div>
+          {unreadCount > 0 && (
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-7 text-xs gap-1"
+              onClick={() => markAll.mutate()}
+              disabled={markAll.isPending}
+            >
+              <MailOpen className="size-3.5" /> Mark all read
+            </Button>
+          )}
+        </div>
+
+        <div className="max-h-[360px] overflow-y-auto">
+          {items.length === 0 ? (
+            <div className="px-4 py-8 text-center">
+              <div className="inline-flex items-center justify-center size-10 rounded-full bg-muted mb-3">
+                <Bell className="size-5 text-muted-foreground" />
+              </div>
+              <p className="text-sm text-muted-foreground">You're all caught up.</p>
+            </div>
+          ) : (
+            <ul>
+              {items.map((n) => {
+                const tone =
+                  n.severity === "danger" ? "bg-rose-500" :
+                  n.severity === "warning" ? "bg-amber-500" :
+                  n.severity === "success" ? "bg-emerald-500" : "bg-blue-500";
+                const unread = !n.read_at;
+                return (
+                  <li
+                    key={n.id}
+                    className={cn(
+                      "flex items-start gap-3 px-4 py-3 border-b last:border-b-0 transition-colors",
+                      unread ? "bg-muted/40" : "hover:bg-muted/30"
+                    )}
+                  >
+                    <span className={cn("mt-1.5 size-2 rounded-full shrink-0", tone)} aria-hidden />
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-start justify-between gap-2">
+                        <p className={cn("text-sm leading-snug", unread ? "font-medium" : "text-muted-foreground")}>
+                          {n.title}
+                        </p>
+                        {unread && (
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="size-6 shrink-0"
+                            onClick={() => markOne.mutate(n.id)}
+                            disabled={markOne.isPending}
+                            aria-label="Mark as read"
+                          >
+                            <Check className="size-3.5" />
+                          </Button>
+                        )}
+                      </div>
+                      {n.body && (
+                        <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{n.body}</p>
+                      )}
+                      <p className="text-[11px] text-muted-foreground mt-1.5 tabular-nums">
+                        {new Date(n.created_at).toLocaleString()}
+                      </p>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
+
+        <div className="border-t px-4 py-2">
+          <Link
+            to="/notifications"
+            preload={false}
+            onClick={() => setOpen(false)}
+            className="block text-center text-xs font-medium text-primary hover:underline"
+          >
+            View all notifications
+          </Link>
+        </div>
+      </PopoverContent>
+    </Popover>
   );
 }
 
