@@ -11,7 +11,7 @@ import {
   MailOpen, Check,
 } from "lucide-react";
 import type { ReactNode } from "react";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { useAvailability, PRESENCE_LABEL, PRESENCE_COLOR, type Presence } from "@/hooks/use-availability";
