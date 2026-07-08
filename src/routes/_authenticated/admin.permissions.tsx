@@ -7,6 +7,7 @@ import { CCCard, CCStatusPill } from "@/components/cc";
 import { toast } from "sonner";
 import { Check } from "lucide-react";
 import { DUMMY_PERMISSIONS_ROWS } from "@/lib/dummy-data";
+import { useAuth } from "@/lib/auth";
 
 /** Super-admin permission matrix editor. */
 export const Route = createFileRoute("/_authenticated/admin/permissions")({
@@ -20,6 +21,8 @@ function PermissionsPage() {
   const listFn = useServerFn(listPermissions);
   const toggleFn = useServerFn(togglePermission);
   const { data } = useQuery({ queryKey: ["permissions"], queryFn: () => listFn() });
+  const { atLeast } = useAuth();
+  const canManage = atLeast("super_admin");
 
   const apiRows: any[] = (data?.rows ?? []) as any[];
   const usingDummy = apiRows.length === 0;
@@ -70,13 +73,19 @@ function PermissionsPage() {
                               toast.info("Demo matrix — grants sync once real permissions load.");
                               return;
                             }
+                            if (!canManage) {
+                              toast.error("Only super admins can change role permissions.");
+                              return;
+                            }
                             mut.mutate({ role: r, permission: perm, granted: !has });
                           }}
+                          disabled={!canManage && !usingDummy}
                           className={
                             "inline-flex size-7 items-center justify-center rounded-md border transition " +
                             (has
                               ? "bg-[color:var(--cc-success)] border-transparent text-white"
-                              : "bg-[color:var(--cc-ink-50)] border-[color:var(--cc-ink-200)] text-[color:var(--cc-ink-500)] hover:border-[color:var(--cc-ink-300)]")
+                              : "bg-[color:var(--cc-ink-50)] border-[color:var(--cc-ink-200)] text-[color:var(--cc-ink-500)] hover:border-[color:var(--cc-ink-300)]") +
+                            (!canManage && !usingDummy ? " opacity-60 cursor-not-allowed" : "")
                           }
                           aria-pressed={has}
                           title={has ? "Granted — click to revoke" : "Not granted — click to grant"}
