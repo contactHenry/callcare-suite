@@ -438,9 +438,11 @@ function AddClientDialog({ open, onClose, onCreate }:
           <DialogDescription>Enter the client's details. You can edit more fields later.</DialogDescription>
         </DialogHeader>
         <div className="grid gap-3 md:grid-cols-2">
-          <CCField label="Full name *" className="md:col-span-2">
-            <CCInput value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} />
-          </CCField>
+          <div className="md:col-span-2">
+            <CCField label="Full name *">
+              <CCInput value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} />
+            </CCField>
+          </div>
           <CCField label="Phone">
             <CCInput value={form.phone ?? ""} onChange={set("phone")} placeholder="+15551234567" />
           </CCField>
@@ -453,12 +455,16 @@ function AddClientDialog({ open, onClose, onCreate }:
           <CCField label="City">
             <CCInput value={form.address_city ?? ""} onChange={set("address_city")} />
           </CCField>
-          <CCField label="Address" className="md:col-span-2">
-            <CCInput value={form.address_line1 ?? ""} onChange={set("address_line1")} />
-          </CCField>
-          <CCField label="Notes" className="md:col-span-2">
-            <CCInput value={form.notes ?? ""} onChange={set("notes")} />
-          </CCField>
+          <div className="md:col-span-2">
+            <CCField label="Address">
+              <CCInput value={form.address_line1 ?? ""} onChange={set("address_line1")} />
+            </CCField>
+          </div>
+          <div className="md:col-span-2">
+            <CCField label="Notes">
+              <CCInput value={form.notes ?? ""} onChange={set("notes")} />
+            </CCField>
+          </div>
         </div>
         <DialogFooter className="gap-2">
           <CCButton variant="ghost" onClick={onClose}>Cancel</CCButton>
