@@ -1,4 +1,5 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useState } from "react";
@@ -413,54 +414,145 @@ function AssignDialog({ open, onClose, agents, onAssign }:
   );
 }
 
-function DuplicatesDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const dupesFn = useServerFn(findDuplicates);
-  const mergeFn = useServerFn(mergeClients);
-  const qc = useQueryClient();
-  const q = useQuery({ queryKey: ["dupes"], queryFn: () => dupesFn(), enabled: open });
-  const [chosenSurvivor, setChosenSurvivor] = useState<Record<string, string>>({});
+type NewClient = {
+  name: string;
+  phone?: string | null;
+  email?: string | null;
+  company?: string | null;
+  address_line1?: string | null;
+  address_city?: string | null;
+  notes?: string | null;
+};
 
-  async function merge(groupKey: string, rows: any[]) {
-    const survivor = chosenSurvivor[groupKey] ?? rows[0].id;
-    const mergedIds = rows.filter((r) => r.id !== survivor).map((r) => r.id);
-    try {
-      await mergeFn({ data: { survivingId: survivor, mergedIds } });
-      toast.success("Merged");
-      qc.invalidateQueries({ queryKey: ["dupes"] });
-      qc.invalidateQueries({ queryKey: ["clients"] });
-    } catch (e: any) { toast.error(e?.message ?? "Merge failed"); }
-  }
-
+function AddClientDialog({ open, onClose, onCreate }:
+  { open: boolean; onClose: () => void; onCreate: (payload: NewClient) => void | Promise<void> }) {
+  const [form, setForm] = useState<NewClient>({ name: "" });
+  useEffect(() => { if (!open) setForm({ name: "" }); }, [open]);
+  const set = (k: keyof NewClient) => (e: any) =>
+    setForm((f) => ({ ...f, [k]: e.target.value === "" ? null : e.target.value }));
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="max-w-2xl">
-        <DialogHeader><DialogTitle>Duplicate clients</DialogTitle></DialogHeader>
-        <div className="space-y-4 max-h-[60vh] overflow-y-auto">
-          {(q.data?.groups ?? []).length === 0 && (
-            <p className="text-sm text-[color:var(--cc-ink-500)]">No duplicates detected in the most recent 1,000 clients.</p>
-          )}
-          {(q.data?.groups ?? []).map((g: any) => (
-            <div key={g.key} className="rounded-[var(--cc-radius-md)] border border-[color:var(--cc-ink-200)] p-3">
-              <div className="mb-2 text-xs text-[color:var(--cc-ink-500)]">Match key: {g.key}</div>
-              <ul className="space-y-1">
-                {g.rows.map((r: any) => (
-                  <li key={r.id} className="flex items-center gap-2 text-sm">
-                    <input type="radio" name={`s-${g.key}`}
-                      checked={(chosenSurvivor[g.key] ?? g.rows[0].id) === r.id}
-                      onChange={() => setChosenSurvivor((m) => ({ ...m, [g.key]: r.id }))} />
-                    <span className="font-medium">{r.name}</span>
-                    <span className="text-[color:var(--cc-ink-500)]">{r.phone ?? ""} {r.email ?? ""}</span>
-                  </li>
-                ))}
-              </ul>
-              <div className="mt-2 flex justify-end">
-                <CCButton size="sm" onClick={() => merge(g.key, g.rows)}>Merge into selected</CCButton>
-              </div>
-            </div>
-          ))}
+      <DialogContent className="max-w-lg">
+        <DialogHeader>
+          <DialogTitle>Add new client</DialogTitle>
+          <DialogDescription>Enter the client's details. You can edit more fields later.</DialogDescription>
+        </DialogHeader>
+        <div className="grid gap-3 md:grid-cols-2">
+          <CCField label="Full name *" className="md:col-span-2">
+            <CCInput value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} />
+          </CCField>
+          <CCField label="Phone">
+            <CCInput value={form.phone ?? ""} onChange={set("phone")} placeholder="+15551234567" />
+          </CCField>
+          <CCField label="Email">
+            <CCInput value={form.email ?? ""} onChange={set("email")} type="email" />
+          </CCField>
+          <CCField label="Company">
+            <CCInput value={form.company ?? ""} onChange={set("company")} />
+          </CCField>
+          <CCField label="City">
+            <CCInput value={form.address_city ?? ""} onChange={set("address_city")} />
+          </CCField>
+          <CCField label="Address" className="md:col-span-2">
+            <CCInput value={form.address_line1 ?? ""} onChange={set("address_line1")} />
+          </CCField>
+          <CCField label="Notes" className="md:col-span-2">
+            <CCInput value={form.notes ?? ""} onChange={set("notes")} />
+          </CCField>
         </div>
+        <DialogFooter className="gap-2">
+          <CCButton variant="ghost" onClick={onClose}>Cancel</CCButton>
+          <CCButton disabled={!form.name.trim()} onClick={() => onCreate(form)}>Create client</CCButton>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+
+function ClientDetailsDialog({ id, onClose }: { id: string | null; onClose: () => void }) {
+  const getFn = useServerFn(getClient);
+  const q = useQuery({
+    queryKey: ["client-details", id],
+    queryFn: () => getFn({ data: { id: id! } }),
+    enabled: !!id,
+  });
+  const c: any = q.data?.client;
+  return (
+    <Dialog open={!!id} onOpenChange={(v) => !v && onClose()}>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>{c?.name ?? "Client details"}</DialogTitle>
+          <DialogDescription>Full client profile and recent activity.</DialogDescription>
+        </DialogHeader>
+        {q.isLoading && <div className="text-sm text-[color:var(--cc-ink-500)]">Loading…</div>}
+        {q.error && <div className="text-sm text-red-600">Failed to load client.</div>}
+        {c && (
+          <div className="space-y-4 max-h-[65vh] overflow-y-auto text-sm">
+            <div className="flex flex-wrap gap-2">
+              <CCStatusPill tone={STATUS_TONE[c.lifecycle_status] ?? "neutral"} dot>
+                {(c.lifecycle_status ?? "new").replace("_"," ")}
+              </CCStatusPill>
+              {c.do_not_call && <CCStatusPill tone="danger">DNC</CCStatusPill>}
+              {c.consent_status && <CCStatusPill tone="info">Consent: {c.consent_status}</CCStatusPill>}
+            </div>
+            <div className="grid gap-3 md:grid-cols-2">
+              <DetailRow icon={<Phone className="size-4" />} label="Phone" value={c.phone} />
+              <DetailRow icon={<Phone className="size-4" />} label="Alt phone" value={c.alt_phone} />
+              <DetailRow icon={<Mail className="size-4" />} label="Email" value={c.email} />
+              <DetailRow label="Company" value={c.company} />
+              <DetailRow label="Category" value={c.category} />
+              <DetailRow label="Campaign source" value={c.campaign_source} />
+              <DetailRow label="Preferred method" value={c.preferred_method} />
+              <DetailRow label="Preferred time" value={c.preferred_time} />
+              <DetailRow label="Date of birth" value={c.dob} />
+              <DetailRow label="Last contacted" value={fmt(c.last_contacted_at)} />
+              <DetailRow label="Next follow-up" value={fmt(c.next_follow_up_at)} />
+              <DetailRow label="Created" value={fmt(c.created_at)} />
+            </div>
+            <div>
+              <div className="text-xs font-medium text-[color:var(--cc-ink-500)] mb-1 flex items-center gap-1"><MapPin className="size-3.5" />Address</div>
+              <div className="text-[color:var(--cc-ink-700)]">
+                {[c.address_line1, c.address_line2, c.address_city, c.address_region, c.address_postcode, c.address_country]
+                  .filter(Boolean).join(", ") || "—"}
+              </div>
+            </div>
+            {c.tags?.length ? (
+              <div>
+                <div className="text-xs font-medium text-[color:var(--cc-ink-500)] mb-1 flex items-center gap-1"><Tag className="size-3.5" />Tags</div>
+                <div className="flex flex-wrap gap-1">
+                  {c.tags.map((t: string) => <CCStatusPill key={t} tone="neutral">{t}</CCStatusPill>)}
+                </div>
+              </div>
+            ) : null}
+            {c.notes && (
+              <div>
+                <div className="text-xs font-medium text-[color:var(--cc-ink-500)] mb-1">Notes</div>
+                <div className="whitespace-pre-wrap rounded-[var(--cc-radius-md)] border border-[color:var(--cc-ink-200)] bg-[color:var(--cc-ink-50)] p-2">{c.notes}</div>
+              </div>
+            )}
+          </div>
+        )}
+        <DialogFooter className="gap-2">
+          <CCButton variant="ghost" onClick={onClose}>Close</CCButton>
+          {id && (
+            <Link to="/clients/$id" params={{ id }}>
+              <CCButton>Open full profile</CCButton>
+            </Link>
+          )}
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function DetailRow({ label, value, icon }: { label: string; value?: string | null; icon?: React.ReactNode }) {
+  return (
+    <div>
+      <div className="text-xs font-medium text-[color:var(--cc-ink-500)] mb-0.5 flex items-center gap-1">
+        {icon}{label}
+      </div>
+      <div className="text-[color:var(--cc-ink-700)]">{value || "—"}</div>
+    </div>
   );
 }
 
