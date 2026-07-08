@@ -515,7 +515,17 @@ export const listExportRequests = createServerFn({ method: "POST" })
       .eq("state", data.state)
       .order("created_at", { ascending: false })
       .limit(200);
-    if (error) throw new Response(error.message, { status: 400 });
+    if (error) {
+      // Fallback: try without the profiles join in case FK isn't exposed
+      const { data: rows2, error: e2 } = await supabase
+        .from("client_export_requests")
+        .select("*")
+        .eq("state", data.state)
+        .order("created_at", { ascending: false })
+        .limit(200);
+      if (e2) return { rows: [], error: e2.message };
+      return { rows: rows2 ?? [] };
+    }
     return { rows: rows ?? [] };
   });
 
