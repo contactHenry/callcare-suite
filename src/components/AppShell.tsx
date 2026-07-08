@@ -8,6 +8,7 @@ import {
   AudioLines, Radio, Settings2, ListChecks, BookOpenText, Gauge, LineChart,
   Bell, AlertOctagon, FileBarChart2, Plug, KeyRound, ShieldAlert,
   Users as UsersIcon, Target, CalendarCheck2, Cog, ChevronDown,
+  MailOpen, Check,
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
@@ -25,6 +26,8 @@ import {
   AlertDialogCancel,
   AlertDialogAction,
 } from "@/components/ui/alert-dialog";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { PersistentCallBar } from "@/components/PersistentCallBar";
 
 const ROLE_LABEL: Record<string, string> = {
