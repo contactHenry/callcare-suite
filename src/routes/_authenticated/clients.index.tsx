@@ -476,12 +476,15 @@ function AddClientDialog({ open, onClose, onCreate }:
 
 function ClientDetailsDialog({ id, onClose }: { id: string | null; onClose: () => void }) {
   const getFn = useServerFn(getClient);
+  const isUuid = !!id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
   const q = useQuery({
     queryKey: ["client-details", id],
     queryFn: () => getFn({ data: { id: id! } }),
-    enabled: !!id,
+    enabled: isUuid,
+    retry: false,
   });
-  const c: any = q.data?.client;
+  const dummy = !isUuid && id ? (DUMMY_CLIENTS.find((d: any) => d.id === id) as any) : null;
+  const c: any = q.data?.client ?? dummy;
   return (
     <Dialog open={!!id} onOpenChange={(v) => !v && onClose()}>
       <DialogContent className="max-w-2xl">
