@@ -177,6 +177,7 @@ function ProfileFooter({ email, userId, roleLabel, onSignOut }: {
 }) {
   const { status, update } = useAvailability(userId);
   const options: Presence[] = ["available", "on_call", "acw", "break", "training", "meeting", "offline"];
+  const [signOutOpen, setSignOutOpen] = useState(false);
   return (
     <div className="p-3 border-t space-y-2">
       <DropdownMenu>
@@ -212,7 +213,7 @@ function ProfileFooter({ email, userId, roleLabel, onSignOut }: {
             </DropdownMenuItem>
           ))}
           <DropdownMenuSeparator />
-          <DropdownMenuItem onSelect={onSignOut} className="gap-2 text-rose-600 focus:text-rose-700">
+          <DropdownMenuItem onSelect={() => setSignOutOpen(true)} className="gap-2 text-rose-600 focus:text-rose-700">
             <LogOut className="size-4" /> Sign out
           </DropdownMenuItem>
         </DropdownMenuContent>
@@ -221,11 +222,28 @@ function ProfileFooter({ email, userId, roleLabel, onSignOut }: {
         variant="outline"
         size="sm"
         className="w-full justify-center lg:hidden"
-        onClick={onSignOut}
+        onClick={() => setSignOutOpen(true)}
         aria-label="Sign out"
       >
         <LogOut className="size-4" />
       </Button>
+
+      <AlertDialog open={signOutOpen} onOpenChange={setSignOutOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Sign out?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to sign out of Call Centre Operations?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setSignOutOpen(false)}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={onSignOut} className="bg-rose-600 hover:bg-rose-700">
+              Sign out
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
