@@ -183,7 +183,7 @@ function AuthPage() {
           </div>
 
           <form onSubmit={signIn} className="space-y-4">
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <Label htmlFor="identifier">Email, username, or staff ID</Label>
               <Input id="identifier" required value={identifier} onChange={(e) => setIdentifier(e.target.value)} autoComplete="username" />
             </div>
