@@ -53,7 +53,7 @@ function ForgotPage() {
               <CCField label="Work email">
                 <CCInput type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
               </CCField>
-              <CCButton type="submit" size="lg" className="w-full" disabled={busy}>
+              <CCButton type="submit" size="lg" variant="primary" className="w-full !bg-[#5b21b6] hover:!bg-[#4c1d95] !text-white" disabled={busy}>
                 {busy ? "Sending…" : "Send reset link"}
               </CCButton>
             </form>
