@@ -191,7 +191,7 @@ function AuthPage() {
               <Label htmlFor="password">Password</Label>
               <Input id="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="current-password" />
             </div>
-            <CCButton type="submit" size="lg" className="w-full" disabled={busy}>{busy ? "Signing in…" : "Login"}</CCButton>
+            <CCButton type="submit" size="lg" variant="primary" className="w-full !bg-[#5b21b6] hover:!bg-[#4c1d95] !text-white" disabled={busy}>{busy ? "Signing in…" : "Login"}</CCButton>
             <div className="flex items-center justify-between text-sm">
               <Link to="/auth/forgot" className="text-primary font-medium hover:underline">Forgot password?</Link>
             </div>
