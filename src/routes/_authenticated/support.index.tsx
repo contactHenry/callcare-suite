@@ -9,7 +9,10 @@ import {
   CCTextarea, CCSelect, CCTable, CCThead, CCTh, CCTd, CCTr, CCEmpty,
 } from "@/components/cc";
 import { toast } from "sonner";
-import { Paperclip, LifeBuoy, X, Send } from "lucide-react";
+import {
+  Paperclip, LifeBuoy, X, Send,
+  Inbox, UserPlus, Wrench, CheckCircle2, Archive,
+} from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/support/")({
   component: SupportPage,
@@ -28,6 +31,127 @@ const STATUS_TONE: Record<Status, "info" | "warning" | "success" | "neutral"> = 
 const CATEGORY_LABEL: Record<Category, string> = {
   bug: "Bug", feature_request: "Feature request", billing: "Billing",
   account: "Account", integration: "Integration", other: "Other",
+};
+
+// ---- Sample data (shown when the org has no real tickets yet) ------------
+function hoursAgo(h: number) { return new Date(Date.now() - h * 3600_000).toISOString(); }
+
+type DummyEvent = { kind: "submitted" | "assigned" | "in_progress" | "waiting" | "resolved" | "closed"; at: string; by?: string; note?: string };
+type DummyComment = { id: string; author: string; is_staff_reply: boolean; body: string; created_at: string };
+type DummyTicket = {
+  id: string; subject: string; description: string; category: Category;
+  priority: Priority; status: Status; created_at: string; resolved_at?: string;
+  reporter: string; assignee: string | null; events: DummyEvent[]; comments: DummyComment[];
+};
+
+const DUMMY_TICKETS: DummyTicket[] = [
+  {
+    id: "d-t1", subject: "Live Calls board freezes when 20+ agents are on a call",
+    description: "Around 09:30 our Live Calls wallboard stops updating whenever we go past ~20 concurrent calls. A hard refresh brings it back for a few minutes. Attached a screenshot of the frozen state.",
+    category: "bug", priority: "high", status: "in_progress",
+    created_at: hoursAgo(52), reporter: "Priya Shah (Ops Admin)",
+    assignee: "Marcus Reid — Platform Support",
+    events: [
+      { kind: "submitted", at: hoursAgo(52), by: "Priya Shah" },
+      { kind: "assigned", at: hoursAgo(48), by: "Support triage", note: "Assigned to Marcus Reid" },
+      { kind: "in_progress", at: hoursAgo(30), by: "Marcus Reid", note: "Reproduced on staging with 25 concurrent calls" },
+    ],
+    comments: [
+      { id: "c1", author: "Marcus Reid", is_staff_reply: true, created_at: hoursAgo(30), body: "Thanks for the report — I can reproduce this on staging. Looks like the realtime channel is backpressuring past 20 subscribers. Working on a fix." },
+      { id: "c2", author: "Priya Shah", is_staff_reply: false, created_at: hoursAgo(28), body: "Appreciated. Any workaround in the meantime? We're at peak between 09:00–11:00." },
+      { id: "c3", author: "Marcus Reid", is_staff_reply: true, created_at: hoursAgo(6), body: "Roll-out is scheduled for tonight 22:00 UTC. I'll post here once it's live." },
+    ],
+  },
+  {
+    id: "d-t2", subject: "Add bulk-reassign action on the Follow-Ups page",
+    description: "When a team leader is off, we need to reassign 40–60 follow-ups at once. Doing it one-by-one is slow. Please add a multi-select with a bulk reassign action.",
+    category: "feature_request", priority: "normal", status: "waiting",
+    created_at: hoursAgo(120), reporter: "James O'Connor (Supervisor)",
+    assignee: "Ada Chen — Product",
+    events: [
+      { kind: "submitted", at: hoursAgo(120), by: "James O'Connor" },
+      { kind: "assigned", at: hoursAgo(96), by: "Support triage", note: "Assigned to Ada Chen (Product)" },
+      { kind: "waiting", at: hoursAgo(40), by: "Ada Chen", note: "Waiting on customer for use-case volumes" },
+    ],
+    comments: [
+      { id: "c1", author: "Ada Chen", is_staff_reply: true, created_at: hoursAgo(40), body: "This is on the roadmap for the next minor release. Could you share how many reassignments you'd typically batch at once, and whether you need cross-team reassign or just intra-team?" },
+    ],
+  },
+  {
+    id: "d-t3", subject: "Twilio webhook returning 401 after key rotation",
+    description: "We rotated our Twilio auth token on Tuesday and now inbound-call webhooks fail with 401. We can see the calls in Twilio's logs but nothing lands in the Calls page.",
+    category: "integration", priority: "urgent", status: "resolved",
+    created_at: hoursAgo(72), resolved_at: hoursAgo(60),
+    reporter: "Sofia Ramirez (Ops Admin)",
+    assignee: "Marcus Reid — Platform Support",
+    events: [
+      { kind: "submitted", at: hoursAgo(72), by: "Sofia Ramirez" },
+      { kind: "assigned", at: hoursAgo(71), by: "Support triage", note: "Escalated — Urgent" },
+      { kind: "in_progress", at: hoursAgo(70), by: "Marcus Reid" },
+      { kind: "resolved", at: hoursAgo(60), by: "Marcus Reid", note: "Stored signing secret updated; test call succeeded" },
+    ],
+    comments: [
+      { id: "c1", author: "Marcus Reid", is_staff_reply: true, created_at: hoursAgo(70), body: "The stored signing secret didn't refresh after the rotation. I've updated it and re-verified. Please try a test inbound call and confirm." },
+      { id: "c2", author: "Sofia Ramirez", is_staff_reply: false, created_at: hoursAgo(62), body: "Confirmed — calls are landing in the Calls page again. Thanks for the fast turnaround." },
+      { id: "c3", author: "Marcus Reid", is_staff_reply: true, created_at: hoursAgo(60), body: "Great — marking this resolved. Reopen any time if it recurs." },
+    ],
+  },
+  {
+    id: "d-t4", subject: "Invoice for October shows the wrong seat count",
+    description: "October invoice bills us for 42 seats but our active staff list shows 38. Can you check?",
+    category: "billing", priority: "normal", status: "open",
+    created_at: hoursAgo(6), reporter: "Fatima Al-Hassan (Ops Admin)",
+    assignee: null,
+    events: [
+      { kind: "submitted", at: hoursAgo(6), by: "Fatima Al-Hassan" },
+    ],
+    comments: [],
+  },
+  {
+    id: "d-t5", subject: "Password reset email never arrives for @cedarrealty.ae",
+    description: "Two of our agents on @cedarrealty.ae addresses aren't receiving the reset email. Other domains are fine.",
+    category: "account", priority: "high", status: "in_progress",
+    created_at: hoursAgo(18), reporter: "Fatima Al-Hassan (Ops Admin)",
+    assignee: "Leah Park — Platform Support",
+    events: [
+      { kind: "submitted", at: hoursAgo(18), by: "Fatima Al-Hassan" },
+      { kind: "assigned", at: hoursAgo(16), by: "Support triage", note: "Assigned to Leah Park" },
+      { kind: "in_progress", at: hoursAgo(12), by: "Leah Park", note: "Investigating deliverability logs" },
+    ],
+    comments: [
+      { id: "c1", author: "Leah Park", is_staff_reply: true, created_at: hoursAgo(12), body: "I can see the sends going out. Looks like your DMARC policy is bouncing them. Could you check with your IT team whether @cedarrealty.ae has an aggressive quarantine rule?" },
+    ],
+  },
+  {
+    id: "d-t6", subject: "QA scorecard weights not applying on new reviews",
+    description: "We updated criteria weights last week but new QA reviews still use the old weighting. Older reviews are correct.",
+    category: "bug", priority: "normal", status: "closed",
+    created_at: hoursAgo(240), resolved_at: hoursAgo(200),
+    reporter: "Ethan Walker (Team Leader)",
+    assignee: "Marcus Reid — Platform Support",
+    events: [
+      { kind: "submitted", at: hoursAgo(240), by: "Ethan Walker" },
+      { kind: "assigned", at: hoursAgo(238), by: "Support triage" },
+      { kind: "in_progress", at: hoursAgo(230), by: "Marcus Reid" },
+      { kind: "resolved", at: hoursAgo(200), by: "Marcus Reid", note: "Cache invalidated on weight change" },
+      { kind: "closed", at: hoursAgo(150), by: "Ethan Walker", note: "Verified fixed" },
+    ],
+    comments: [
+      { id: "c1", author: "Marcus Reid", is_staff_reply: true, created_at: hoursAgo(200), body: "Deployed a fix — the weight cache wasn't invalidating on save. New reviews should now pick up the latest weights immediately." },
+      { id: "c2", author: "Ethan Walker", is_staff_reply: false, created_at: hoursAgo(150), body: "Verified against three new reviews — looks good. Closing this out." },
+    ],
+  },
+];
+
+const DUMMY_BY_ID: Record<string, DummyTicket> = Object.fromEntries(DUMMY_TICKETS.map((t) => [t.id, t]));
+
+const EVENT_META: Record<DummyEvent["kind"], { label: string; icon: typeof Inbox; tone: string }> = {
+  submitted:  { label: "Ticket submitted",     icon: Inbox,         tone: "text-[color:var(--cc-brand-600)]" },
+  assigned:   { label: "Assigned to support",  icon: UserPlus,      tone: "text-[color:var(--cc-info)]" },
+  in_progress:{ label: "Work in progress",     icon: Wrench,        tone: "text-amber-600" },
+  waiting:    { label: "Waiting on you",       icon: Wrench,        tone: "text-amber-600" },
+  resolved:   { label: "Resolved",             icon: CheckCircle2,  tone: "text-[color:var(--cc-success)]" },
+  closed:     { label: "Closed",               icon: Archive,       tone: "text-[color:var(--cc-ink-500)]" },
 };
 
 function SupportPage() {
