@@ -101,7 +101,7 @@ function SupportPage() {
           ) : (list.data?.length ?? 0) === 0 ? (
             <CCEmpty
               title="No tickets yet"
-              description="Send in a ticket when you hit an issue or need help — we'll get back to you."
+              body="Send in a ticket when you hit an issue or need help — we'll get back to you."
               action={<CCButton onClick={() => setOpen(true)}>Open a ticket</CCButton>}
             />
           ) : (
