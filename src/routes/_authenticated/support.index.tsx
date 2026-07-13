@@ -155,24 +155,21 @@ const EVENT_META: Record<DummyEvent["kind"], { label: string; icon: typeof Inbox
 };
 
 function SupportPage() {
-  const { user, atLeast } = useAuth();
+  const { user } = useAuth();
   const qc = useQueryClient();
-  const isAdmin = atLeast("ops_admin");
-  const [scope, setScope] = useState<"mine" | "all">("mine");
   const [statusFilter, setStatusFilter] = useState<"all" | Status>("all");
   const [open, setOpen] = useState(false);
   const [detailId, setDetailId] = useState<string | null>(null);
 
   const list = useQuery({
-    queryKey: ["support-tickets", user?.id, scope, statusFilter, isAdmin],
+    queryKey: ["support-tickets", user?.id],
     queryFn: async () => {
-      let q = supabase
+      const q = supabase
         .from("support_tickets" as any)
         .select("*, reporter:profiles!support_tickets_created_by_fkey(full_name)")
+        .eq("created_by", user!.id)
         .order("created_at", { ascending: false })
         .limit(200);
-      if (!(isAdmin && scope === "all")) q = q.eq("created_by", user!.id);
-      if (statusFilter !== "all") q = q.eq("status", statusFilter);
       const { data, error } = await q;
       if (error) throw error;
       return (data ?? []) as any[];
@@ -180,52 +177,74 @@ function SupportPage() {
     enabled: !!user?.id,
   });
 
+  // If the org hasn't filed any real tickets yet, fall back to sample tickets
+  // tailored to a call-centre organisation so the UI has a realistic story.
+  const realRows = list.data ?? [];
+  const isSample = !list.isLoading && realRows.length === 0;
+  const rows = isSample
+    ? DUMMY_TICKETS.map((t) => ({
+        id: t.id, subject: t.subject, category: t.category, priority: t.priority,
+        status: t.status, created_at: t.created_at, assignee: t.assignee,
+        _sample: true,
+      }))
+    : realRows.map((t: any) => ({
+        id: t.id, subject: t.subject, category: t.category, priority: t.priority,
+        status: t.status, created_at: t.created_at,
+        assignee: t.assignee_name ?? null,
+        _sample: false,
+      }));
+
+  const filtered = statusFilter === "all" ? rows : rows.filter((r) => r.status === statusFilter);
+  const counts = {
+    all: rows.length,
+    open: rows.filter((r) => r.status === "open").length,
+    in_progress: rows.filter((r) => r.status === "in_progress").length,
+    resolved: rows.filter((r) => r.status === "resolved").length,
+  };
+
   return (
     <>
       <PageHeader
         title="Support & tickets"
-        description="Report an issue, request a feature, or track a support conversation with the platform team."
+        description="Raise an issue or request with the platform team. Track every ticket's progress from submitted through resolved."
         actions={<CCButton onClick={() => setOpen(true)}><LifeBuoy className="size-4" />New ticket</CCButton>}
       />
       <div className="p-6 space-y-4">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex flex-wrap items-center gap-2">
-            {isAdmin && (
-              <div className="inline-flex rounded-full border border-[color:var(--cc-ink-200)] p-0.5">
-                {(["mine", "all"] as const).map((s) => (
-                  <button
-                    key={s}
-                    onClick={() => setScope(s)}
-                    className={`text-xs px-3 py-1 rounded-full transition-colors ${
-                      scope === s ? "bg-[color:var(--cc-ink-900)] text-white" : "text-[color:var(--cc-ink-700)]"
-                    }`}
-                  >
-                    {s === "mine" ? "My tickets" : "All tickets"}
-                  </button>
-                ))}
-              </div>
-            )}
-            <CCSelect value={statusFilter} onChange={(e) => setStatusFilter(e.target.value as any)} className="max-w-[180px]">
-              <option value="all">All statuses</option>
-              <option value="open">Open</option>
-              <option value="in_progress">In progress</option>
-              <option value="waiting">Waiting</option>
-              <option value="resolved">Resolved</option>
-              <option value="closed">Closed</option>
-            </CCSelect>
+        {isSample && (
+          <div className="rounded-[var(--cc-radius-md)] border border-dashed border-[color:var(--cc-ink-200)] bg-[color:var(--cc-ink-50)] px-4 py-3 text-xs text-[color:var(--cc-ink-700)]">
+            Showing sample tickets for preview. Submit a real ticket to replace this list with your organisation's actual support history.
           </div>
+        )}
+
+        {/* Status summary chips */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <SummaryTile label="All tickets"  value={counts.all}         tone="neutral" active={statusFilter === "all"}         onClick={() => setStatusFilter("all")} />
+          <SummaryTile label="Open"         value={counts.open}        tone="info"    active={statusFilter === "open"}        onClick={() => setStatusFilter("open")} />
+          <SummaryTile label="In progress"  value={counts.in_progress} tone="warning" active={statusFilter === "in_progress"} onClick={() => setStatusFilter("in_progress")} />
+          <SummaryTile label="Resolved"     value={counts.resolved}    tone="success" active={statusFilter === "resolved"}    onClick={() => setStatusFilter("resolved")} />
+        </div>
+
+        <div className="flex items-center justify-between gap-3">
+          <CCSelect value={statusFilter} onChange={(e) => setStatusFilter(e.target.value as any)} className="max-w-[200px]">
+            <option value="all">All statuses</option>
+            <option value="open">Open</option>
+            <option value="in_progress">In progress</option>
+            <option value="waiting">Waiting on you</option>
+            <option value="resolved">Resolved</option>
+            <option value="closed">Closed</option>
+          </CCSelect>
           <div className="text-xs text-[color:var(--cc-ink-500)]">
-            {list.data?.length ?? 0} ticket{(list.data?.length ?? 0) === 1 ? "" : "s"}
+            {filtered.length} ticket{filtered.length === 1 ? "" : "s"}
           </div>
         </div>
 
         <div className="cc-surface rounded-[var(--cc-radius-lg)] shadow-[var(--cc-shadow-sm)] overflow-hidden">
           {list.isLoading ? (
             <div className="p-8 text-center text-sm text-[color:var(--cc-ink-500)]">Loading…</div>
-          ) : (list.data?.length ?? 0) === 0 ? (
+          ) : filtered.length === 0 ? (
             <CCEmpty
-              title="No tickets yet"
-              body="Send in a ticket when you hit an issue or need help — we'll get back to you."
+              title="No tickets match this filter"
+              body="Try another status or open a new ticket."
               action={<CCButton onClick={() => setOpen(true)}>Open a ticket</CCButton>}
             />
           ) : (
@@ -236,18 +255,20 @@ function SupportPage() {
                   <CCTh>Category</CCTh>
                   <CCTh>Priority</CCTh>
                   <CCTh>Status</CCTh>
-                  {isAdmin && scope === "all" && <CCTh>Reporter</CCTh>}
-                  <CCTh>Created</CCTh>
+                  <CCTh>Assigned to</CCTh>
+                  <CCTh>Submitted</CCTh>
                 </tr>
               </CCThead>
               <tbody>
-                {list.data!.map((t) => (
+                {filtered.map((t) => (
                   <CCTr key={t.id} onClick={() => setDetailId(t.id)}>
                     <CCTd className="font-medium">{t.subject}</CCTd>
                     <CCTd>{CATEGORY_LABEL[t.category as Category]}</CCTd>
                     <CCTd><CCStatusPill tone={PRIORITY_TONE[t.priority as Priority]}>{t.priority}</CCStatusPill></CCTd>
                     <CCTd><CCStatusPill tone={STATUS_TONE[t.status as Status]}>{t.status.replace("_", " ")}</CCStatusPill></CCTd>
-                    {isAdmin && scope === "all" && <CCTd className="text-xs text-[color:var(--cc-ink-500)]">{t.reporter?.full_name ?? "—"}</CCTd>}
+                    <CCTd className="text-xs text-[color:var(--cc-ink-700)]">
+                      {t.assignee ?? <span className="text-[color:var(--cc-ink-500)] italic">Awaiting triage</span>}
+                    </CCTd>
                     <CCTd className="text-xs text-[color:var(--cc-ink-500)] tabular-nums">{new Date(t.created_at).toLocaleString()}</CCTd>
                   </CCTr>
                 ))}
@@ -269,12 +290,36 @@ function SupportPage() {
       {detailId && (
         <TicketDetailDrawer
           ticketId={detailId}
-          isAdmin={isAdmin}
           onClose={() => setDetailId(null)}
           onUpdated={() => qc.invalidateQueries({ queryKey: ["support-tickets"] })}
         />
       )}
     </>
+  );
+}
+
+function SummaryTile({ label, value, tone, active, onClick }: {
+  label: string; value: number;
+  tone: "neutral" | "info" | "warning" | "success";
+  active: boolean; onClick: () => void;
+}) {
+  const toneClass =
+    tone === "info" ? "text-[color:var(--cc-info)]" :
+    tone === "warning" ? "text-amber-600" :
+    tone === "success" ? "text-[color:var(--cc-success)]" : "text-[color:var(--cc-ink-900)]";
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`cc-surface rounded-[var(--cc-radius-lg)] shadow-[var(--cc-shadow-sm)] p-4 text-left transition-colors ${
+        active
+          ? "ring-2 ring-[color:var(--cc-brand-600)] ring-offset-1 ring-offset-background"
+          : "hover:bg-[color:var(--cc-ink-50)]"
+      }`}
+    >
+      <div className="text-xs font-semibold uppercase tracking-wide text-[color:var(--cc-ink-500)]">{label}</div>
+      <div className={`mt-1 text-3xl font-semibold tabular-nums ${toneClass}`}>{value}</div>
+    </button>
   );
 }
 
