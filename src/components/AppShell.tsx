@@ -114,7 +114,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen flex bg-muted/20">
       {/* Sidebar — full labels at lg+, icon-only rail at md, hidden on mobile. */}
-      <aside className="border-r bg-background hidden md:flex flex-col md:w-16 lg:w-64 transition-[width]">
+      <aside className="border-r bg-background hidden md:flex flex-col md:w-16 lg:w-64 transition-[width] sticky top-0 h-screen self-start shrink-0">
         <div className="h-16 flex items-center gap-3 px-5 border-b">
           <div className="size-9 rounded-xl bg-gradient-to-br from-[color:var(--cc-brand-600)] to-[color:var(--cc-brand)] text-white flex items-center justify-center shadow-sm">
             <Sparkles className="size-[18px]" strokeWidth={2.25} />
