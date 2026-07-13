@@ -8,7 +8,7 @@ import {
   AudioLines, Radio, Settings2, ListChecks, BookOpenText, Gauge, LineChart,
   Bell, AlertOctagon, FileBarChart2, Plug, KeyRound, ShieldAlert,
   Users as UsersIcon, Target, CalendarCheck2, Cog, ChevronDown,
-  MailOpen, Check,
+  MailOpen, Check, LifeBuoy,
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { useMemo, useState } from "react";
@@ -102,6 +102,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         items: [
           { to: "/admin/roles", label: "Roles & Access", icon: ShieldCheck, show: canOpsAdmin },
           { to: "/admin/permissions", label: "Permission Matrix", icon: KeyRound, show: canSuperAdmin },
+          { to: "/support", label: "Support", icon: LifeBuoy, show: true },
           { to: "/settings", label: "Settings", icon: Cog, show: true },
         ],
       },
