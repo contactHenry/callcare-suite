@@ -61,7 +61,8 @@ function CompliancePage() {
 
         {canConfigure && <OrgComplianceCard />}
 
-        <CCWidget title="Open requests">
+        <section className="space-y-3">
+          <h3 className="text-xs font-semibold uppercase tracking-wide text-[color:var(--cc-ink-500)]">Open requests</h3>
           <CCTable>
             <CCThead><tr>
               <CCTh>Kind</CCTh><CCTh>Client</CCTh><CCTh>Requested by</CCTh>
@@ -95,7 +96,7 @@ function CompliancePage() {
               })}
             </tbody>
           </CCTable>
-        </CCWidget>
+        </section>
 
         <CCWidget title="Compliance posture">
           <ul className="text-sm space-y-2 text-[color:var(--cc-ink-700)]">
