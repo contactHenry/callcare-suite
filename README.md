@@ -75,6 +75,21 @@ All server logic runs as **TanStack `createServerFn`** RPCs (with a `requireSupa
 ### Reports & Integrations
 - Report runs, ad‑hoc exports, third‑party integrations catalogue.
 
+### Support & Tickets
+- Ticketed help desk tailored to the organization: raise a new ticket (category, priority, subject, description, screenshot attach) via the **New ticket** dialog.
+- Table view lists all tickets with status pills (open / in progress / pending / resolved / closed) and priority.
+- Click any row to open the ticket detail modal with a status progression timeline (submitted → assigned → in progress → resolved) plus a threaded chat between the requester and the product owner for clarifications and resolution notes.
+- Seeded with realistic dummy tickets — raised, assigned, pending and resolved — so the module demos end‑to‑end without a backend seed.
+
+---
+
+## Recent Updates
+
+- **Support & Tickets module** — new dummy‑seeded ticket list, `NewTicketDialog`, detail modal with progression timeline and chat thread (`src/routes/_authenticated/support.index.tsx`).
+- **Table styling consistency** — every table across the app now follows the same **bottom‑line‑only** pattern (no border lines, no corner radius, no card chrome), matching the Campaigns and Tasks/Follow‑ups tables. Wrappers that added rounded/bordered containers were removed from Support, Admin → Permissions, Attendance, Compliance and Reports.
+- **Fixed sidebar with independent scroll** — the primary side navigation in `AppShell` is now sticky with a fixed viewport height. It no longer scrolls with the page; overflowing nav items scroll inside the sidebar itself.
+- **Live Calls metrics parity** — the metrics cards on the Live Calls page now match the height of the Dashboard metrics cards for a consistent header rhythm.
+
 ---
 
 ## Tech Stack
