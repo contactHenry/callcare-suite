@@ -436,15 +436,19 @@ function NewTicketDialog({ onClose, onCreated }: { onClose: () => void; onCreate
   );
 }
 
-function TicketDetailDrawer({ ticketId, isAdmin, onClose, onUpdated }: {
-  ticketId: string; isAdmin: boolean; onClose: () => void; onUpdated: () => void;
+function TicketDetailDrawer({ ticketId, onClose, onUpdated }: {
+  ticketId: string; onClose: () => void; onUpdated: () => void;
 }) {
   const { user } = useAuth();
   const qc = useQueryClient();
   const [reply, setReply] = useState("");
+  const [localComments, setLocalComments] = useState<DummyComment[]>([]);
+  const dummy = DUMMY_BY_ID[ticketId];
+  const isDummy = !!dummy;
 
   const ticket = useQuery({
     queryKey: ["support-ticket", ticketId],
+    enabled: !isDummy,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("support_tickets" as any)
@@ -458,6 +462,7 @@ function TicketDetailDrawer({ ticketId, isAdmin, onClose, onUpdated }: {
 
   const comments = useQuery({
     queryKey: ["support-ticket-comments", ticketId],
+    enabled: !isDummy,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("support_ticket_comments" as any)
@@ -471,7 +476,7 @@ function TicketDetailDrawer({ ticketId, isAdmin, onClose, onUpdated }: {
 
   const screenshotUrl = useQuery({
     queryKey: ["support-ticket-screenshot", ticket.data?.screenshot_path],
-    enabled: !!ticket.data?.screenshot_path,
+    enabled: !isDummy && !!ticket.data?.screenshot_path,
     queryFn: async () => {
       const { data } = await supabase.storage.from("support-attachments")
         .createSignedUrl(ticket.data.screenshot_path, 60 * 30);
@@ -479,40 +484,65 @@ function TicketDetailDrawer({ ticketId, isAdmin, onClose, onUpdated }: {
     },
   });
 
-  const updateStatus = useMutation({
-    mutationFn: async (status: Status) => {
-      const patch: any = { status };
-      if (status === "resolved") { patch.resolved_at = new Date().toISOString(); patch.resolved_by = user!.id; }
-      const { error } = await supabase.from("support_tickets" as any).update(patch).eq("id", ticketId);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      toast.success("Status updated");
-      qc.invalidateQueries({ queryKey: ["support-ticket", ticketId] });
-      onUpdated();
-    },
-    onError: (e: any) => toast.error(e.message ?? "Failed to update"),
-  });
+  void onUpdated;
 
   const addComment = useMutation({
     mutationFn: async () => {
       if (!reply.trim()) return;
+      if (isDummy) {
+        setLocalComments((prev) => [
+          ...prev,
+          { id: `local-${Date.now()}`, author: "You", is_staff_reply: false, body: reply.trim(), created_at: new Date().toISOString() },
+        ]);
+        return;
+      }
       const { error } = await supabase.from("support_ticket_comments" as any).insert({
         ticket_id: ticketId,
         author_id: user!.id,
         body: reply.trim(),
-        is_staff_reply: isAdmin,
+        is_staff_reply: false,
       });
       if (error) throw error;
     },
     onSuccess: () => {
       setReply("");
-      qc.invalidateQueries({ queryKey: ["support-ticket-comments", ticketId] });
+      if (!isDummy) qc.invalidateQueries({ queryKey: ["support-ticket-comments", ticketId] });
     },
     onError: (e: any) => toast.error(e.message ?? "Failed to send"),
   });
 
-  const t = ticket.data;
+  // Normalise into one shape the render code can use for both dummy + real.
+  const t: {
+    subject: string; description: string; category: Category; priority: Priority;
+    status: Status; created_at: string; reporter: string; assignee: string | null;
+    events: DummyEvent[]; screenshot?: string | null;
+  } | null = isDummy
+    ? {
+        subject: dummy.subject, description: dummy.description, category: dummy.category,
+        priority: dummy.priority, status: dummy.status, created_at: dummy.created_at,
+        reporter: dummy.reporter, assignee: dummy.assignee, events: dummy.events, screenshot: null,
+      }
+    : ticket.data
+      ? {
+          subject: ticket.data.subject, description: ticket.data.description,
+          category: ticket.data.category, priority: ticket.data.priority,
+          status: ticket.data.status, created_at: ticket.data.created_at,
+          reporter: ticket.data.reporter?.full_name ?? "You",
+          assignee: ticket.data.assignee_name ?? null,
+          events: buildEventsFromRealTicket(ticket.data),
+          screenshot: screenshotUrl.data ?? null,
+        }
+      : null;
+
+  const shownComments: DummyComment[] = isDummy
+    ? [...dummy.comments, ...localComments]
+    : (comments.data ?? []).map((c: any) => ({
+        id: c.id,
+        author: c.author?.full_name ?? "User",
+        is_staff_reply: !!c.is_staff_reply,
+        body: c.body,
+        created_at: c.created_at,
+      }));
 
   return (
     <div className="fixed inset-0 z-50 bg-black/40 flex justify-end" onClick={onClose}>
@@ -533,47 +563,50 @@ function TicketDetailDrawer({ ticketId, isAdmin, onClose, onUpdated }: {
                 <CCStatusPill tone={PRIORITY_TONE[t.priority as Priority]}>{t.priority} priority</CCStatusPill>
                 <span className="text-xs text-[color:var(--cc-ink-500)]">{CATEGORY_LABEL[t.category as Category]}</span>
               </div>
-              <div className="text-xs text-[color:var(--cc-ink-500)]">
-                Reported by {t.reporter?.full_name ?? "—"} · {new Date(t.created_at).toLocaleString()}
-              </div>
+
+              <dl className="grid grid-cols-2 gap-3 rounded-[var(--cc-radius-md)] bg-[color:var(--cc-ink-50)] p-3 text-xs">
+                <div>
+                  <dt className="text-[color:var(--cc-ink-500)] uppercase tracking-wide">Reported by</dt>
+                  <dd className="mt-0.5 font-medium text-[color:var(--cc-ink-900)]">{t.reporter}</dd>
+                </div>
+                <div>
+                  <dt className="text-[color:var(--cc-ink-500)] uppercase tracking-wide">Assigned to</dt>
+                  <dd className="mt-0.5 font-medium text-[color:var(--cc-ink-900)]">
+                    {t.assignee ?? <span className="italic text-[color:var(--cc-ink-500)]">Awaiting triage</span>}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-[color:var(--cc-ink-500)] uppercase tracking-wide">Submitted</dt>
+                  <dd className="mt-0.5 tabular-nums text-[color:var(--cc-ink-900)]">{new Date(t.created_at).toLocaleString()}</dd>
+                </div>
+                <div>
+                  <dt className="text-[color:var(--cc-ink-500)] uppercase tracking-wide">Last update</dt>
+                  <dd className="mt-0.5 tabular-nums text-[color:var(--cc-ink-900)]">
+                    {t.events.length > 0 ? new Date(t.events[t.events.length - 1].at).toLocaleString() : "—"}
+                  </dd>
+                </div>
+              </dl>
+
               <div className="text-sm whitespace-pre-wrap text-[color:var(--cc-ink-900)]">{t.description}</div>
-              {screenshotUrl.data && (
-                <a href={screenshotUrl.data} target="_blank" rel="noreferrer" className="block">
-                  <img src={screenshotUrl.data} alt="Screenshot" className="max-h-64 rounded border" />
+              {t.screenshot && (
+                <a href={t.screenshot} target="_blank" rel="noreferrer" className="block">
+                  <img src={t.screenshot} alt="Screenshot" className="max-h-64 rounded border" />
                 </a>
               )}
 
-              {isAdmin && (
-                <div className="flex items-center gap-2 border-t pt-4">
-                  <span className="text-xs font-medium text-[color:var(--cc-ink-500)]">Change status:</span>
-                  {(["open","in_progress","waiting","resolved","closed"] as Status[]).map((s) => (
-                    <button
-                      key={s}
-                      disabled={updateStatus.isPending || t.status === s}
-                      onClick={() => updateStatus.mutate(s)}
-                      className={`text-xs px-2.5 py-1 rounded-full border transition-colors disabled:opacity-40 ${
-                        t.status === s
-                          ? "bg-[color:var(--cc-ink-900)] text-white border-[color:var(--cc-ink-900)]"
-                          : "border-[color:var(--cc-ink-200)] hover:bg-[color:var(--cc-ink-50)]"
-                      }`}
-                    >
-                      {s.replace("_", " ")}
-                    </button>
-                  ))}
-                </div>
-              )}
+              <TicketProgression events={t.events} status={t.status} />
 
               <div className="border-t pt-4 space-y-3">
-                <div className="text-xs font-semibold uppercase tracking-wide text-[color:var(--cc-ink-500)]">Conversation</div>
-                {(comments.data ?? []).length === 0 ? (
-                  <div className="text-xs text-[color:var(--cc-ink-500)]">No replies yet.</div>
+                <div className="text-xs font-semibold uppercase tracking-wide text-[color:var(--cc-ink-500)]">Conversation with support</div>
+                {shownComments.length === 0 ? (
+                  <div className="text-xs text-[color:var(--cc-ink-500)]">No replies yet. Support will respond here.</div>
                 ) : (
                   <ul className="space-y-3">
-                    {comments.data!.map((c) => (
+                    {shownComments.map((c) => (
                       <li key={c.id} className={`rounded-lg p-3 border ${c.is_staff_reply ? "bg-[color:var(--cc-brand-600)]/5 border-[color:var(--cc-brand-600)]/20" : "bg-[color:var(--cc-ink-50)] border-[color:var(--cc-ink-100)]"}`}>
                         <div className="flex items-center justify-between text-[11px] text-[color:var(--cc-ink-500)]">
                           <span className="font-medium text-[color:var(--cc-ink-900)]">
-                            {c.author?.full_name ?? "User"}{c.is_staff_reply && " · Support"}
+                            {c.author}{c.is_staff_reply && " · Platform Support"}
                           </span>
                           <span className="tabular-nums">{new Date(c.created_at).toLocaleString()}</span>
                         </div>
@@ -599,6 +632,98 @@ function TicketDetailDrawer({ ticketId, isAdmin, onClose, onUpdated }: {
           </CCButton>
         </div>
       </div>
+    </div>
+  );
+}
+
+// Derive a progression event list from a real DB ticket.
+function buildEventsFromRealTicket(row: any): DummyEvent[] {
+  const evs: DummyEvent[] = [
+    { kind: "submitted", at: row.created_at, by: row.reporter?.full_name ?? "You" },
+  ];
+  if (row.status === "in_progress" || row.status === "waiting" || row.status === "resolved" || row.status === "closed") {
+    evs.push({ kind: "assigned", at: row.created_at, by: "Support triage" });
+    evs.push({ kind: row.status === "waiting" ? "waiting" : "in_progress", at: row.updated_at ?? row.created_at });
+  }
+  if (row.resolved_at) evs.push({ kind: "resolved", at: row.resolved_at });
+  if (row.status === "closed") evs.push({ kind: "closed", at: row.updated_at ?? row.resolved_at ?? row.created_at });
+  return evs;
+}
+
+function TicketProgression({ events, status }: { events: DummyEvent[]; status: Status }) {
+  // The four canonical steps the org cares about.
+  const steps: Array<{ key: DummyEvent["kind"]; label: string }> = [
+    { key: "submitted",   label: "Submitted" },
+    { key: "assigned",    label: "Assigned to support" },
+    { key: "in_progress", label: status === "waiting" ? "Waiting on you" : "In progress" },
+    { key: "resolved",    label: status === "closed" ? "Closed" : "Resolved" },
+  ];
+  const reached = new Set(events.map((e) => e.kind === "waiting" ? "in_progress" : e.kind === "closed" ? "resolved" : e.kind));
+  const lastEventAt = (kind: DummyEvent["kind"]) => events.find((e) => e.kind === kind)?.at;
+
+  return (
+    <div className="border-t pt-4 space-y-3">
+      <div className="text-xs font-semibold uppercase tracking-wide text-[color:var(--cc-ink-500)]">Progression</div>
+
+      <ol className="relative pl-6">
+        {/* vertical rail */}
+        <span className="absolute left-[10px] top-1 bottom-1 w-px bg-[color:var(--cc-ink-200)]" aria-hidden />
+        {steps.map((step, i) => {
+          const isDone = reached.has(step.key);
+          const isCurrent = !isDone && i > 0 && reached.has(steps[i - 1].key);
+          const evAt = lastEventAt(step.key) ?? (step.key === "in_progress" ? lastEventAt("waiting") : undefined);
+          const meta = EVENT_META[step.key];
+          const Icon = meta.icon;
+          return (
+            <li key={step.key} className="relative pb-3 last:pb-0">
+              <span
+                className={`absolute -left-6 top-0 inline-flex size-5 items-center justify-center rounded-full border ${
+                  isDone
+                    ? "bg-[color:var(--cc-brand-600)] border-[color:var(--cc-brand-600)] text-white"
+                    : isCurrent
+                      ? "bg-background border-[color:var(--cc-brand-600)] text-[color:var(--cc-brand-600)] ring-2 ring-[color:var(--cc-brand-600)]/20"
+                      : "bg-background border-[color:var(--cc-ink-200)] text-[color:var(--cc-ink-500)]"
+                }`}
+              >
+                <Icon className="size-3" />
+              </span>
+              <div className={`text-sm ${isDone || isCurrent ? "font-medium text-[color:var(--cc-ink-900)]" : "text-[color:var(--cc-ink-500)]"}`}>
+                {step.label}
+              </div>
+              <div className="text-[11px] text-[color:var(--cc-ink-500)] tabular-nums">
+                {evAt ? new Date(evAt).toLocaleString() : isCurrent ? "In progress…" : "Pending"}
+              </div>
+            </li>
+          );
+        })}
+      </ol>
+
+      {/* Full event log */}
+      {events.length > 0 && (
+        <details className="rounded-[var(--cc-radius-md)] border border-[color:var(--cc-ink-200)] bg-background">
+          <summary className="cursor-pointer px-3 py-2 text-xs font-medium text-[color:var(--cc-ink-700)] hover:bg-[color:var(--cc-ink-50)]">
+            View full activity log ({events.length})
+          </summary>
+          <ul className="divide-y divide-[color:var(--cc-ink-100)]">
+            {events.map((e, i) => {
+              const meta = EVENT_META[e.kind];
+              const Icon = meta.icon;
+              return (
+                <li key={i} className="flex items-start gap-2 px-3 py-2">
+                  <Icon className={`size-4 mt-0.5 shrink-0 ${meta.tone}`} />
+                  <div className="min-w-0 flex-1">
+                    <div className="text-xs font-medium text-[color:var(--cc-ink-900)]">{meta.label}</div>
+                    {e.note && <div className="text-xs text-[color:var(--cc-ink-700)]">{e.note}</div>}
+                    <div className="text-[11px] text-[color:var(--cc-ink-500)] tabular-nums">
+                      {new Date(e.at).toLocaleString()}{e.by ? ` · ${e.by}` : ""}
+                    </div>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        </details>
+      )}
     </div>
   );
 }
