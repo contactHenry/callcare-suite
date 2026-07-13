@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { listPermissions, togglePermission } from "@/lib/admin.functions";
 import { PageHeader } from "@/components/AppShell";
-import { CCCard, CCStatusPill } from "@/components/cc";
+import { CCStatusPill } from "@/components/cc";
 import { toast } from "sonner";
 import { Check } from "lucide-react";
 import { DUMMY_PERMISSIONS_ROWS } from "@/lib/dummy-data";
