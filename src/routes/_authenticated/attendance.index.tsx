@@ -142,7 +142,8 @@ function AttendancePage() {
           </div>
         </CCWidget>
 
-        <CCWidget title="Upcoming shifts">
+        <section className="space-y-3">
+          <h3 className="text-xs font-semibold uppercase tracking-wide text-[color:var(--cc-ink-500)]">Upcoming shifts</h3>
           <CCTable>
             <CCThead><tr><CCTh>Starts</CCTh><CCTh>Ends</CCTh><CCTh>Notes</CCTh><CCTh /></tr></CCThead>
             <tbody>
@@ -160,7 +161,7 @@ function AttendancePage() {
               ))}
             </tbody>
           </CCTable>
-        </CCWidget>
+        </section>
 
         <CCWidget title="Today" hint="Productive vs non-productive time (rolls over at midnight).">
           <div className="grid grid-cols-3 gap-4 text-center">
