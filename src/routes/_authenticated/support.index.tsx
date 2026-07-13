@@ -381,7 +381,7 @@ function NewTicketDialog({ onClose, onCreated }: { onClose: () => void; onCreate
           <button onClick={onClose} className="p-1 rounded hover:bg-accent"><X className="size-4" /></button>
         </div>
         <div className="p-5 space-y-4">
-          <CCFormSection>
+          <div className="space-y-4">
             <CCFormGrid cols={2}>
               <CCField label="Category">
                 <CCSelect value={category} onChange={(e) => setCategory(e.target.value as Category)}>
@@ -423,7 +423,7 @@ function NewTicketDialog({ onClose, onCreated }: { onClose: () => void; onCreate
                 )}
               </div>
             </CCField>
-          </CCFormSection>
+          </div>
         </div>
         <div className="flex items-center justify-end gap-2 px-5 py-4 border-t bg-[color:var(--cc-ink-50)] rounded-b-[var(--cc-radius-lg)]">
           <CCButton variant="ghost" onClick={onClose} disabled={submit.isPending}>Cancel</CCButton>
