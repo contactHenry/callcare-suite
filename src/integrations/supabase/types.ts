@@ -2680,6 +2680,97 @@ export type Database = {
           },
         ]
       }
+      support_ticket_comments: {
+        Row: {
+          author_id: string
+          body: string
+          created_at: string
+          id: string
+          is_staff_reply: boolean
+          ticket_id: string
+        }
+        Insert: {
+          author_id: string
+          body: string
+          created_at?: string
+          id?: string
+          is_staff_reply?: boolean
+          ticket_id: string
+        }
+        Update: {
+          author_id?: string
+          body?: string
+          created_at?: string
+          id?: string
+          is_staff_reply?: boolean
+          ticket_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_ticket_comments_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "support_tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      support_tickets: {
+        Row: {
+          category: Database["public"]["Enums"]["support_ticket_category"]
+          created_at: string
+          created_by: string
+          description: string
+          id: string
+          organization_id: string | null
+          priority: Database["public"]["Enums"]["support_ticket_priority"]
+          resolved_at: string | null
+          resolved_by: string | null
+          screenshot_path: string | null
+          status: Database["public"]["Enums"]["support_ticket_status"]
+          subject: string
+          updated_at: string
+        }
+        Insert: {
+          category?: Database["public"]["Enums"]["support_ticket_category"]
+          created_at?: string
+          created_by: string
+          description: string
+          id?: string
+          organization_id?: string | null
+          priority?: Database["public"]["Enums"]["support_ticket_priority"]
+          resolved_at?: string | null
+          resolved_by?: string | null
+          screenshot_path?: string | null
+          status?: Database["public"]["Enums"]["support_ticket_status"]
+          subject: string
+          updated_at?: string
+        }
+        Update: {
+          category?: Database["public"]["Enums"]["support_ticket_category"]
+          created_at?: string
+          created_by?: string
+          description?: string
+          id?: string
+          organization_id?: string | null
+          priority?: Database["public"]["Enums"]["support_ticket_priority"]
+          resolved_at?: string | null
+          resolved_by?: string | null
+          screenshot_path?: string | null
+          status?: Database["public"]["Enums"]["support_ticket_status"]
+          subject?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_tickets_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       task_attachments: {
         Row: {
           created_at: string
@@ -3386,6 +3477,20 @@ export type Database = {
       contact_method: "phone" | "email" | "sms" | "whatsapp" | "no_contact"
       monitor_kind: "listen" | "whisper" | "barge" | "takeover"
       script_status: "draft" | "in_review" | "approved" | "archived"
+      support_ticket_category:
+        | "bug"
+        | "feature_request"
+        | "billing"
+        | "account"
+        | "integration"
+        | "other"
+      support_ticket_priority: "low" | "normal" | "high" | "urgent"
+      support_ticket_status:
+        | "open"
+        | "in_progress"
+        | "waiting"
+        | "resolved"
+        | "closed"
       task_kind:
         | "follow_up"
         | "callback"
@@ -3585,6 +3690,22 @@ export const Constants = {
       contact_method: ["phone", "email", "sms", "whatsapp", "no_contact"],
       monitor_kind: ["listen", "whisper", "barge", "takeover"],
       script_status: ["draft", "in_review", "approved", "archived"],
+      support_ticket_category: [
+        "bug",
+        "feature_request",
+        "billing",
+        "account",
+        "integration",
+        "other",
+      ],
+      support_ticket_priority: ["low", "normal", "high", "urgent"],
+      support_ticket_status: [
+        "open",
+        "in_progress",
+        "waiting",
+        "resolved",
+        "closed",
+      ],
       task_kind: [
         "follow_up",
         "callback",
