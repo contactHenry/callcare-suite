@@ -658,8 +658,15 @@ function TicketProgression({ events, status }: { events: DummyEvent[]; status: S
     { key: "in_progress", label: status === "waiting" ? "Waiting on you" : "In progress" },
     { key: "resolved",    label: status === "closed" ? "Closed" : "Resolved" },
   ];
-  const reached = new Set(events.map((e) => e.kind === "waiting" ? "in_progress" : e.kind === "closed" ? "resolved" : e.kind));
-  const lastEventAt = (kind: DummyEvent["kind"]) => events.find((e) => e.kind === kind)?.at;
+  const reached = new Set<DummyEvent["kind"]>(
+    events.map((e) =>
+      e.kind === "waiting" ? "in_progress"
+      : e.kind === "closed" ? "resolved"
+      : e.kind
+    )
+  );
+  const lastEventAt = (kind: DummyEvent["kind"]): string | undefined =>
+    events.find((e) => e.kind === kind)?.at;
 
   return (
     <div className="border-t pt-4 space-y-3">
