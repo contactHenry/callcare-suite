@@ -238,7 +238,7 @@ function SupportPage() {
           </div>
         </div>
 
-        <div className="cc-surface rounded-[var(--cc-radius-lg)] shadow-[var(--cc-shadow-sm)] overflow-hidden">
+        <div className="overflow-x-auto">
           {list.isLoading ? (
             <div className="p-8 text-center text-sm text-[color:var(--cc-ink-500)]">Loading…</div>
           ) : filtered.length === 0 ? (
