@@ -219,18 +219,22 @@ function Tile({ label, value, tone, icon, sub }: {
   label: string; value: string | number; tone: "ok"|"warn"|"breach"; icon: React.ReactNode; sub?: string;
 }) {
   return (
-    <div className={`rounded-2xl border p-5 ${TONE_BG[tone]}`}>
-      <div className="flex items-center justify-between mb-2 opacity-80">
-        <span className="text-xs font-semibold uppercase tracking-wider">{label}</span>
+    <div className={`cc-surface rounded-[var(--cc-radius-lg)] shadow-[var(--cc-shadow-sm)] p-[var(--cc-space-5)] flex flex-col gap-3 ${TONE_BG[tone]}`}>
+      <div className="flex items-center justify-between gap-3 opacity-80">
+        <span className="text-xs font-semibold uppercase tracking-wide">{label}</span>
         {icon}
       </div>
-      <div className="font-mono text-5xl font-bold tabular-nums leading-none">{value}</div>
-      {sub && (
-        <div className="mt-2 flex items-center gap-1.5 text-xs">
-          <span className={`size-2 rounded-full ${TONE_DOT[tone]}`} aria-hidden />
-          {sub}
+      <div className="flex-1 min-w-0 flex items-end justify-between gap-3">
+        <div>
+          <div className="text-3xl font-semibold tracking-tight tabular-nums">{value}</div>
+          {sub && (
+            <div className="mt-1 flex items-center gap-1.5 text-xs">
+              <span className={`size-2 rounded-full ${TONE_DOT[tone]}`} aria-hidden />
+              {sub}
+            </div>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 }
