@@ -210,10 +210,11 @@ function ReportsPage() {
         </CCWidget>
 
         {preview && (
-          <CCWidget
-            title={`Preview · ${preview.rows.length} rows`}
-            hint="Showing up to 100 rows. Export to get the full result."
-          >
+          <section className="space-y-3">
+            <header className="flex items-baseline justify-between gap-3">
+              <h3 className="text-xs font-semibold uppercase tracking-wide text-[color:var(--cc-ink-500)]">{`Preview · ${preview.rows.length} rows`}</h3>
+              <span className="text-xs text-[color:var(--cc-ink-500)]">Showing up to 100 rows. Export to get the full result.</span>
+            </header>
             {preview.rows.length === 0 ? (
               <p className="text-sm text-[color:var(--cc-ink-500)] py-6 text-center">No rows match the filters.</p>
             ) : (
@@ -240,7 +241,7 @@ function ReportsPage() {
                 </CCTable>
               </div>
             )}
-          </CCWidget>
+          </section>
         )}
 
         <CCWidget title="Recent exports">

@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { listPermissions, togglePermission } from "@/lib/admin.functions";
 import { PageHeader } from "@/components/AppShell";
-import { CCCard, CCStatusPill } from "@/components/cc";
+import { CCStatusPill } from "@/components/cc";
 import { toast } from "sonner";
 import { Check } from "lucide-react";
 import { DUMMY_PERMISSIONS_ROWS } from "@/lib/dummy-data";
@@ -49,7 +49,7 @@ function PermissionsPage() {
         description="Grant or revoke individual permissions per role. Permission checks are additive across the role hierarchy."
       />
       <div className="px-6 py-6">
-        <CCCard className="overflow-x-auto p-0">
+        <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="text-left text-xs uppercase tracking-wide text-[color:var(--cc-ink-500)] border-b border-[color:var(--cc-ink-200)]">
               <tr>
@@ -102,7 +102,7 @@ function PermissionsPage() {
               )}
             </tbody>
           </table>
-        </CCCard>
+        </div>
         <p className="mt-4 text-xs text-[color:var(--cc-ink-500)]">
           <CCStatusPill tone="info">Inheritance</CCStatusPill> Higher roles inherit every permission granted to lower roles —
           a permission granted to <code>agent</code> is automatically available to every other role.
