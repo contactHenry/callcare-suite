@@ -25,6 +25,7 @@ import { Route as AuthenticatedSettingsIndexRouteImport } from './routes/_authen
 import { Route as AuthenticatedScriptsIndexRouteImport } from './routes/_authenticated/scripts.index'
 import { Route as AuthenticatedReportsIndexRouteImport } from './routes/_authenticated/reports.index'
 import { Route as AuthenticatedRecordingsIndexRouteImport } from './routes/_authenticated/recordings.index'
+import { Route as AuthenticatedPlansIndexRouteImport } from './routes/_authenticated/plans.index'
 import { Route as AuthenticatedNotificationsIndexRouteImport } from './routes/_authenticated/notifications.index'
 import { Route as AuthenticatedMonitoringIndexRouteImport } from './routes/_authenticated/monitoring.index'
 import { Route as AuthenticatedLiveCallsIndexRouteImport } from './routes/_authenticated/live-calls.index'
@@ -140,6 +141,11 @@ const AuthenticatedRecordingsIndexRoute =
     path: '/recordings/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedPlansIndexRoute = AuthenticatedPlansIndexRouteImport.update({
+  id: '/plans/',
+  path: '/plans/',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedNotificationsIndexRoute =
   AuthenticatedNotificationsIndexRouteImport.update({
     id: '/notifications/',
@@ -349,6 +355,7 @@ export interface FileRoutesByFullPath {
   '/live-calls/': typeof AuthenticatedLiveCallsIndexRoute
   '/monitoring/': typeof AuthenticatedMonitoringIndexRoute
   '/notifications/': typeof AuthenticatedNotificationsIndexRoute
+  '/plans/': typeof AuthenticatedPlansIndexRoute
   '/recordings/': typeof AuthenticatedRecordingsIndexRoute
   '/reports/': typeof AuthenticatedReportsIndexRoute
   '/scripts/': typeof AuthenticatedScriptsIndexRoute
@@ -395,6 +402,7 @@ export interface FileRoutesByTo {
   '/live-calls': typeof AuthenticatedLiveCallsIndexRoute
   '/monitoring': typeof AuthenticatedMonitoringIndexRoute
   '/notifications': typeof AuthenticatedNotificationsIndexRoute
+  '/plans': typeof AuthenticatedPlansIndexRoute
   '/recordings': typeof AuthenticatedRecordingsIndexRoute
   '/reports': typeof AuthenticatedReportsIndexRoute
   '/scripts': typeof AuthenticatedScriptsIndexRoute
@@ -444,6 +452,7 @@ export interface FileRoutesById {
   '/_authenticated/live-calls/': typeof AuthenticatedLiveCallsIndexRoute
   '/_authenticated/monitoring/': typeof AuthenticatedMonitoringIndexRoute
   '/_authenticated/notifications/': typeof AuthenticatedNotificationsIndexRoute
+  '/_authenticated/plans/': typeof AuthenticatedPlansIndexRoute
   '/_authenticated/recordings/': typeof AuthenticatedRecordingsIndexRoute
   '/_authenticated/reports/': typeof AuthenticatedReportsIndexRoute
   '/_authenticated/scripts/': typeof AuthenticatedScriptsIndexRoute
@@ -493,6 +502,7 @@ export interface FileRouteTypes {
     | '/live-calls/'
     | '/monitoring/'
     | '/notifications/'
+    | '/plans/'
     | '/recordings/'
     | '/reports/'
     | '/scripts/'
@@ -539,6 +549,7 @@ export interface FileRouteTypes {
     | '/live-calls'
     | '/monitoring'
     | '/notifications'
+    | '/plans'
     | '/recordings'
     | '/reports'
     | '/scripts'
@@ -587,6 +598,7 @@ export interface FileRouteTypes {
     | '/_authenticated/live-calls/'
     | '/_authenticated/monitoring/'
     | '/_authenticated/notifications/'
+    | '/_authenticated/plans/'
     | '/_authenticated/recordings/'
     | '/_authenticated/reports/'
     | '/_authenticated/scripts/'
@@ -718,6 +730,13 @@ declare module '@tanstack/react-router' {
       path: '/recordings'
       fullPath: '/recordings/'
       preLoaderRoute: typeof AuthenticatedRecordingsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/plans/': {
+      id: '/_authenticated/plans/'
+      path: '/plans'
+      fullPath: '/plans/'
+      preLoaderRoute: typeof AuthenticatedPlansIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/notifications/': {
@@ -964,6 +983,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedLiveCallsIndexRoute: typeof AuthenticatedLiveCallsIndexRoute
   AuthenticatedMonitoringIndexRoute: typeof AuthenticatedMonitoringIndexRoute
   AuthenticatedNotificationsIndexRoute: typeof AuthenticatedNotificationsIndexRoute
+  AuthenticatedPlansIndexRoute: typeof AuthenticatedPlansIndexRoute
   AuthenticatedRecordingsIndexRoute: typeof AuthenticatedRecordingsIndexRoute
   AuthenticatedReportsIndexRoute: typeof AuthenticatedReportsIndexRoute
   AuthenticatedScriptsIndexRoute: typeof AuthenticatedScriptsIndexRoute
@@ -1005,6 +1025,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedLiveCallsIndexRoute: AuthenticatedLiveCallsIndexRoute,
   AuthenticatedMonitoringIndexRoute: AuthenticatedMonitoringIndexRoute,
   AuthenticatedNotificationsIndexRoute: AuthenticatedNotificationsIndexRoute,
+  AuthenticatedPlansIndexRoute: AuthenticatedPlansIndexRoute,
   AuthenticatedRecordingsIndexRoute: AuthenticatedRecordingsIndexRoute,
   AuthenticatedReportsIndexRoute: AuthenticatedReportsIndexRoute,
   AuthenticatedScriptsIndexRoute: AuthenticatedScriptsIndexRoute,
