@@ -2022,6 +2022,72 @@ export type Database = {
           },
         ]
       }
+      org_subscriptions: {
+        Row: {
+          billing_cycle: string
+          cancel_at_period_end: boolean
+          cancelled_at: string | null
+          created_at: string
+          current_period_end: string | null
+          current_period_start: string | null
+          id: string
+          org_id: string
+          plan_id: string
+          status: string
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
+          trial_ends_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          billing_cycle?: string
+          cancel_at_period_end?: boolean
+          cancelled_at?: string | null
+          created_at?: string
+          current_period_end?: string | null
+          current_period_start?: string | null
+          id?: string
+          org_id: string
+          plan_id: string
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          trial_ends_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          billing_cycle?: string
+          cancel_at_period_end?: boolean
+          cancelled_at?: string | null
+          created_at?: string
+          current_period_end?: string | null
+          current_period_start?: string | null
+          id?: string
+          org_id?: string
+          plan_id?: string
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          trial_ends_at?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "org_subscriptions_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: true
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "org_subscriptions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organizations: {
         Row: {
           audit_retention_days: number
@@ -2679,6 +2745,109 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      subscription_events: {
+        Row: {
+          created_at: string
+          event_type: string
+          from_plan_id: string | null
+          id: string
+          metadata: Json
+          org_id: string
+          to_plan_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          event_type: string
+          from_plan_id?: string | null
+          id?: string
+          metadata?: Json
+          org_id: string
+          to_plan_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          event_type?: string
+          from_plan_id?: string | null
+          id?: string
+          metadata?: Json
+          org_id?: string
+          to_plan_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscription_events_from_plan_id_fkey"
+            columns: ["from_plan_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscription_events_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscription_events_to_plan_id_fkey"
+            columns: ["to_plan_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      subscription_plans: {
+        Row: {
+          active: boolean
+          created_at: string
+          features: Json
+          id: string
+          is_enterprise: boolean
+          is_popular: boolean
+          max_teams: number | null
+          max_users: number | null
+          name: string
+          price_annual: number | null
+          price_monthly: number
+          slug: string
+          sort_order: number
+          storage_gb: number | null
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          features?: Json
+          id?: string
+          is_enterprise?: boolean
+          is_popular?: boolean
+          max_teams?: number | null
+          max_users?: number | null
+          name: string
+          price_annual?: number | null
+          price_monthly: number
+          slug: string
+          sort_order?: number
+          storage_gb?: number | null
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          features?: Json
+          id?: string
+          is_enterprise?: boolean
+          is_popular?: boolean
+          max_teams?: number | null
+          max_users?: number | null
+          name?: string
+          price_annual?: number | null
+          price_monthly?: number
+          slug?: string
+          sort_order?: number
+          storage_gb?: number | null
+        }
+        Relationships: []
       }
       support_ticket_comments: {
         Row: {
