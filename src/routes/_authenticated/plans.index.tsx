@@ -15,6 +15,7 @@ import { useAuth } from "@/lib/auth";
 import { usePlan } from "@/contexts/PlanContext";
 import { UpgradeModal } from "@/components/cc/UpgradeModal";
 import { EnterpriseContactModal } from "@/components/cc/EnterpriseContactModal";
+import { CancelPlanModal, useReactivatePlan } from "@/components/cc/CancelPlanModal";
 import type { SubscriptionPlan } from "@/lib/billing/subscription.functions";
 import type { PlanFeatures, FeatureKey } from "@/lib/billing/gates";
 
@@ -41,12 +42,17 @@ function gbp(n: number | string | null | undefined) {
 function PlansPage() {
   const { atLeast, user } = useAuth();
   const canUpgrade = atLeast("ops_admin");
-  const { plan: currentPlan, subscription } = usePlan();
+  const { plan: currentPlan, subscription, cancelAtPeriodEnd, currentPeriodEnd } = usePlan();
   const [cycle, setCycle] = useState<"monthly" | "annual">(
     subscription.billing_cycle === "annual" ? "annual" : "monthly",
   );
   const [upgradeTarget, setUpgradeTarget] = useState<SubscriptionPlan | null>(null);
   const [contactOpen, setContactOpen] = useState(false);
+  const [cancelOpen, setCancelOpen] = useState(false);
+  const reactivate = useReactivatePlan();
+  const cancelsOnLabel = currentPeriodEnd
+    ? new Date(currentPeriodEnd).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })
+    : "";
 
   const plansQ = useQuery({
     queryKey: ["subscription-plans"],
@@ -102,9 +108,14 @@ function PlansPage() {
                     <Sparkles className="size-3" /> Popular
                   </span>
                 )}
-                {isCurrent && (
+                {isCurrent && !cancelAtPeriodEnd && (
                   <span className="rounded-full bg-emerald-100 dark:bg-emerald-900/40 px-2 py-0.5 text-xs font-medium text-emerald-700 dark:text-emerald-300">
                     Current
+                  </span>
+                )}
+                {isCurrent && cancelAtPeriodEnd && (
+                  <span className="rounded-full bg-amber-100 dark:bg-amber-900/40 px-2 py-0.5 text-xs font-medium text-amber-700 dark:text-amber-300">
+                    Cancels on {cancelsOnLabel}
                   </span>
                 )}
               </div>
@@ -142,7 +153,17 @@ function PlansPage() {
 
               <div className="mt-5">
                 {isCurrent ? (
-                  <Button variant="outline" disabled className="w-full">Current plan</Button>
+                  cancelAtPeriodEnd ? (
+                    <Button
+                      onClick={() => reactivate.mutate()}
+                      disabled={!canUpgrade || reactivate.isPending}
+                      className="w-full bg-[color:var(--cc-brand-600)] hover:bg-[color:var(--cc-brand-700)] text-white"
+                    >
+                      {reactivate.isPending ? "Reactivating…" : "Reactivate plan"}
+                    </Button>
+                  ) : (
+                    <Button variant="outline" disabled className="w-full">Current plan</Button>
+                  )
                 ) : plan.is_enterprise ? (
                   <Button
                     onClick={() => setContactOpen(true)}
@@ -174,6 +195,20 @@ function PlansPage() {
           );
         })}
       </div>
+
+      {canUpgrade && !cancelAtPeriodEnd && subscription.status !== "trial" && (
+        <div className="pt-2">
+          <button
+            type="button"
+            onClick={() => setCancelOpen(true)}
+            className="text-sm text-muted-foreground underline underline-offset-2 hover:text-foreground"
+          >
+            Cancel plan
+          </button>
+        </div>
+      )}
+
+      <CancelPlanModal open={cancelOpen} onOpenChange={setCancelOpen} />
 
       {upgradeTarget && (
         <UpgradeModal
