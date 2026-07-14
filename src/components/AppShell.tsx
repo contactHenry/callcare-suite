@@ -8,7 +8,7 @@ import {
   AudioLines, Radio, Settings2, ListChecks, BookOpenText, Gauge, LineChart,
   Bell, AlertOctagon, FileBarChart2, Plug, KeyRound, ShieldAlert,
   Users as UsersIcon, Target, CalendarCheck2, Cog, ChevronDown,
-  MailOpen, Check, LifeBuoy,
+  MailOpen, Check, LifeBuoy, Lock, CreditCard,
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { useMemo, useState } from "react";
@@ -29,6 +29,10 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { PersistentCallBar } from "@/components/PersistentCallBar";
+import { usePlan } from "@/contexts/PlanContext";
+import { TrialBanner } from "@/components/cc/TrialBanner";
+import type { FeatureKey } from "@/lib/billing/gates";
+import { getMinPlanForFeature } from "@/lib/billing/gates";
 
 const ROLE_LABEL: Record<string, string> = {
   agent: "Agent",
@@ -46,6 +50,11 @@ export function AppShell({ children }: { children: ReactNode }) {
   const canSupervisor = atLeast("supervisor");
   const canOpsAdmin = atLeast("ops_admin");
   const canSuperAdmin = atLeast("super_admin");
+  const { can, subscription, daysLeftInTrial, isTrialExpired } = usePlan();
+  const hardLocked = isTrialExpired;
+  const billingBadge =
+    subscription.status === "past_due" ||
+    (subscription.status === "trial" && daysLeftInTrial !== null && daysLeftInTrial <= 7);
 
   // Highest-ranked role label (e.g. shows "Super Admin", not "Agent")
   const ROLE_RANK = ["super_admin", "ops_admin", "supervisor", "team_leader", "agent"];
@@ -57,7 +66,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   // so we never advertise functionality a role shouldn't know exists.
   const sections: {
     label: string;
-    items: { to: string; label: string; icon: typeof PhoneCall; show: boolean }[];
+    items: { to: string; label: string; icon: typeof PhoneCall; show: boolean; feature?: FeatureKey; badge?: boolean }[];
   }[] = useMemo(() => [
       {
         label: "Operations",
@@ -65,11 +74,11 @@ export function AppShell({ children }: { children: ReactNode }) {
           { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard, show: true },
           { to: "/clients", label: "Clients", icon: ContactRound, show: true },
           { to: "/calls", label: "Calls", icon: PhoneCall, show: true },
-          { to: "/live-calls", label: "Live Calls", icon: Radio, show: canTeamLead },
-          { to: "/recordings", label: "Call Recordings", icon: AudioLines, show: canTeamLead },
+          { to: "/live-calls", label: "Live Calls", icon: Radio, show: canTeamLead, feature: "live_monitoring" },
+          { to: "/recordings", label: "Call Recordings", icon: AudioLines, show: canTeamLead, feature: "call_recording_review" },
           { to: "/follow-ups", label: "Follow-Ups", icon: CalendarCheck2, show: true },
           { to: "/tasks", label: "Tasks", icon: ListChecks, show: true },
-          { to: "/campaigns", label: "Campaigns", icon: Target, show: canSupervisor },
+          { to: "/campaigns", label: "Campaigns", icon: Target, show: canSupervisor, feature: "campaign_management" },
           { to: "/scripts", label: "Call Scripts", icon: BookOpenText, show: true },
         ],
       },
@@ -78,14 +87,14 @@ export function AppShell({ children }: { children: ReactNode }) {
         items: [
           { to: "/teams", label: "Teams", icon: UsersIcon, show: canTeamLead },
           { to: "/staff", label: "Staff", icon: UserRoundCog, show: canOpsAdmin },
-          { to: "/qa/reviews", label: "Quality Assurance", icon: ClipboardCheck, show: canTeamLead },
+          { to: "/qa/reviews", label: "Quality Assurance", icon: ClipboardCheck, show: canTeamLead, feature: "qa_scorecards" },
           { to: "/complaints", label: "Complaints", icon: AlertOctagon, show: true },
         ],
       },
       {
         label: "Insights",
         items: [
-          { to: "/reports", label: "Reports", icon: FileBarChart2, show: true },
+          { to: "/reports", label: "Reports", icon: FileBarChart2, show: true, feature: "advanced_reporting" },
           { to: "/notifications", label: "Notifications", icon: Bell, show: true },
         ],
       },
@@ -93,8 +102,8 @@ export function AppShell({ children }: { children: ReactNode }) {
         label: "Compliance & Audit",
         items: [
           { to: "/compliance", label: "Compliance", icon: ShieldAlert, show: canOpsAdmin },
-          { to: "/security/audit", label: "Audit Logs", icon: ScrollText, show: canOpsAdmin },
-          { to: "/integrations", label: "Integrations", icon: Plug, show: canOpsAdmin },
+          { to: "/security/audit", label: "Audit Logs", icon: ScrollText, show: canOpsAdmin, feature: "audit_logs" },
+          { to: "/integrations", label: "Integrations", icon: Plug, show: canOpsAdmin, feature: "crm_integrations" },
         ],
       },
       {
@@ -103,10 +112,12 @@ export function AppShell({ children }: { children: ReactNode }) {
           { to: "/admin/roles", label: "Roles & Access", icon: ShieldCheck, show: canOpsAdmin },
           { to: "/admin/permissions", label: "Permission Matrix", icon: KeyRound, show: canSuperAdmin },
           { to: "/support", label: "Support", icon: LifeBuoy, show: true },
+          { to: "/plans", label: "Plans & Billing", icon: CreditCard, show: canOpsAdmin, badge: billingBadge },
           { to: "/settings", label: "Settings", icon: Cog, show: true },
         ],
       },
-    ].map((s) => ({ ...s, items: s.items.filter((i) => i.show) })).filter((s) => s.items.length > 0), [canTeamLead, canSupervisor, canOpsAdmin, canSuperAdmin]);
+    ].map((s) => ({ ...s, items: s.items.filter((i) => i.show) })).filter((s) => s.items.length > 0),
+    [canTeamLead, canSupervisor, canOpsAdmin, canSuperAdmin, billingBadge]);
   // Keep references to icons used elsewhere in the module so tree-shakers don't
   // complain in dev builds. (No runtime cost.)
   void UsersRound; void Settings2; void Gauge; void LineChart; void ShieldCheck; void KeyRound;
