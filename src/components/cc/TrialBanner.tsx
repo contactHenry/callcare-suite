@@ -10,6 +10,7 @@ function resolveState(args: {
   daysLeftInTrial: number | null;
   isTrialExpired: boolean;
   isCancelled: boolean;
+  cancelAtPeriodEnd: boolean;
   currentPeriodEnd: string | null;
 }): BannerState | null {
   if (args.isTrialExpired) return "expired";
@@ -17,7 +18,7 @@ function resolveState(args: {
     return "trial-soon";
   }
   if (
-    args.isCancelled &&
+    (args.isCancelled || args.cancelAtPeriodEnd) &&
     args.currentPeriodEnd &&
     new Date(args.currentPeriodEnd).getTime() > Date.now()
   ) {
@@ -32,7 +33,7 @@ function resolveState(args: {
  * subscription is healthy.
  */
 export function TrialBanner() {
-  const { plan, subscription, daysLeftInTrial, isTrialExpired, isCancelled, currentPeriodEnd } = usePlan();
+  const { plan, subscription, daysLeftInTrial, isTrialExpired, isCancelled, cancelAtPeriodEnd, currentPeriodEnd } = usePlan();
   const [dismissed, setDismissed] = useState(false);
 
   const state = resolveState({
@@ -40,6 +41,7 @@ export function TrialBanner() {
     daysLeftInTrial,
     isTrialExpired,
     isCancelled,
+    cancelAtPeriodEnd,
     currentPeriodEnd,
   });
   if (!state) return null;
