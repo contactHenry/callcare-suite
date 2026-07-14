@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { Database } from "@/integrations/supabase/types";
 import { z } from "zod";
+import { assertOpsAdmin as sharedAssertOpsAdmin } from "./authorization";
 
 export type SubscriptionPlan = Database["public"]["Tables"]["subscription_plans"]["Row"];
 export type OrgSubscription = Database["public"]["Tables"]["org_subscriptions"]["Row"];
@@ -108,10 +109,7 @@ export const getOrgSubscription = createServerFn({ method: "GET" })
 const DAY = 24 * 60 * 60 * 1000;
 
 async function assertOpsAdmin(context: { supabase: any; userId: string }) {
-  const { supabase, userId } = context;
-  const { data: ops } = await supabase.rpc("has_role", { _user_id: userId, _role: "ops_admin" });
-  const { data: sup } = await supabase.rpc("has_role", { _user_id: userId, _role: "super_admin" });
-  if (!ops && !sup) throw new Error("Only administrators can change the plan.");
+  await sharedAssertOpsAdmin(context.supabase, context.userId);
 }
 
 async function resolveOrgId(context: { supabase: any; userId: string }) {
