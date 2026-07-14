@@ -64,10 +64,9 @@ export function AppShell({ children }: { children: ReactNode }) {
   // PRD Section 21 navigation — exact item order, grouped into four logical
   // sections. Items the current role cannot access are hidden (not disabled)
   // so we never advertise functionality a role shouldn't know exists.
-  const sections: {
-    label: string;
-    items: { to: string; label: string; icon: typeof PhoneCall; show: boolean; feature?: FeatureKey; badge?: boolean }[];
-  }[] = useMemo(() => [
+  type NavItem = { to: string; label: string; icon: typeof PhoneCall; show: boolean; feature?: FeatureKey; badge?: boolean };
+  type NavSection = { label: string; items: NavItem[] };
+  const sections: NavSection[] = useMemo(() => ([
       {
         label: "Operations",
         items: [
@@ -116,7 +115,9 @@ export function AppShell({ children }: { children: ReactNode }) {
           { to: "/settings", label: "Settings", icon: Cog, show: true },
         ],
       },
-    ].map((s) => ({ ...s, items: s.items.filter((i) => i.show) })).filter((s) => s.items.length > 0),
+    ] satisfies NavSection[])
+      .map((s) => ({ ...s, items: s.items.filter((i) => i.show) }))
+      .filter((s) => s.items.length > 0),
     [canTeamLead, canSupervisor, canOpsAdmin, canSuperAdmin, billingBadge]);
   // Keep references to icons used elsewhere in the module so tree-shakers don't
   // complain in dev builds. (No runtime cost.)
