@@ -3,6 +3,7 @@ import { AppShell } from "@/components/AppShell";
 import { useIdleLogout } from "@/hooks/use-idle-logout";
 import { useAuth } from "@/lib/auth";
 import { useEffect } from "react";
+import { PlanProvider } from "@/contexts/PlanContext";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
@@ -23,8 +24,10 @@ function AuthenticatedLayout() {
   // their queries fire without a bearer and 401 before the redirect lands.
   if (loading || !user) return null;
   return (
-    <AppShell>
-      <Outlet />
-    </AppShell>
+    <PlanProvider userId={user.id}>
+      <AppShell>
+        <Outlet />
+      </AppShell>
+    </PlanProvider>
   );
 }
