@@ -18,6 +18,7 @@ import { EnterpriseContactModal } from "@/components/cc/EnterpriseContactModal";
 import { CancelPlanModal, useReactivatePlan } from "@/components/cc/CancelPlanModal";
 import type { SubscriptionPlan } from "@/lib/billing/subscription.functions";
 import type { PlanFeatures, FeatureKey } from "@/lib/billing/gates";
+import { UPGRADE_DISABLED_TOOLTIP } from "@/lib/billing/authorization";
 
 export const Route = createFileRoute("/_authenticated/plans/")({
   component: PlansPage,
@@ -185,7 +186,7 @@ function PlansPage() {
                         </span>
                       </TooltipTrigger>
                       {!canUpgrade && (
-                        <TooltipContent>Contact your administrator to upgrade.</TooltipContent>
+                        <TooltipContent>{UPGRADE_DISABLED_TOOLTIP}</TooltipContent>
                       )}
                     </Tooltip>
                   </TooltipProvider>
