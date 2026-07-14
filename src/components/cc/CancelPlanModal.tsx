@@ -76,7 +76,7 @@ export function CancelPlanModal({ open, onOpenChange }: CancelPlanModalProps) {
         supabase.from("profiles").select("id", { count: "exact", head: true })
           .eq("organization_id", subscription.org_id),
         supabase.from("calls").select("id", { count: "exact", head: true })
-          .not("recording_url", "is", null),
+          .not("recording_path", "is", null),
         supabase.from("campaigns").select("id", { count: "exact", head: true }),
       ]);
       return {
