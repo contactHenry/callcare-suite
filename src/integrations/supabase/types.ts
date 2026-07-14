@@ -3535,6 +3535,7 @@ export type Database = {
     }
     Functions: {
       current_user_org: { Args: never; Returns: string }
+      expire_cancelled_subscriptions: { Args: never; Returns: number }
       has_permission: {
         Args: { _permission: string; _user_id: string }
         Returns: boolean
