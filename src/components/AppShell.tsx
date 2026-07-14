@@ -147,24 +147,61 @@ export function AppShell({ children }: { children: ReactNode }) {
                 {section.items.map((n) => {
                   const active = pathname === n.to || pathname.startsWith(n.to + "/");
                   const Icon = n.icon;
+                  const planLocked = !!n.feature && !can(n.feature);
+                  const muted = hardLocked && n.to !== "/plans" && n.to !== "/settings" && n.to !== "/support";
+                  const rowClass = cn(
+                    "group relative flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors justify-center lg:justify-start",
+                    active
+                      ? "bg-[color:var(--cc-brand-600)]/10 text-[color:var(--cc-brand-700,var(--cc-brand-600))] font-medium"
+                      : "text-muted-foreground hover:bg-accent/60 hover:text-foreground",
+                    (planLocked || muted) && "opacity-50",
+                  );
+                  const iconEl = (
+                    <span className="relative inline-flex shrink-0">
+                      <Icon
+                        className={cn("size-[18px] transition-colors", active ? "text-[color:var(--cc-brand-600)]" : "text-muted-foreground group-hover:text-foreground")}
+                        strokeWidth={active ? 2.25 : 1.85}
+                      />
+                      {planLocked && (
+                        <Lock
+                          className="absolute -bottom-1 -right-1 size-2.5 rounded-full bg-background p-[1px] text-muted-foreground"
+                          strokeWidth={2.5}
+                          aria-hidden
+                        />
+                      )}
+                    </span>
+                  );
+                  const labelEl = (
+                    <span className="truncate hidden lg:inline">
+                      {n.label}
+                      {n.badge && (
+                        <span className="ml-2 inline-block size-1.5 rounded-full bg-amber-500 align-middle" aria-hidden />
+                      )}
+                    </span>
+                  );
+                  if (planLocked) {
+                    return (
+                      <a
+                        key={n.to}
+                        href={`/plans#${n.feature}`}
+                        title={`Available on ${getMinPlanForFeature(n.feature!)} and above.`}
+                        className={rowClass}
+                      >
+                        {iconEl}
+                        {labelEl}
+                      </a>
+                    );
+                  }
                   return (
                     <Link
                       key={n.to}
                       to={n.to}
                       preload={false}
                       title={n.label}
-                      className={cn(
-                        "group flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors justify-center lg:justify-start",
-                        active
-                          ? "bg-[color:var(--cc-brand-600)]/10 text-[color:var(--cc-brand-700,var(--cc-brand-600))] font-medium"
-                          : "text-muted-foreground hover:bg-accent/60 hover:text-foreground",
-                      )}
+                      className={rowClass}
                     >
-                      <Icon
-                        className={cn("size-[18px] shrink-0 transition-colors", active ? "text-[color:var(--cc-brand-600)]" : "text-muted-foreground group-hover:text-foreground")}
-                        strokeWidth={active ? 2.25 : 1.85}
-                      />
-                      <span className="truncate hidden lg:inline">{n.label}</span>
+                      {iconEl}
+                      {labelEl}
                     </Link>
                   );
                 })}
