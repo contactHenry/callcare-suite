@@ -245,3 +245,99 @@ export const submitEnterpriseEnquiry = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true as const };
   });
+
+/**
+ * Cancel the org's plan at the end of the current billing period.
+ * Requires ops_admin or super_admin. Does NOT revoke access — that happens
+ * when a scheduled job flips status to 'cancelled' after current_period_end.
+ */
+export const cancelPlan = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) =>
+    z.object({
+      reason: z.string().max(200).optional(),
+      feedback: z.string().max(2000).optional(),
+    }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const ctx = context as { supabase: any; userId: string };
+    await assertOpsAdmin(ctx);
+    const orgId = await resolveOrgId(ctx);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    const { data: existing } = await supabaseAdmin
+      .from("org_subscriptions")
+      .select("*")
+      .eq("org_id", orgId)
+      .maybeSingle();
+    if (!existing) throw new Error("No active subscription to cancel.");
+
+    const now = new Date();
+    const { data: updated, error: uerr } = await supabaseAdmin
+      .from("org_subscriptions")
+      .update({
+        cancel_at_period_end: true,
+        cancelled_at: now.toISOString(),
+        updated_at: now.toISOString(),
+      })
+      .eq("org_id", orgId)
+      .select("*")
+      .single();
+    if (uerr) throw new Error(uerr.message);
+
+    await supabaseAdmin.from("subscription_events").insert({
+      org_id: orgId,
+      event_type: "plan_cancelled",
+      from_plan_id: existing.plan_id,
+      to_plan_id: null,
+      metadata: {
+        reason: data.reason ?? null,
+        feedback: data.feedback ?? null,
+        cancels_at: existing.current_period_end,
+        actor_id: ctx.userId,
+      },
+    });
+
+    return { ok: true as const, accessUntil: updated.current_period_end };
+  });
+
+/**
+ * Reactivate a subscription that was scheduled to cancel at period end.
+ */
+export const reactivatePlan = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const ctx = context as { supabase: any; userId: string };
+    await assertOpsAdmin(ctx);
+    const orgId = await resolveOrgId(ctx);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    const { data: existing } = await supabaseAdmin
+      .from("org_subscriptions")
+      .select("*")
+      .eq("org_id", orgId)
+      .maybeSingle();
+    if (!existing) throw new Error("No subscription found.");
+
+    const now = new Date();
+    const { error: uerr } = await supabaseAdmin
+      .from("org_subscriptions")
+      .update({
+        cancel_at_period_end: false,
+        cancelled_at: null,
+        status: existing.status === "cancelled" ? "active" : existing.status,
+        updated_at: now.toISOString(),
+      })
+      .eq("org_id", orgId);
+    if (uerr) throw new Error(uerr.message);
+
+    await supabaseAdmin.from("subscription_events").insert({
+      org_id: orgId,
+      event_type: "plan_reactivated",
+      from_plan_id: existing.plan_id,
+      to_plan_id: existing.plan_id,
+      metadata: { actor_id: ctx.userId },
+    });
+
+    return { ok: true as const };
+  });
